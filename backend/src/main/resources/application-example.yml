@@ -1,0 +1,8 @@
+# Copy values into a local .env or export them before running.
+# Never commit real secrets.
+
+# MONGODB_URI: mongodb+srv://USER:PASS@cluster.mongodb.net/weworktogether?retryWrites=true&w=majority
+# JWT_SECRET: generate a long random 32+ character string
+# SUPERADMIN_EMAIL: you@example.com
+# SUPERADMIN_PASSWORD: a strong password
+# SMTP_HOST / SMTP_PORT / SMTP_USERNAME / SMTP_PASSWORD: optional until email is needed

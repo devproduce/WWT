@@ -1,0 +1,22 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.ci
+    environment:
+      MONGODB_URI: ${MONGODB_URI}
+      JWT_SECRET: ${JWT_SECRET:-change-me-to-a-256-bit-secret-key-please-use-32b!!}
+      SUPERADMIN_EMAIL: ${SUPERADMIN_EMAIL:-superadmin@weworktogether.local}
+      SUPERADMIN_PASSWORD: ${SUPERADMIN_PASSWORD:-ChangeMe_Admin1!}
+      CORS_ORIGINS: http://localhost:8088
+      FRONTEND_URL: http://localhost:8088
+    ports:
+      - "8080:8080"
+
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "8088:80"
+    depends_on:
+      - backend
