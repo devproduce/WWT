@@ -114,6 +114,7 @@ export interface TaskItem {
   updatedAt: string
   completedAt: string | null
   allowedTransitions: TaskStatus[]
+  canReview: boolean
 }
 
 export interface CommentItem {

@@ -1,18 +1,23 @@
 import { cn } from '@/lib/utils'
 
 const styles: Record<string, string> = {
-  teal: 'bg-teal-50 text-teal-800',
-  slate: 'bg-slate-100 text-slate-700',
-  amber: 'bg-amber-50 text-amber-800',
-  red: 'bg-red-50 text-red-700',
-  green: 'bg-emerald-50 text-emerald-800',
-  blue: 'bg-sky-50 text-sky-800',
-  purple: 'bg-violet-50 text-violet-800',
+  teal: 'bg-teal-100/90 text-teal-900',
+  slate: 'bg-stone-100 text-stone-700',
+  amber: 'bg-amber-100 text-amber-900',
+  red: 'bg-rose-100 text-rose-800',
+  green: 'bg-emerald-100 text-emerald-900',
+  blue: 'bg-sky-100 text-sky-900',
+  purple: 'bg-violet-100 text-violet-900',
 }
 
 export function Badge({ children, tone = 'slate' }: { children: string; tone?: keyof typeof styles }) {
   return (
-    <span className={cn('inline-flex rounded-full px-2 py-0.5 text-xs font-medium', styles[tone] ?? styles.slate)}>
+    <span
+      className={cn(
+        'inline-flex rounded-full px-2.5 py-0.5 font-mono text-[10px] font-medium tracking-wider uppercase',
+        styles[tone] ?? styles.slate,
+      )}
+    >
       {children}
     </span>
   )
@@ -23,5 +28,7 @@ export function statusTone(status: string) {
   if (status === 'REVIEW' || status === 'PLANNED') return 'blue' as const
   if (status === 'BLOCKED' || status === 'DISABLED' || status === 'URGENT') return 'red' as const
   if (status === 'IN_PROGRESS' || status === 'HIGH' || status === 'ON_HOLD') return 'amber' as const
+  if (status === 'TODO' || status === 'PENDING_SETUP' || status === 'LOW') return 'slate' as const
+  if (status === 'MEDIUM') return 'teal' as const
   return 'slate' as const
 }

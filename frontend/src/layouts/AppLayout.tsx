@@ -5,7 +5,8 @@ import { useAuth } from '@/features/auth/AuthContext'
 import { api } from '@/services/api'
 import type { NotificationItem } from '@/types'
 import { Button } from '@/components/ui/button'
-import { formatDate } from '@/lib/utils'
+import { formatDate, greetingFor } from '@/lib/utils'
+import { WwtMark } from '@/components/WwtMark'
 import { useState } from 'react'
 
 export function AppLayout() {
@@ -25,88 +26,125 @@ export function AppLayout() {
 
   if (!user) return null
 
-  const links = navFor(user.role, user.managedProjectIds.length > 0)
+  const isPm = user.managedProjectIds.length > 0
+  const links = navFor(user.role, isPm)
+  const roleLabel =
+    user.role === 'SUPER_ADMIN'
+      ? 'Platform owner'
+      : user.role === 'ADMIN'
+        ? 'Organization admin'
+        : isPm
+          ? 'Project manager'
+          : 'Member'
 
   return (
-    <div className="flex min-h-screen">
-      <aside className="flex w-64 flex-col bg-slate-950 text-slate-200">
-        <div className="px-5 py-6">
-          <div className="text-lg font-semibold tracking-tight text-white">WeWorkTogether</div>
-          <div className="text-xs text-slate-400">Work together, stay aligned</div>
-        </div>
-        <nav className="flex-1 space-y-1 px-3">
-          {links.map((link) => (
-            <NavLink
-              key={link.to}
-              to={link.to}
-              className={({ isActive }) =>
-                `flex items-center gap-2 rounded-lg px-3 py-2 text-sm ${isActive ? 'bg-teal-700 text-white' : 'hover:bg-slate-800'}`
-              }
-            >
-              {link.icon}
-              {link.label}
-            </NavLink>
-          ))}
-        </nav>
-        <div className="border-t border-slate-800 p-4 text-sm">
-          <div className="font-medium text-white">
-            {user.firstName} {user.lastName}
-          </div>
-          <div className="text-xs text-slate-400">{user.email}</div>
-          <div className="mt-1 text-xs uppercase tracking-wide text-teal-400">{user.role.replace('_', ' ')}</div>
-          <Button
-            variant="ghost"
-            className="mt-3 w-full justify-start text-slate-300 hover:bg-slate-800 hover:text-white"
-            onClick={async () => {
-              await logout()
-              navigate('/login')
-            }}
-          >
-            <LogOut className="h-4 w-4" /> Sign out
-          </Button>
-        </div>
-      </aside>
-      <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-3">
-          <div className="text-sm text-slate-500">{user.organizationName ?? 'Platform console'}</div>
-          <div className="relative">
-            <button
-              type="button"
-              className="relative rounded-lg p-2 hover:bg-slate-100"
-              onClick={() => setOpen((v) => !v)}
-            >
-              <Bell className="h-5 w-5 text-slate-600" />
-              {(notifications.data?.unreadCount ?? 0) > 0 && (
-                <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-red-500" />
-              )}
-            </button>
-            {open && (
-              <div className="absolute right-0 z-20 mt-2 w-80 rounded-xl border border-slate-200 bg-white p-2 shadow-lg">
-                <div className="mb-2 flex items-center justify-between px-2">
-                  <span className="text-sm font-medium">Notifications</span>
-                  <button className="text-xs text-teal-700" onClick={() => markAll.mutate()} type="button">
-                    Mark all read
-                  </button>
-                </div>
-                <div className="max-h-80 overflow-auto">
-                  {(notifications.data?.items ?? []).length === 0 && (
-                    <div className="px-2 py-6 text-center text-sm text-slate-500">No notifications yet</div>
-                  )}
-                  {(notifications.data?.items ?? []).map((item) => (
-                    <div key={item.id} className={`rounded-lg px-2 py-2 text-sm ${item.read ? 'text-slate-500' : 'bg-teal-50'}`}>
-                      <div className="font-medium text-slate-800">{item.title}</div>
-                      <div>{item.message}</div>
-                      <div className="text-xs text-slate-400">{formatDate(item.createdAt)}</div>
-                    </div>
-                  ))}
-                </div>
+    <div className="app-canvas relative h-screen overflow-hidden p-3">
+      <div className="app-orb pointer-events-none absolute -top-24 left-10 h-72 w-72 rounded-full bg-teal-300/30 blur-3xl" />
+      <div className="app-orb pointer-events-none absolute top-1/3 -right-16 h-80 w-80 rounded-full bg-amber-200/25 blur-3xl" style={{ animationDelay: '4s' }} />
+      <div className="relative z-10 flex h-full gap-3">
+        <aside className="flex h-full w-64 shrink-0 flex-col rounded-[28px] bg-[#0f3d38] text-teal-50 shadow-[0_24px_60px_rgb(15_61_56_/_0.28)]">
+          <div className="px-5 py-6">
+            <div className="flex items-center gap-2.5">
+              <WwtMark />
+              <div>
+                <div className="text-sm font-semibold tracking-[0.22em] text-white">WWT</div>
+                <div className="text-[11px] text-teal-200/70">Work together, stay aligned</div>
               </div>
-            )}
+            </div>
           </div>
-        </header>
-        <main className="flex-1 p-6">
-          <Outlet />
-        </main>
+          <nav className="flex-1 space-y-1 px-3">
+            {links.map((link) => (
+              <NavLink
+                key={link.to}
+                to={link.to}
+                end={link.to === '/app'}
+                className={({ isActive }) =>
+                  `app-nav-pill flex items-center gap-2.5 rounded-full px-3.5 py-2.5 text-sm ${
+                    isActive
+                      ? 'bg-teal-300 text-teal-950 shadow-[0_10px_24px_rgb(45_212_191_/_0.28)]'
+                      : 'text-teal-100/75 hover:bg-white/8 hover:text-white'
+                  }`
+                }
+              >
+                {link.icon}
+                {link.label}
+              </NavLink>
+            ))}
+          </nav>
+          <div className="m-3 rounded-3xl border border-white/8 bg-white/5 p-4 text-sm">
+            <div className="font-medium text-white">
+              {user.firstName} {user.lastName}
+            </div>
+            <div className="truncate text-xs text-teal-200/60">{user.email}</div>
+            <div className="mt-2 inline-flex rounded-full bg-teal-300/15 px-2.5 py-0.5 font-mono text-[10px] tracking-[0.18em] text-teal-200 uppercase">
+              {roleLabel}
+            </div>
+            <Button
+              variant="ghost"
+              className="mt-3 w-full justify-start text-teal-100/80 hover:bg-white/8 hover:text-white"
+              onClick={async () => {
+                await logout()
+                navigate('/login')
+              }}
+            >
+              <LogOut className="h-4 w-4" /> Sign out
+            </Button>
+          </div>
+        </aside>
+        <div className="min-h-0 min-w-0 flex-1 overflow-y-auto rounded-[28px] border border-white/50 bg-white/45 shadow-[0_24px_60px_rgb(15_61_56_/_0.08)] backdrop-blur-xl">
+          <header className="flex items-center justify-between gap-4 px-6 py-4">
+            <div>
+              <div className="text-lg font-semibold tracking-tight text-teal-950">
+                {greetingFor(user.firstName)}
+              </div>
+              <div className="font-serif text-sm italic text-teal-900/55">
+                {user.organizationName ?? 'Platform console'}
+              </div>
+            </div>
+            <div className="relative">
+              <button
+                type="button"
+                className="relative rounded-full border border-teal-900/10 bg-white/70 p-2.5 hover:bg-white"
+                onClick={() => setOpen((v) => !v)}
+              >
+                <Bell className="h-5 w-5 text-teal-800" />
+                {(notifications.data?.unreadCount ?? 0) > 0 && (
+                  <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-rose-500 landing-pulse" />
+                )}
+              </button>
+              {open && (
+                <div className="app-card absolute right-0 z-20 mt-2 w-80 rounded-[24px] p-3 shadow-[0_24px_60px_rgb(15_61_56_/_0.18)]">
+                  <div className="mb-2 flex items-center justify-between px-2">
+                    <span className="text-sm font-medium text-teal-950">Notifications</span>
+                    <button className="text-xs text-teal-700" onClick={() => markAll.mutate()} type="button">
+                      Mark all read
+                    </button>
+                  </div>
+                  <div className="max-h-80 overflow-auto">
+                    {(notifications.data?.items ?? []).length === 0 && (
+                      <div className="px-2 py-6 text-center text-sm text-teal-900/50">No notifications yet</div>
+                    )}
+                    {(notifications.data?.items ?? []).map((item) => (
+                      <div
+                        key={item.id}
+                        className={`rounded-2xl px-3 py-2 text-sm ${item.read ? 'text-teal-900/55' : 'bg-teal-50 text-teal-950'}`}
+                      >
+                        <div className="font-medium">{item.title}</div>
+                        <div>{item.message}</div>
+                        <div className="text-xs text-teal-900/40">{formatDate(item.createdAt)}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </header>
+          <main className="px-6 pb-6">
+            <div className="mx-auto max-w-7xl">
+              <Outlet />
+            </div>
+          </main>
+        </div>
       </div>
     </div>
   )
@@ -126,9 +164,8 @@ function navFor(role: string, isPm: boolean) {
       { to: '/app/projects', label: 'Projects', icon: <FolderKanban className="h-4 w-4" /> },
     ]
   }
-  const links = [
+  return [
     { to: '/app', label: 'My work', icon: <ClipboardList className="h-4 w-4" /> },
     { to: '/app/projects', label: isPm ? 'Projects' : 'My projects', icon: <FolderKanban className="h-4 w-4" /> },
   ]
-  return links
 }

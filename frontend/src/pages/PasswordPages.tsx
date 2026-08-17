@@ -31,7 +31,7 @@ export function SetupPasswordPage() {
         <Field label="New password">
           <Input type="password" minLength={8} value={password} onChange={(e) => setPassword(e.target.value)} required />
         </Field>
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="text-sm text-rose-600">{error}</p>}
         <Button className="w-full">Activate account</Button>
       </form>
     </AuthShell>
@@ -61,7 +61,7 @@ export function ResetPasswordPage() {
         <Field label="New password">
           <Input type="password" minLength={8} value={password} onChange={(e) => setPassword(e.target.value)} required />
         </Field>
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="text-sm text-rose-600">{error}</p>}
         <Button className="w-full">Update password</Button>
       </form>
     </AuthShell>
@@ -81,7 +81,7 @@ export function ForgotPasswordPage() {
   return (
     <AuthShell title="Forgot password" subtitle="If the account exists, we will send a reset link.">
       {sent ? (
-        <p className="text-sm text-slate-600">If that email is registered, a reset link is on its way (or logged in development).</p>
+        <p className="text-sm text-teal-900/65">If that email is registered, a reset link is on its way (or logged in development).</p>
       ) : (
         <form className="space-y-4" onSubmit={onSubmit}>
           <Field label="Email">

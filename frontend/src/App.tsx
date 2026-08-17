@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import { useAuth } from '@/features/auth/AuthContext'
 import { AppLayout } from '@/layouts/AppLayout'
 import { HomePage } from '@/pages/HomePage'
+import { LandingPage } from '@/pages/LandingPage'
 import { LoginPage } from '@/pages/LoginPage'
 import { MembersPage } from '@/pages/MembersPage'
 import { OrganizationDetailPage, SuperAdminOrganizations } from '@/pages/OrganizationsPage'
@@ -14,6 +15,7 @@ import { TaskDetailPage } from '@/pages/TaskDetailPage'
 export default function App() {
   return (
     <Routes>
+      <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<GuestOnly><LoginPage /></GuestOnly>} />
       <Route path="/setup-password" element={<SetupPasswordPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
@@ -34,21 +36,21 @@ export default function App() {
         <Route path="projects/:id" element={<ProjectBoardPage />} />
         <Route path="tasks/:id" element={<TaskDetailPage />} />
       </Route>
-      <Route path="*" element={<Navigate to="/app" replace />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )
 }
 
 function RequireAuth({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth()
-  if (loading) return <div className="p-10 text-center text-slate-500">Loading WeWorkTogether…</div>
+  if (loading) return <div className="grid min-h-screen place-items-center text-sm text-teal-900/50">Loading WeWorkTogether…</div>
   if (!user) return <Navigate to="/login" replace />
   return children
 }
 
 function GuestOnly({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth()
-  if (loading) return <div className="p-10 text-center text-slate-500">Loading…</div>
+  if (loading) return <div className="grid min-h-screen place-items-center text-sm text-teal-900/50">Loading…</div>
   if (user) return <Navigate to="/app" replace />
   return children
 }

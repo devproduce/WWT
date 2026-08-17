@@ -1,13 +1,29 @@
+import { useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
+import {
+  AlertTriangle,
+  Building2,
+  CalendarClock,
+  CheckCircle2,
+  FolderKanban,
+  Users,
+  Zap,
+} from 'lucide-react'
 import { Card, CardTitle } from '@/components/ui/card'
 import { Badge, statusTone } from '@/components/ui/badge'
-import { Stat } from '@/components/Stat'
+import { Button } from '@/components/ui/button'
+import { MetricCard } from '@/components/MetricCard'
+import { StatusStack } from '@/components/StatusStack'
+import { QuotaMeter } from '@/components/QuotaMeter'
+import { PageHeader } from '@/components/PageHeader'
+import { EmptyState } from '@/components/EmptyState'
+import { RingChart, StatusDonut, Avatar } from '@/components/charts'
+import { STATUS_SEGMENTS } from '@/components/StatusStack'
 import { useAuth } from '@/features/auth/AuthContext'
 import { api } from '@/services/api'
-import { utilization } from '@/lib/utils'
+import { cn, formatDate, formatDay, num, str, utilization } from '@/lib/utils'
 import type { Dashboard } from '@/types'
-import { SuperAdminOrganizations } from '@/pages/OrganizationsPage'
 import { MemberWork } from '@/pages/MemberWork'
 
 export function HomePage() {
@@ -17,14 +33,16 @@ export function HomePage() {
     queryFn: async () => (await api.get<Dashboard>('/dashboard')).data,
   })
 
-  if (dash.isLoading) return <p>Loading dashboard…</p>
+  if (dash.isLoading) {
+    return <p className="py-16 text-center text-sm text-teal-900/50">Loading dashboard…</p>
+  }
   if (!dash.data) return null
   if (dash.data.organizationDisabled) {
     return (
       <Card>
         <CardTitle>Organization disabled</CardTitle>
-        <p className="mt-2 text-sm text-slate-600">
-          {String(dash.data.metrics.organizationName ?? 'Your organization')} is disabled. Existing data is preserved.
+        <p className="mt-2 text-sm text-teal-900/60">
+          {str(dash.data.metrics.organizationName, 'Your organization')} is disabled. Existing data is preserved.
           Contact the platform owner if you need access restored.
         </p>
       </Card>
@@ -37,56 +55,274 @@ export function HomePage() {
 
 function SuperAdminHome({ data }: { data: Dashboard }) {
   const m = data.metrics
+  const [filter, setFilter] = useState<'ALL' | 'ACTIVE' | 'DISABLED'>('ALL')
+  const orgs = data.items.filter((item) => filter === 'ALL' || str(item.status) === filter)
+  const active = num(m.activeOrganizations)
+  const disabled = num(m.disabledOrganizations)
+  const total = Math.max(num(m.totalOrganizations), 1)
+
   return (
     <div className="space-y-6">
-      <header>
-        <h1 className="text-2xl font-semibold">Platform overview</h1>
-        <p className="text-sm text-slate-500">Aggregate customer usage only. Internal work is never shown here.</p>
-      </header>
-      <div className="grid gap-4 md:grid-cols-4">
-        <Stat label="Organizations" value={m.totalOrganizations} />
-        <Stat label="Active" value={m.activeOrganizations} />
-        <Stat label="Disabled" value={m.disabledOrganizations} />
-        <Stat label="Active members" value={m.aggregateMembers} />
+      <PageHeader
+        eyebrow="Platform"
+        title="Fleet overview"
+        subtitle="Aggregate customer usage only. Internal work is never shown here."
+        actions={
+          <Link to="/app/organizations">
+            <Button>Manage customers</Button>
+          </Link>
+        }
+      />
+      <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
+        <Card className="flex items-center gap-6">
+          <RingChart
+            value={active}
+            max={total}
+            size={120}
+            stroke={12}
+            tone="teal"
+            label={
+              <div>
+                <div className="text-xl font-semibold">{active}</div>
+                <div className="text-[10px] tracking-wide text-teal-800/50 uppercase">Active</div>
+              </div>
+            }
+          />
+          <div className="min-w-0 flex-1">
+            <div className="font-mono text-[11px] tracking-[0.28em] text-teal-700/70 uppercase">Tenant health</div>
+            <p className="mt-1 font-serif text-xl italic text-teal-950">Customers live on the platform</p>
+            <div className="mt-4 space-y-2">
+              <QuotaMeter label="Active" used={active} max={total} />
+              <QuotaMeter label="Disabled" used={disabled} max={total} />
+            </div>
+          </div>
+        </Card>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <MetricCard
+            label="Organizations"
+            value={num(m.totalOrganizations)}
+            icon={<Building2 className="h-5 w-5" />}
+            tone="teal"
+            active={filter === 'ALL'}
+            onClick={() => setFilter('ALL')}
+          />
+          <MetricCard
+            label="Active"
+            value={active}
+            icon={<CheckCircle2 className="h-5 w-5" />}
+            tone="teal"
+            active={filter === 'ACTIVE'}
+            onClick={() => setFilter('ACTIVE')}
+          />
+          <MetricCard
+            label="Disabled"
+            value={disabled}
+            icon={<AlertTriangle className="h-5 w-5" />}
+            tone="coral"
+            active={filter === 'DISABLED'}
+            onClick={() => setFilter('DISABLED')}
+          />
+          <MetricCard
+            label="Active members"
+            value={num(m.aggregateMembers)}
+            hint={`${num(m.aggregateProjects)} live projects`}
+            icon={<Users className="h-5 w-5" />}
+            tone="sky"
+          />
+        </div>
       </div>
-      <SuperAdminOrganizations embedded />
+      <div className="flex items-center justify-between">
+        <CardTitle>Customer fleet</CardTitle>
+        <FilterChips
+          value={filter}
+          onChange={(next) => setFilter(next as typeof filter)}
+          options={[
+            { id: 'ALL', label: 'All' },
+            { id: 'ACTIVE', label: 'Active' },
+            { id: 'DISABLED', label: 'Disabled' },
+          ]}
+        />
+      </div>
+      {orgs.length === 0 ? (
+        <EmptyState title="No customers in this view" description="Create an organization to start the fleet." />
+      ) : (
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {orgs.map((org) => (
+            <Link key={str(org.id)} to={`/app/organizations/${str(org.id)}`}>
+              <Card interactive className="h-full">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <div className="font-semibold text-teal-950">{str(org.name)}</div>
+                    <div className="text-xs text-teal-900/50">{str(org.planName)}</div>
+                  </div>
+                  <Badge tone={statusTone(str(org.status))}>{str(org.status)}</Badge>
+                </div>
+                <div className="mt-5 space-y-3">
+                  <QuotaMeter label="Members" used={num(org.memberCount)} max={num(org.memberLimit)} />
+                  <QuotaMeter label="Projects" used={num(org.projectCount)} max={num(org.projectLimit)} />
+                  <QuotaMeter
+                    label="Storage"
+                    used={num(org.storageUsedBytes)}
+                    max={num(org.storageLimitBytes)}
+                    format="bytes"
+                  />
+                </div>
+              </Card>
+            </Link>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
 
 function AdminHome({ data }: { data: Dashboard }) {
   const m = data.metrics
+  const [statusFilter, setStatusFilter] = useState('ALL')
+  const [focus, setFocus] = useState<'all' | 'overdue' | 'upcoming'>('all')
+  const projects = data.items.filter((item) => statusFilter === 'ALL' || str(item.status) === statusFilter)
+  const deadlines = Array.isArray(m.deadlineTasks) ? (m.deadlineTasks as Record<string, unknown>[]) : []
+  const activity = Array.isArray(m.recentActivity) ? (m.recentActivity as Record<string, unknown>[]) : []
+  const visibleDeadlines = deadlines.filter((item) => focus === 'all' || str(item.kind) === (focus === 'overdue' ? 'overdue' : 'upcoming'))
+  const mix = deliveryMix(m, data.items)
+
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-semibold">{String(m.organizationName)}</h1>
-      <div className="grid gap-4 md:grid-cols-4">
-        <Stat label="Members" value={`${m.memberCount} / ${m.memberLimit}`} hint={`${utilization(Number(m.memberCount), Number(m.memberLimit))}%`} />
-        <Stat label="Projects" value={`${m.projectCount} / ${m.projectLimit}`} hint={`${utilization(Number(m.projectCount), Number(m.projectLimit))}%`} />
-        <Stat label="Overdue tasks" value={m.overdueTasks} />
-        <Stat label="Due this week" value={m.upcomingDeadlines} />
-      </div>
-      <Card>
-        <div className="mb-3 flex items-center justify-between">
-          <CardTitle>Projects</CardTitle>
-          <Link className="text-sm text-teal-700" to="/app/projects">
-            Manage
+      <PageHeader
+        eyebrow="Organization"
+        title={str(m.organizationName)}
+        subtitle="Delivery health, quotas, and the work that needs a decision."
+        actions={
+          <Link to="/app/projects">
+            <Button>Open projects</Button>
           </Link>
-        </div>
-        <div className="space-y-2">
-          {data.items.map((item) => (
-            <Link
-              key={String(item.id)}
-              to={`/app/projects/${item.id}`}
-              className="flex items-center justify-between rounded-lg border border-slate-100 px-3 py-2 hover:bg-slate-50"
-            >
-              <div>
-                <div className="font-medium">{String(item.name)}</div>
-                <div className="text-xs text-slate-500">
-                  {String(item.doneTasks)}/{String(item.totalTasks)} done
+        }
+      />
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <MetricCard
+          label="Members"
+          value={`${num(m.memberCount)} / ${num(m.memberLimit)}`}
+          hint={`${utilization(num(m.memberCount), num(m.memberLimit))}% of plan`}
+          icon={<Users className="h-5 w-5" />}
+          tone="teal"
+          ring={{ value: num(m.memberCount), max: num(m.memberLimit) }}
+        />
+        <MetricCard
+          label="Projects"
+          value={`${num(m.projectCount)} / ${num(m.projectLimit)}`}
+          hint={`${num(m.activeProjects)} active · ${num(m.completedProjects)} done`}
+          icon={<FolderKanban className="h-5 w-5" />}
+          tone="sky"
+          ring={{ value: num(m.projectCount), max: num(m.projectLimit) }}
+        />
+        <MetricCard
+          label="Overdue"
+          value={num(m.overdueTasks)}
+          hint="Needs attention now"
+          icon={<AlertTriangle className="h-5 w-5" />}
+          tone="coral"
+          active={focus === 'overdue'}
+          onClick={() => setFocus(focus === 'overdue' ? 'all' : 'overdue')}
+        />
+        <MetricCard
+          label="Due this week"
+          value={num(m.upcomingDeadlines)}
+          hint="Next seven days"
+          icon={<CalendarClock className="h-5 w-5" />}
+          tone="amber"
+          active={focus === 'upcoming'}
+          onClick={() => setFocus(focus === 'upcoming' ? 'all' : 'upcoming')}
+        />
+      </div>
+      <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
+        <Card>
+          <CardTitle>Delivery mix</CardTitle>
+          <p className="mt-1 text-sm text-teal-900/50">How work is flowing across the organization.</p>
+          <div className="mt-5">
+            <StatusStack counts={mix} />
+          </div>
+        </Card>
+        <Card>
+          <CardTitle>Deadline strip</CardTitle>
+          <div className="mt-4 space-y-2">
+            {visibleDeadlines.length === 0 && (
+              <p className="text-sm text-teal-900/50">No matching deadlines. The calendar is clear.</p>
+            )}
+            {visibleDeadlines.slice(0, 6).map((item) => (
+              <Link
+                key={str(item.id)}
+                to={`/app/tasks/${str(item.id)}`}
+                className="flex items-center justify-between rounded-2xl bg-white/70 px-3 py-2 hover:bg-white"
+              >
+                <div className="min-w-0">
+                  <div className="truncate text-sm font-medium text-teal-950">{str(item.title)}</div>
+                  <div className="text-xs text-teal-900/50">{formatDay(str(item.deadline))}</div>
                 </div>
+                <Badge tone={str(item.kind) === 'overdue' ? 'red' : 'amber'}>{str(item.kind)}</Badge>
+              </Link>
+            ))}
+          </div>
+        </Card>
+      </div>
+      <div className="flex items-center justify-between">
+        <CardTitle>Project portfolio</CardTitle>
+        <FilterChips
+          value={statusFilter}
+          onChange={setStatusFilter}
+          options={[
+            { id: 'ALL', label: 'All' },
+            { id: 'ACTIVE', label: 'Active' },
+            { id: 'ON_HOLD', label: 'On hold' },
+            { id: 'COMPLETED', label: 'Completed' },
+          ]}
+        />
+      </div>
+      {projects.length === 0 ? (
+        <EmptyState title="No projects in this filter" description="Create a project or switch the status chips." />
+      ) : (
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {projects.map((project) => {
+            const done = num(project.doneTasks)
+            const total = num(project.totalTasks)
+            return (
+              <Link key={str(project.id)} to={`/app/projects/${str(project.id)}`}>
+                <Card interactive className="h-full">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <div className="font-semibold text-teal-950">{str(project.name)}</div>
+                      <div className="text-xs text-teal-900/50">
+                        {done}/{total} complete
+                      </div>
+                    </div>
+                    <Badge tone={statusTone(str(project.status))}>{str(project.status)}</Badge>
+                  </div>
+                  <div className="mt-4 flex items-center gap-4">
+                    <RingChart value={done} max={total || 1} size={72} stroke={8} />
+                    <div className="h-2 flex-1 overflow-hidden rounded-full bg-teal-900/8">
+                      <div
+                        className="h-full rounded-full bg-teal-600"
+                        style={{ width: `${utilization(done, total || 1)}%` }}
+                      />
+                    </div>
+                  </div>
+                </Card>
+              </Link>
+            )
+          })}
+        </div>
+      )}
+      <Card>
+        <CardTitle>Recent activity</CardTitle>
+        <div className="mt-4 space-y-3">
+          {activity.length === 0 && <p className="text-sm text-teal-900/50">No activity yet.</p>}
+          {activity.slice(0, 8).map((event) => (
+            <div key={str(event.id)} className="flex gap-3">
+              <Avatar name={str(event.actorName, 'WWT')} size="sm" />
+              <div>
+                <div className="text-sm text-teal-950">{str(event.message)}</div>
+                <div className="text-xs text-teal-900/45">{formatDate(str(event.createdAt))}</div>
               </div>
-              <Badge tone={statusTone(String(item.status))}>{String(item.status)}</Badge>
-            </Link>
+            </div>
           ))}
         </div>
       </Card>
@@ -96,41 +332,241 @@ function AdminHome({ data }: { data: Dashboard }) {
 
 function MemberHome({ data }: { data: Dashboard }) {
   const m = data.metrics
+  const [filter, setFilter] = useState<'ALL' | 'OVERDUE' | 'SOON' | 'REVIEW' | 'PRIORITY'>('ALL')
+  const tasks = data.items as Record<string, unknown>[]
+  const filtered = useMemo(() => {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    return tasks.filter((task) => {
+      const status = str(task.status)
+      const priority = str(task.priority)
+      const deadline = task.deadline ? new Date(str(task.deadline)) : null
+      if (filter === 'OVERDUE') return Boolean(deadline && deadline < today && status !== 'DONE')
+      if (filter === 'SOON') {
+        const soon = new Date(today)
+        soon.setDate(soon.getDate() + 3)
+        return Boolean(deadline && deadline >= today && deadline <= soon && status !== 'DONE')
+      }
+      if (filter === 'REVIEW') return status === 'REVIEW'
+      if (filter === 'PRIORITY') return priority === 'HIGH' || priority === 'URGENT'
+      return true
+    })
+  }, [tasks, filter])
+  const donutSegments = STATUS_SEGMENTS.map((segment) => ({
+    color: segment.color,
+    value: num(m[segment.key]),
+  }))
+  const assigned = num(m.assignedTasks) || 1
+
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-semibold">My work</h1>
-      <div className="grid gap-4 md:grid-cols-4">
-        <Stat label="Assigned" value={m.assignedTasks} />
-        <Stat label="Overdue" value={m.overdue} />
-        <Stat label="Due soon" value={m.dueSoon} />
-        <Stat label="Awaiting review" value={m.awaitingReview} />
-      </div>
-      {Number(m.managedProjects) > 0 && (
-        <Card>
-          <CardTitle>Project manager snapshot</CardTitle>
-          <p className="mt-1 text-sm text-slate-500">{String(m.pmProjectName)}</p>
-          <div className="mt-3 grid grid-cols-5 gap-2 text-center text-sm">
-            <Mini label="To do" value={m.pmTodo} />
-            <Mini label="Doing" value={m.pmInProgress} />
-            <Mini label="Review" value={m.pmReview} />
-            <Mini label="Blocked" value={m.pmBlocked} />
-            <Mini label="Done" value={m.pmDone} />
+      <PageHeader
+        eyebrow="Workspace"
+        title="My work"
+        subtitle="A visual pass over what is assigned to you — and what needs a move."
+      />
+      <div className="grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
+        <Card className="flex flex-col items-center justify-center">
+          <div className="relative">
+            <StatusDonut segments={donutSegments} />
+            <div className="absolute inset-0 grid place-items-center text-center">
+              <div>
+                <div className="text-2xl font-semibold text-teal-950">{num(m.assignedTasks)}</div>
+                <div className="font-mono text-[10px] tracking-[0.2em] text-teal-800/55 uppercase">Assigned</div>
+              </div>
+            </div>
           </div>
-          <Link className="mt-3 inline-block text-sm text-teal-700" to={`/app/projects/${String(m.pmProjectId)}`}>
-            Open Kanban board
-          </Link>
+          <div className="mt-4 w-full">
+            <StatusStack
+              counts={{
+                todo: num(m.todo),
+                inProgress: num(m.inProgress),
+                review: num(m.review),
+                blocked: num(m.blocked),
+                done: num(m.done),
+              }}
+            />
+          </div>
+        </Card>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <MetricCard
+            label="Overdue"
+            value={num(m.overdue)}
+            icon={<AlertTriangle className="h-5 w-5" />}
+            tone="coral"
+            active={filter === 'OVERDUE'}
+            onClick={() => setFilter(filter === 'OVERDUE' ? 'ALL' : 'OVERDUE')}
+            ring={{ value: num(m.overdue), max: assigned }}
+          />
+          <MetricCard
+            label="Due soon"
+            value={num(m.dueSoon)}
+            icon={<CalendarClock className="h-5 w-5" />}
+            tone="amber"
+            active={filter === 'SOON'}
+            onClick={() => setFilter(filter === 'SOON' ? 'ALL' : 'SOON')}
+            ring={{ value: num(m.dueSoon), max: assigned }}
+          />
+          <MetricCard
+            label="Awaiting review"
+            value={num(m.awaitingReview)}
+            icon={<CheckCircle2 className="h-5 w-5" />}
+            tone="violet"
+            active={filter === 'REVIEW'}
+            onClick={() => setFilter(filter === 'REVIEW' ? 'ALL' : 'REVIEW')}
+            ring={{ value: num(m.awaitingReview), max: assigned }}
+          />
+          <MetricCard
+            label="High priority"
+            value={num(m.highPriority)}
+            icon={<Zap className="h-5 w-5" />}
+            tone="sky"
+            active={filter === 'PRIORITY'}
+            onClick={() => setFilter(filter === 'PRIORITY' ? 'ALL' : 'PRIORITY')}
+            ring={{ value: num(m.highPriority), max: assigned }}
+          />
+        </div>
+      </div>
+      {num(m.managedProjects) > 0 && (
+        <Card className="border-teal-700/15 bg-gradient-to-br from-teal-50/90 to-white/70">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <div className="font-mono text-[11px] tracking-[0.28em] text-teal-700/70 uppercase">Project manager</div>
+              <CardTitle className="mt-1">{str(m.pmProjectName)}</CardTitle>
+              <p className="mt-1 text-sm text-teal-900/50">Pipeline across the board you own.</p>
+            </div>
+            <Link to={`/app/projects/${str(m.pmProjectId)}`}>
+              <Button>Open Kanban</Button>
+            </Link>
+          </div>
+          <div className="mt-5">
+            <StatusStack
+              counts={{
+                todo: num(m.pmTodo),
+                inProgress: num(m.pmInProgress),
+                review: num(m.pmReview),
+                blocked: num(m.pmBlocked),
+                done: num(m.pmDone),
+              }}
+            />
+          </div>
         </Card>
       )}
-      <MemberWork />
+      <Card>
+        <CardTitle>Due timeline</CardTitle>
+        <DueRail tasks={tasks} />
+      </Card>
+      <MemberWork
+        tasks={filtered.map((task) => ({
+          id: str(task.id),
+          title: str(task.title),
+          status: str(task.status) as never,
+          priority: str(task.priority) as never,
+          deadline: task.deadline ? str(task.deadline) : null,
+          projectId: str(task.projectId),
+        }))}
+      />
+      {Array.isArray(m.recentActivity) && (m.recentActivity as Record<string, unknown>[]).length > 0 && (
+        <Card>
+          <CardTitle>Recent activity</CardTitle>
+          <div className="mt-4 space-y-3">
+            {(m.recentActivity as Record<string, unknown>[]).slice(0, 6).map((event) => (
+              <div key={str(event.id)} className="flex gap-3">
+                <Avatar name={str(event.actorName, 'WWT')} size="sm" />
+                <div>
+                  <div className="text-sm text-teal-950">{str(event.message)}</div>
+                  <div className="text-xs text-teal-900/45">{formatDate(str(event.createdAt))}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
     </div>
   )
 }
 
-function Mini({ label, value }: { label: string; value: unknown }) {
+function DueRail({ tasks }: { tasks: Record<string, unknown>[] }) {
+  const dated = tasks
+    .filter((task) => task.deadline && str(task.status) !== 'DONE')
+    .sort((a, b) => str(a.deadline).localeCompare(str(b.deadline)))
+    .slice(0, 8)
+  if (dated.length === 0) {
+    return <p className="mt-3 text-sm text-teal-900/50">Nothing dated yet — enjoy the quiet rail.</p>
+  }
   return (
-    <div className="rounded-lg bg-slate-50 p-2">
-      <div className="text-lg font-semibold">{String(value ?? 0)}</div>
-      <div className="text-xs text-slate-500">{label}</div>
+    <div className="mt-4 flex gap-3 overflow-x-auto pb-2">
+      {dated.map((task) => (
+        <Link
+          key={str(task.id)}
+          to={`/app/tasks/${str(task.id)}`}
+          className="app-card-lift min-w-44 rounded-2xl border border-teal-900/8 bg-white/80 p-3"
+        >
+          <div className="font-mono text-[10px] tracking-[0.16em] text-teal-700/60 uppercase">
+            {formatDay(str(task.deadline))}
+          </div>
+          <div className="mt-2 line-clamp-2 text-sm font-medium text-teal-950">{str(task.title)}</div>
+          <div className="mt-2">
+            <Badge tone={statusTone(str(task.status))}>{str(task.status)}</Badge>
+          </div>
+        </Link>
+      ))}
+    </div>
+  )
+}
+
+function deliveryMix(metrics: Record<string, unknown>, items: Record<string, unknown>[]) {
+  const fromMetrics = {
+    todo: num(metrics.todo),
+    inProgress: num(metrics.inProgress),
+    review: num(metrics.review),
+    blocked: num(metrics.blocked),
+    done: num(metrics.done),
+  }
+  if (fromMetrics.todo + fromMetrics.inProgress + fromMetrics.review + fromMetrics.blocked + fromMetrics.done > 0) {
+    return fromMetrics
+  }
+  const mix = { todo: 0, inProgress: 0, review: 0, blocked: 0, done: 0 }
+  for (const item of items) {
+    const done = num(item.doneTasks ?? item.done)
+    const todo = num(item.todo)
+    const inProgress = num(item.inProgress)
+    const review = num(item.review)
+    const blocked = num(item.blocked)
+    const detailed = todo + inProgress + review + blocked + done
+    mix.todo += detailed > done ? todo : Math.max(0, num(item.totalTasks) - done)
+    mix.inProgress += inProgress
+    mix.review += review
+    mix.blocked += blocked
+    mix.done += done
+  }
+  return mix
+}
+
+function FilterChips({
+  value,
+  onChange,
+  options,
+}: {
+  value: string
+  onChange: (next: string) => void
+  options: { id: string; label: string }[]
+}) {
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {options.map((option) => (
+        <button
+          key={option.id}
+          type="button"
+          onClick={() => onChange(option.id)}
+          className={cn(
+            'rounded-full px-3 py-1.5 font-mono text-[10px] tracking-[0.16em] uppercase app-ease',
+            value === option.id ? 'bg-teal-800 text-white' : 'bg-white/70 text-teal-800 hover:bg-white',
+          )}
+        >
+          {option.label}
+        </button>
+      ))}
     </div>
   )
 }

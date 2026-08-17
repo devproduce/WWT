@@ -14,16 +14,16 @@ Optional later: SMTP for real invite/reset emails, AWS for production deploy.
 
 ## Configure
 
-Copy these into your shell (PowerShell example):
+Edit the `.env` file in the project root (next to `README.md`). It is loaded every time you start the backend, so you do not need to set PowerShell variables again.
 
-```powershell
-$env:MONGODB_URI="mongodb+srv://USER:PASS@cluster.mongodb.net/weworktogether?retryWrites=true&w=majority"
-$env:JWT_SECRET="replace-with-a-long-random-secret-at-least-32-chars"
-$env:SUPERADMIN_EMAIL="you@example.com"
-$env:SUPERADMIN_PASSWORD="ChangeMe_Admin1!"
+```env
+MONGODB_URI=mongodb+srv://USER:PASSWORD@cluster0.xxxxx.mongodb.net/weworktogether?retryWrites=true&w=majority
+JWT_SECRET=replace-with-a-long-random-secret-at-least-32-chars
+SUPERADMIN_EMAIL=you@example.com
+SUPERADMIN_PASSWORD=ChangeMe_Admin1!
 ```
 
-Until SMTP is set, invite and password-reset tokens are returned in API responses so you can finish setup locally.
+If `.env` is missing, copy `.env.example` to `.env`. Until SMTP is set, invite links are shown in the UI / API response.
 
 ## Run locally
 

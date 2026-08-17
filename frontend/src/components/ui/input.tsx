@@ -1,14 +1,9 @@
 import { cn } from '@/lib/utils'
 import type { InputHTMLAttributes } from 'react'
 
+export const controlClass =
+  'w-full rounded-xl border border-teal-900/10 bg-white/80 px-3 py-2.5 text-sm outline-none transition focus:border-teal-500/40 focus:ring-4 focus:ring-teal-700/12'
+
 export function Input({ className, ...props }: InputHTMLAttributes<HTMLInputElement>) {
-  return (
-    <input
-      className={cn(
-        'w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none ring-teal-700/20 focus:ring-4',
-        className,
-      )}
-      {...props}
-    />
-  )
+  return <input className={cn(controlClass, className)} {...props} />
 }

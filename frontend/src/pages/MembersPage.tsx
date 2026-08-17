@@ -5,6 +5,10 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Field } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
+import { Modal } from '@/components/ui/modal'
+import { PageHeader } from '@/components/PageHeader'
+import { EmptyState } from '@/components/EmptyState'
+import { Avatar } from '@/components/charts'
 import { api, apiError } from '@/services/api'
 import type { Member } from '@/types'
 import { toast } from 'sonner'
@@ -45,62 +49,61 @@ export function MembersPage() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['members'] }),
     onError: (err) => toast.error(apiError(err)),
   })
+  const items = members.data ?? []
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Members</h1>
-        <Button onClick={() => setOpen(true)}>Add member</Button>
-      </div>
+    <div className="space-y-5">
+      <PageHeader
+        eyebrow="People"
+        title="Members"
+        subtitle="Who can log in, take work, and run delivery."
+        actions={<Button onClick={() => setOpen(true)}>Add member</Button>}
+      />
       {invite && (
-        <Card className="border-teal-200 bg-teal-50 text-sm">
+        <Card className="border-teal-200 bg-teal-50/80 text-sm">
           Invite link: <span className="break-all">{invite}</span>
         </Card>
       )}
-      <Card>
-        <table className="w-full text-left text-sm">
-          <thead className="text-slate-500">
-            <tr>
-              <th className="pb-2">Name</th>
-              <th className="pb-2">Email</th>
-              <th className="pb-2">Role</th>
-              <th className="pb-2">Status</th>
-              <th className="pb-2" />
-            </tr>
-          </thead>
-          <tbody>
-            {(members.data ?? []).map((member) => (
-              <tr key={member.id} className="border-t border-slate-100">
-                <td className="py-3 font-medium">
-                  {member.firstName} {member.lastName}
-                </td>
-                <td>{member.email}</td>
-                <td>{member.role}</td>
-                <td>
-                  <Badge tone={statusTone(member.status)}>{member.status}</Badge>
-                </td>
-                <td className="space-x-2 text-right">
-                  {member.role !== 'ADMIN' && (
-                    <Button variant="ghost" onClick={() => reset.mutate(member.id)}>
-                      Reset password
-                    </Button>
-                  )}
-                  {member.role !== 'ADMIN' && member.status === 'ACTIVE' && (
+      {items.length === 0 ? (
+        <EmptyState title="No members yet" description="Invite the first person into this organization." />
+      ) : (
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {items.map((member) => (
+            <Card key={member.id} className="flex flex-col">
+              <div className="flex items-start gap-3">
+                <Avatar name={`${member.firstName} ${member.lastName}`} />
+                <div className="min-w-0 flex-1">
+                  <div className="font-semibold text-teal-950">
+                    {member.firstName} {member.lastName}
+                  </div>
+                  <div className="truncate text-sm text-teal-900/50">{member.email}</div>
+                  <div className="mt-2 flex flex-wrap gap-1">
+                    <Badge tone={member.role === 'ADMIN' ? 'teal' : 'slate'}>{member.role}</Badge>
+                    <Badge tone={statusTone(member.status)}>{member.status}</Badge>
+                  </div>
+                </div>
+              </div>
+              {member.role !== 'ADMIN' && (
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <Button variant="ghost" onClick={() => reset.mutate(member.id)}>
+                    Reset password
+                  </Button>
+                  {member.status === 'ACTIVE' && (
                     <Button variant="secondary" onClick={() => action.mutate({ id: member.id, path: 'disable' })}>
                       Disable
                     </Button>
                   )}
-                  {member.role !== 'ADMIN' && member.status === 'DISABLED' && (
+                  {member.status === 'DISABLED' && (
                     <Button variant="secondary" onClick={() => action.mutate({ id: member.id, path: 'enable' })}>
                       Enable
                     </Button>
                   )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </Card>
+                </div>
+              )}
+            </Card>
+          ))}
+        </div>
+      )}
       {open && <AddMemberForm pending={create.isPending} onClose={() => setOpen(false)} onSubmit={(p) => create.mutate(p)} />}
     </div>
   )
@@ -121,9 +124,9 @@ function AddMemberForm({
     onSubmit(form)
   }
   return (
-    <div className="fixed inset-0 z-30 flex items-center justify-center bg-slate-900/40 p-4">
-      <form className="w-full max-w-md space-y-3 rounded-2xl bg-white p-6" onSubmit={submit}>
-        <h2 className="text-lg font-semibold">Add member</h2>
+    <Modal>
+      <form className="space-y-3" onSubmit={submit}>
+        <h2 className="text-lg font-semibold text-teal-950">Add member</h2>
         <Field label="First name">
           <Input value={form.firstName} onChange={(e) => setForm({ ...form, firstName: e.target.value })} required />
         </Field>
@@ -133,13 +136,13 @@ function AddMemberForm({
         <Field label="Email">
           <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required />
         </Field>
-        <div className="flex justify-end gap-2">
+        <div className="flex justify-end gap-2 pt-2">
           <Button type="button" variant="secondary" onClick={onClose}>
             Cancel
           </Button>
           <Button disabled={pending}>Invite</Button>
         </div>
       </form>
-    </div>
+    </Modal>
   )
 }

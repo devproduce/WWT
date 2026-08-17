@@ -1,9 +1,22 @@
+import { cn } from '@/lib/utils'
 import type { HTMLAttributes, ReactNode } from 'react'
 
-export function Card({ className = '', children }: { className?: string; children: ReactNode }) {
-  return <div className={`rounded-xl border border-slate-200 bg-white p-5 shadow-sm ${className}`}>{children}</div>
+export function Card({
+  className = '',
+  interactive = false,
+  children,
+}: {
+  className?: string
+  interactive?: boolean
+  children: ReactNode
+}) {
+  return (
+    <div className={cn('app-card rounded-[28px] p-6', interactive && 'app-card-lift app-shine', className)}>
+      {children}
+    </div>
+  )
 }
 
 export function CardTitle({ children, className = '' }: HTMLAttributes<HTMLHeadingElement>) {
-  return <h2 className={`text-base font-semibold text-slate-900 ${className}`}>{children}</h2>
+  return <h2 className={cn('text-base font-semibold tracking-tight text-teal-950', className)}>{children}</h2>
 }

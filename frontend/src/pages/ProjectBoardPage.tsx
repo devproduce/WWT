@@ -8,13 +8,34 @@ import { Card, CardTitle } from '@/components/ui/card'
 import { Field } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
+import { Modal } from '@/components/ui/modal'
+import { PageHeader } from '@/components/PageHeader'
+import { QuotaMeter } from '@/components/QuotaMeter'
+import { RingChart, Avatar } from '@/components/charts'
+import { StatusStack } from '@/components/StatusStack'
 import { useAuth } from '@/features/auth/AuthContext'
 import { api, apiError } from '@/services/api'
-import { formatDay } from '@/lib/utils'
-import type { Project, ProjectReport, TaskItem, TaskPriority, TaskStatus } from '@/types'
+import { cn, formatDay } from '@/lib/utils'
+import type { Member, Project, ProjectReport, TaskItem, TaskPriority, TaskStatus } from '@/types'
 import { TASK_COLUMNS } from '@/types'
 import { toast } from 'sonner'
 import { CSS } from '@dnd-kit/utilities'
+
+const COLUMN_TONE: Record<TaskStatus, string> = {
+  TODO: 'bg-stone-100/80 border-stone-200',
+  IN_PROGRESS: 'bg-amber-50/90 border-amber-200/80',
+  REVIEW: 'bg-violet-50/90 border-violet-200/80',
+  BLOCKED: 'bg-rose-50/90 border-rose-200/80',
+  DONE: 'bg-teal-50/90 border-teal-200/80',
+}
+
+const COLUMN_DOT: Record<TaskStatus, string> = {
+  TODO: 'bg-stone-400',
+  IN_PROGRESS: 'bg-amber-500',
+  REVIEW: 'bg-violet-500',
+  BLOCKED: 'bg-rose-500',
+  DONE: 'bg-teal-600',
+}
 
 export function ProjectBoardPage() {
   const { id } = useParams()
@@ -33,8 +54,15 @@ export function ProjectBoardPage() {
     enabled: Boolean(id) && (user?.role === 'ADMIN' || user?.id === project.data?.managerId),
     queryFn: async () => (await api.get<ProjectReport>(`/projects/${id}/report`)).data,
   })
+  const orgMembers = useQuery({
+    queryKey: ['members'],
+    enabled: user?.role === 'ADMIN',
+    queryFn: async () => (await api.get<Member[]>('/members')).data,
+  })
   const [createOpen, setCreateOpen] = useState(false)
+  const [membersOpen, setMembersOpen] = useState(false)
   const canManage = user?.role === 'ADMIN' || user?.id === project.data?.managerId
+  const isAdmin = user?.role === 'ADMIN'
 
   const transition = useMutation({
     mutationFn: async ({ taskId, status }: { taskId: string; status: TaskStatus }) =>
@@ -45,6 +73,15 @@ export function ProjectBoardPage() {
       queryClient.invalidateQueries({ queryKey: ['dashboard'] })
     },
     onError: (err) => toast.error(apiError(err, 'That move is not allowed')),
+  })
+  const updateMembers = useMutation({
+    mutationFn: async (memberIds: string[]) => api.patch(`/projects/${id}/members`, { memberIds }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['project', id] })
+      setMembersOpen(false)
+      toast.success('Project members updated')
+    },
+    onError: (err) => toast.error(apiError(err)),
   })
   const createTask = useMutation({
     mutationFn: async (payload: Record<string, unknown>) => api.post(`/projects/${id}/tasks`, payload),
@@ -62,46 +99,64 @@ export function ProjectBoardPage() {
     const taskId = String(event.active.id)
     const task = (tasks.data ?? []).find((item) => item.id === taskId)
     if (!over || !task || over === task.status) return
+    if (!(task.allowedTransitions ?? []).includes(over)) {
+      toast.error('That move is not allowed')
+      return
+    }
     transition.mutate({ taskId, status: over })
   }
 
-  if (!project.data) return <p>Loading project…</p>
+  if (!project.data) return <p className="py-16 text-center text-sm text-teal-900/50">Loading project…</p>
   const items = tasks.data ?? []
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold">{project.data.name}</h1>
-          <p className="text-sm text-slate-500">
-            PM {project.data.managerName} · {project.data.doneTasks}/{project.data.totalTasks} done
-          </p>
-        </div>
-        {canManage && <Button onClick={() => setCreateOpen(true)}>New task</Button>}
-      </div>
+    <div className="space-y-5">
+      <PageHeader
+        eyebrow="Board"
+        title={project.data.name}
+        subtitle={`PM ${project.data.managerName} · ${project.data.doneTasks}/${project.data.totalTasks} done`}
+        actions={
+          <>
+            {isAdmin && (
+              <Button variant="secondary" onClick={() => setMembersOpen(true)}>
+                Manage members
+              </Button>
+            )}
+            {canManage && <Button onClick={() => setCreateOpen(true)}>New task</Button>}
+          </>
+        }
+      />
       {report.data && (
-        <div className="grid gap-3 md:grid-cols-4">
-          <Card>
-            <div className="text-sm text-slate-500">Completion</div>
-            <div className="text-2xl font-semibold">{report.data.completionPercent}%</div>
-          </Card>
-          <Card>
-            <div className="text-sm text-slate-500">Overdue</div>
-            <div className="text-2xl font-semibold">{report.data.overdue}</div>
-          </Card>
-          <Card>
-            <div className="text-sm text-slate-500">In review</div>
-            <div className="text-2xl font-semibold">{report.data.review}</div>
+        <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
+          <Card className="flex items-center gap-5">
+            <RingChart value={report.data.completionPercent} max={100} size={108} stroke={11} />
+            <div className="min-w-0 flex-1">
+              <CardTitle>Delivery</CardTitle>
+              <p className="mt-1 text-sm text-teal-900/50">
+                {report.data.overdue} overdue · {report.data.review} in review
+              </p>
+              <div className="mt-4">
+                <StatusStack
+                  counts={{
+                    todo: report.data.todo,
+                    inProgress: report.data.inProgress,
+                    review: report.data.review,
+                    blocked: report.data.blocked,
+                    done: report.data.done,
+                  }}
+                />
+              </div>
+            </div>
           </Card>
           <Card>
             <CardTitle>By member</CardTitle>
-            <div className="mt-2 space-y-1 text-sm">
+            <div className="mt-4 space-y-3">
               {Object.entries(report.data.tasksByMember).map(([name, count]) => (
-                <div key={name} className="flex justify-between">
-                  <span>{name}</span>
-                  <span>{count}</span>
-                </div>
+                <QuotaMeter key={name} label={name} used={count} max={Math.max(report.data.totalTasks, 1)} />
               ))}
+              {Object.keys(report.data.tasksByMember).length === 0 && (
+                <p className="text-sm text-teal-900/50">No assignments yet.</p>
+              )}
             </div>
           </Card>
         </div>
@@ -115,10 +170,19 @@ export function ProjectBoardPage() {
       </DndContext>
       {createOpen && project.data && (
         <CreateTaskForm
-          people={project.data.members ?? []}
+          people={assignablePeople(project.data, user?.role === 'ADMIN')}
           pending={createTask.isPending}
           onClose={() => setCreateOpen(false)}
           onSubmit={(payload) => createTask.mutate(payload)}
+        />
+      )}
+      {membersOpen && project.data && isAdmin && (
+        <ManageMembersForm
+          project={project.data}
+          orgMembers={(orgMembers.data ?? []).filter((m) => m.status !== 'DISABLED')}
+          pending={updateMembers.isPending}
+          onClose={() => setMembersOpen(false)}
+          onSubmit={(memberIds) => updateMembers.mutate(memberIds)}
         />
       )}
     </div>
@@ -128,10 +192,20 @@ export function ProjectBoardPage() {
 function Column({ id, label, tasks }: { id: TaskStatus; label: string; tasks: TaskItem[] }) {
   const { setNodeRef, isOver } = useDroppable({ id })
   return (
-    <div ref={setNodeRef} className={`min-h-72 rounded-xl border bg-slate-50 p-2 ${isOver ? 'border-teal-400' : 'border-slate-200'}`}>
-      <div className="mb-2 flex items-center justify-between px-1 text-sm font-medium">
-        {label}
-        <span className="text-slate-400">{tasks.length}</span>
+    <div
+      ref={setNodeRef}
+      className={cn(
+        'min-h-72 rounded-[28px] border p-3',
+        COLUMN_TONE[id],
+        isOver && 'ring-2 ring-teal-500/40',
+      )}
+    >
+      <div className="mb-3 flex items-center justify-between px-1 text-sm font-medium text-teal-950">
+        <span className="flex items-center gap-2">
+          <span className={cn('h-2 w-2 rounded-full', COLUMN_DOT[id])} />
+          {label}
+        </span>
+        <span className="rounded-full bg-white/70 px-2 py-0.5 font-mono text-[10px]">{tasks.length}</span>
       </div>
       <div className="space-y-2">
         {tasks.map((task) => (
@@ -145,16 +219,50 @@ function Column({ id, label, tasks }: { id: TaskStatus; label: string; tasks: Ta
 function TaskCard({ task }: { task: TaskItem }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id: task.id })
   const style = { transform: CSS.Translate.toString(transform), opacity: isDragging ? 0.6 : 1 }
+  const overdue = Boolean(task.deadline && new Date(task.deadline) < new Date() && task.status !== 'DONE')
+  const priorityEdge =
+    task.priority === 'URGENT'
+      ? 'bg-rose-500'
+      : task.priority === 'HIGH'
+        ? 'bg-amber-500'
+        : task.priority === 'MEDIUM'
+          ? 'bg-teal-500'
+          : 'bg-stone-300'
   return (
-    <div ref={setNodeRef} style={style} {...listeners} {...attributes} className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
-      <Link to={`/app/tasks/${task.id}`} className="font-medium hover:text-teal-700">
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...listeners}
+      {...attributes}
+      className="app-card app-card-lift relative overflow-hidden rounded-2xl p-3.5 shadow-[0_10px_24px_rgb(15_61_56_/_0.06)]"
+    >
+      <span className={cn('absolute inset-y-0 left-0 w-1', priorityEdge)} />
+      <Link to={`/app/tasks/${task.id}`} className="block pl-2 font-medium leading-snug text-teal-950 hover:text-teal-700">
         {task.title}
       </Link>
-      <div className="mt-2 flex flex-wrap gap-1">
-        <Badge tone={statusTone(task.priority)}>{task.priority}</Badge>
-        {task.assigneeName && <Badge>{task.assigneeName}</Badge>}
+      <div className="mt-3 flex items-center justify-between gap-2 pl-2">
+        <div className="flex min-w-0 items-center gap-2">
+          {task.assigneeName ? (
+            <>
+              <Avatar name={task.assigneeName} size="sm" />
+              <span className="truncate text-xs text-teal-900/60">{task.assigneeName}</span>
+            </>
+          ) : (
+            <span className="text-xs text-teal-900/40">Unassigned</span>
+          )}
+        </div>
+        <span
+          className={cn(
+            'shrink-0 rounded-full px-2 py-0.5 font-mono text-[10px] tracking-wide',
+            overdue ? 'bg-rose-100 text-rose-800' : 'bg-teal-50 text-teal-800/70',
+          )}
+        >
+          {formatDay(task.deadline)}
+        </span>
       </div>
-      <div className="mt-1 text-xs text-slate-400">{formatDay(task.deadline)}</div>
+      <div className="mt-2 pl-2">
+        <Badge tone={statusTone(task.priority)}>{task.priority}</Badge>
+      </div>
     </div>
   )
 }
@@ -173,7 +281,7 @@ function CreateTaskForm({
   const [form, setForm] = useState({
     title: '',
     description: '',
-    assigneeId: people[0]?.id ?? '',
+    assigneeId: '',
     priority: 'MEDIUM' as TaskPriority,
     deadline: '',
   })
@@ -188,9 +296,9 @@ function CreateTaskForm({
     })
   }
   return (
-    <div className="fixed inset-0 z-30 flex items-center justify-center bg-slate-900/40 p-4">
-      <form className="w-full max-w-lg space-y-3 rounded-2xl bg-white p-6" onSubmit={submit}>
-        <h2 className="text-lg font-semibold">New task</h2>
+    <Modal>
+      <form className="space-y-3" onSubmit={submit}>
+        <h2 className="text-lg font-semibold text-teal-950">New task</h2>
         <Field label="Title">
           <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required />
         </Field>
@@ -199,7 +307,7 @@ function CreateTaskForm({
         </Field>
         <Field label="Assignee">
           <select
-            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+            className="app-select"
             value={form.assigneeId}
             onChange={(e) => setForm({ ...form, assigneeId: e.target.value })}
           >
@@ -210,10 +318,15 @@ function CreateTaskForm({
               </option>
             ))}
           </select>
+          {people.length === 0 && (
+            <p className="mt-1 text-xs text-teal-900/50">
+              No assignable members yet. An Admin must add members to this project first. Only Admin can assign work to the Project Manager.
+            </p>
+          )}
         </Field>
         <Field label="Priority">
           <select
-            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+            className="app-select"
             value={form.priority}
             onChange={(e) => setForm({ ...form, priority: e.target.value as TaskPriority })}
           >
@@ -233,6 +346,67 @@ function CreateTaskForm({
           <Button disabled={pending}>Create</Button>
         </div>
       </form>
-    </div>
+    </Modal>
+  )
+}
+
+function assignablePeople(project: Project, isAdmin: boolean) {
+  const members = project.members ?? []
+  if (isAdmin) {
+    return members
+  }
+  return members.filter((member) => member.id !== project.managerId)
+}
+
+function ManageMembersForm({
+  project,
+  orgMembers,
+  pending,
+  onClose,
+  onSubmit,
+}: {
+  project: Project
+  orgMembers: Member[]
+  pending: boolean
+  onClose: () => void
+  onSubmit: (memberIds: string[]) => void
+}) {
+  const [selected, setSelected] = useState<string[]>(project.memberIds)
+  const submit = (event: FormEvent) => {
+    event.preventDefault()
+    onSubmit(selected)
+  }
+  return (
+    <Modal>
+      <form className="space-y-3" onSubmit={submit}>
+        <h2 className="text-lg font-semibold text-teal-950">Project members</h2>
+        <p className="text-sm text-teal-900/50">Only people on this list can be assigned tasks. The Project Manager stays on the project.</p>
+        <div className="max-h-56 space-y-1 overflow-auto rounded-2xl border border-teal-900/10 bg-white/70 p-2">
+          {orgMembers.map((member) => (
+            <label key={member.id} className="flex items-center gap-2 rounded-xl px-2 py-1.5 text-sm hover:bg-teal-50">
+              <input
+                type="checkbox"
+                checked={selected.includes(member.id) || member.id === project.managerId}
+                disabled={member.id === project.managerId}
+                onChange={(e) => {
+                  const next = new Set(selected)
+                  if (e.target.checked) next.add(member.id)
+                  else next.delete(member.id)
+                  setSelected([...next])
+                }}
+              />
+              {member.firstName} {member.lastName}
+              {member.id === project.managerId ? ' (Project Manager)' : ''}
+            </label>
+          ))}
+        </div>
+        <div className="flex justify-end gap-2">
+          <Button type="button" variant="secondary" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button disabled={pending}>Save</Button>
+        </div>
+      </form>
+    </Modal>
   )
 }

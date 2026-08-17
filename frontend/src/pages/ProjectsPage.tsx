@@ -7,10 +7,23 @@ import { Card } from '@/components/ui/card'
 import { Field } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
+import { Modal } from '@/components/ui/modal'
+import { PageHeader } from '@/components/PageHeader'
+import { EmptyState } from '@/components/EmptyState'
+import { RingChart } from '@/components/charts'
 import { useAuth } from '@/features/auth/AuthContext'
 import { api, apiError } from '@/services/api'
+import { formatDay, utilization } from '@/lib/utils'
 import type { Member, Project } from '@/types'
 import { toast } from 'sonner'
+
+const STATUS_EDGE: Record<string, string> = {
+  ACTIVE: 'from-teal-500',
+  PLANNED: 'from-sky-500',
+  ON_HOLD: 'from-amber-500',
+  COMPLETED: 'from-emerald-500',
+  ARCHIVED: 'from-stone-400',
+}
 
 export function ProjectsPage() {
   const { user } = useAuth()
@@ -35,32 +48,56 @@ export function ProjectsPage() {
     },
     onError: (err) => toast.error(apiError(err)),
   })
+  const items = projects.data ?? []
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Projects</h1>
-        {user?.role === 'ADMIN' && <Button onClick={() => setOpen(true)}>Create project</Button>}
-      </div>
-      <div className="grid gap-4 md:grid-cols-2">
-        {(projects.data ?? []).map((project) => (
-          <Link key={project.id} to={`/app/projects/${project.id}`}>
-            <Card className="h-full hover:border-teal-200">
-              <div className="flex items-start justify-between">
-                <div>
-                  <div className="font-semibold">{project.name}</div>
-                  <div className="text-sm text-slate-500">PM: {project.managerName}</div>
+    <div className="space-y-5">
+      <PageHeader
+        eyebrow="Delivery"
+        title="Projects"
+        subtitle="Boards, progress, and the people steering them."
+        actions={user?.role === 'ADMIN' ? <Button onClick={() => setOpen(true)}>Create project</Button> : undefined}
+      />
+      {items.length === 0 ? (
+        <EmptyState title="No projects yet" description="An admin can create the first board for this organization." />
+      ) : (
+        <div className="grid gap-4 md:grid-cols-2">
+          {items.map((project) => (
+            <Link key={project.id} to={`/app/projects/${project.id}`}>
+              <Card interactive className="relative h-full overflow-hidden">
+                <div
+                  className={`absolute inset-y-0 left-0 w-1.5 bg-gradient-to-b ${STATUS_EDGE[project.status] ?? 'from-teal-500'} to-transparent`}
+                />
+                <div className="flex items-start justify-between gap-3 pl-2">
+                  <div>
+                    <div className="font-semibold text-teal-950">{project.name}</div>
+                    <div className="text-sm text-teal-900/50">PM {project.managerName}</div>
+                  </div>
+                  <Badge tone={statusTone(project.status)}>{project.status}</Badge>
                 </div>
-                <Badge tone={statusTone(project.status)}>{project.status}</Badge>
-              </div>
-              <p className="mt-2 line-clamp-2 text-sm text-slate-600">{project.description}</p>
-              <div className="mt-3 text-xs text-slate-500">
-                {project.doneTasks}/{project.totalTasks} tasks complete
-              </div>
-            </Card>
-          </Link>
-        ))}
-      </div>
+                <p className="mt-3 line-clamp-2 pl-2 text-sm text-teal-900/65">{project.description}</p>
+                <div className="mt-4 flex items-center gap-4 pl-2">
+                  <RingChart value={project.doneTasks} max={project.totalTasks || 1} size={68} stroke={8} />
+                  <div className="min-w-0 flex-1">
+                    <div className="text-sm font-medium text-teal-950">
+                      {project.doneTasks}/{project.totalTasks} complete
+                    </div>
+                    <div className="mt-2 h-2 overflow-hidden rounded-full bg-teal-900/8">
+                      <div
+                        className="h-full rounded-full bg-teal-600"
+                        style={{ width: `${utilization(project.doneTasks, project.totalTasks || 1)}%` }}
+                      />
+                    </div>
+                    {project.targetDate && (
+                      <div className="mt-2 text-xs text-teal-900/45">Target {formatDay(project.targetDate)}</div>
+                    )}
+                  </div>
+                </div>
+              </Card>
+            </Link>
+          ))}
+        </div>
+      )}
       {open && (
         <CreateProjectForm
           members={members.data ?? []}
@@ -85,11 +122,12 @@ function CreateProjectForm({
   onSubmit: (payload: Record<string, unknown>) => void
 }) {
   const people = members.filter((m) => m.status !== 'DISABLED')
+  const membersOnly = people.filter((m) => m.role !== 'ADMIN')
   const [form, setForm] = useState({
     name: '',
     description: '',
-    managerId: people[0]?.id ?? '',
-    memberIds: [] as string[],
+    managerId: membersOnly[0]?.id ?? people[0]?.id ?? '',
+    memberIds: people.map((m) => m.id),
     targetDate: '',
   })
   const submit = (event: FormEvent) => {
@@ -103,9 +141,9 @@ function CreateProjectForm({
     })
   }
   return (
-    <div className="fixed inset-0 z-30 flex items-center justify-center bg-slate-900/40 p-4">
-      <form className="w-full max-w-lg space-y-3 rounded-2xl bg-white p-6" onSubmit={submit}>
-        <h2 className="text-lg font-semibold">Create project</h2>
+    <Modal>
+      <form className="space-y-3" onSubmit={submit}>
+        <h2 className="text-lg font-semibold text-teal-950">Create project</h2>
         <Field label="Name">
           <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
         </Field>
@@ -114,7 +152,7 @@ function CreateProjectForm({
         </Field>
         <Field label="Project Manager">
           <select
-            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+            className="app-select"
             value={form.managerId}
             onChange={(e) => setForm({ ...form, managerId: e.target.value })}
           >
@@ -125,13 +163,17 @@ function CreateProjectForm({
             ))}
           </select>
         </Field>
-        <Field label="Members">
-          <div className="max-h-40 space-y-1 overflow-auto rounded-lg border border-slate-200 p-2">
+        <Field label="Project members (who can receive tasks)">
+          <p className="mb-1 text-xs text-teal-900/50">
+            The Project Manager is always included. Check everyone who should be on this project.
+          </p>
+          <div className="max-h-40 space-y-1 overflow-auto rounded-2xl border border-teal-900/10 bg-white/70 p-2">
             {people.map((m) => (
-              <label key={m.id} className="flex items-center gap-2 text-sm">
+              <label key={m.id} className="flex items-center gap-2 rounded-xl px-2 py-1.5 text-sm hover:bg-teal-50">
                 <input
                   type="checkbox"
                   checked={form.memberIds.includes(m.id) || m.id === form.managerId}
+                  disabled={m.id === form.managerId}
                   onChange={(e) => {
                     const next = new Set(form.memberIds)
                     if (e.target.checked) next.add(m.id)
@@ -140,6 +182,7 @@ function CreateProjectForm({
                   }}
                 />
                 {m.firstName} {m.lastName}
+                {m.id === form.managerId ? ' (Project Manager)' : ''}
               </label>
             ))}
           </div>
@@ -147,13 +190,13 @@ function CreateProjectForm({
         <Field label="Target date">
           <Input type="date" value={form.targetDate} onChange={(e) => setForm({ ...form, targetDate: e.target.value })} />
         </Field>
-        <div className="flex justify-end gap-2">
+        <div className="flex justify-end gap-2 pt-2">
           <Button type="button" variant="secondary" onClick={onClose}>
             Cancel
           </Button>
           <Button disabled={pending}>Create</Button>
         </div>
       </form>
-    </div>
+    </Modal>
   )
 }

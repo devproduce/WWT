@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -58,7 +59,7 @@ public class OrganizationController {
         return organizationService.overrideQuotas(user, id, request);
     }
 
-    @PatchMapping("/{id}/entitlements")
+    @RequestMapping(path = "/{id}/entitlements", method = {RequestMethod.PUT, RequestMethod.PATCH})
     public OrganizationSummaryResponse entitlements(CurrentUser user, @PathVariable String id, @RequestBody EntitlementOverrideRequest request) {
         return organizationService.overrideEntitlements(user, id, request);
     }
