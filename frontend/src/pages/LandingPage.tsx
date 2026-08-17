@@ -1,10 +1,20 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useRef, useState, type FormEvent, type MouseEvent } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowUpRight, Check, Menu, X } from 'lucide-react'
+import { ArrowUpRight, Check, Menu, MessageSquare, Paperclip, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { api, apiError } from '@/services/api'
 import { useAuth } from '@/features/auth/AuthContext'
 import { WwtMark, WwtWordmark } from '@/components/WwtMark'
+import { Button } from '@/components/ui/button'
+import { Card, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Field } from '@/components/ui/field'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { MetricCard } from '@/components/MetricCard'
+import { QuotaMeter } from '@/components/QuotaMeter'
+import { RingChart, Avatar } from '@/components/charts'
+import { ProductTour } from '@/components/landing/WorkspacePreview'
 import { cn } from '@/lib/utils'
 
 const NAV = [
@@ -21,12 +31,16 @@ export function LandingPage() {
   const workspaceLabel = user ? 'Open workspace' : 'Log in'
 
   return (
-    <div className="landing-noise relative min-h-screen overflow-x-hidden bg-[#050505] text-white selection:bg-teal-400/30">
+    <div className="landing-page app-canvas relative min-h-screen overflow-x-hidden text-teal-950 selection:bg-teal-200/60">
+      <div className="app-orb pointer-events-none absolute -top-24 left-10 h-72 w-72 rounded-full bg-teal-300/30 blur-3xl" />
+      <div className="app-orb pointer-events-none absolute top-1/4 -right-16 h-80 w-80 rounded-full bg-amber-200/25 blur-3xl" style={{ animationDelay: '4s' }} />
+      <div className="app-orb pointer-events-none absolute bottom-1/4 left-1/3 h-64 w-64 rounded-full bg-sky-300/20 blur-3xl" style={{ animationDelay: '8s' }} />
+
       <header className="sticky top-0 z-50 px-3 pt-4 sm:px-5">
-        <div className="mx-auto flex max-w-6xl items-center justify-between rounded-full border border-white/10 bg-black/45 px-3 py-2 shadow-[0_10px_60px_rgba(0,0,0,0.45)] backdrop-blur-2xl sm:px-4">
+        <div className="mx-auto flex max-w-6xl items-center justify-between rounded-full border border-teal-900/15 bg-white/90 px-3 py-2 shadow-[0_12px_40px_rgb(15_61_56_/_0.14),0_1px_0_rgb(255_255_255_/_0.9)_inset] backdrop-blur-xl sm:px-4">
           <a href="#top" className="landing-ease group flex items-center gap-2.5 rounded-full py-1 pr-2 pl-1 hover:opacity-90">
-            <WwtMark className="landing-ease group-hover:shadow-[0_0_28px_rgba(45,212,191,0.45)]" />
-            <span className="pr-1 text-[13px] font-semibold tracking-[0.24em]">WWT</span>
+            <WwtMark />
+            <span className="pr-1 text-[13px] font-semibold tracking-[0.24em] text-teal-950">WWT</span>
           </a>
           <nav className="hidden items-center gap-8 text-[13px] md:flex">
             {NAV.map((item) => (
@@ -35,35 +49,45 @@ export function LandingPage() {
               </a>
             ))}
           </nav>
-          <div className="hidden items-center gap-1 md:flex">
-            <Link to={workspace} className="landing-ease rounded-full px-4 py-2 text-[13px] text-white/70 hover:bg-white/8 hover:text-white">
-              {workspaceLabel}
+          <div className="hidden items-center gap-2 md:flex">
+            <Link to={workspace}>
+              <Button variant="secondary" type="button">
+                {workspaceLabel}
+              </Button>
             </Link>
-            <a href="#contact" className="landing-btn rounded-full bg-white px-4 py-2 text-[13px] font-medium text-black hover:bg-teal-300">
-              Contact us
+            <a href="#contact">
+              <Button type="button">Contact us</Button>
             </a>
           </div>
-          <button type="button" className="rounded-full p-2 md:hidden" onClick={() => setMenuOpen((v) => !v)} aria-label="Menu">
+          <button
+            type="button"
+            className="rounded-full p-2 text-teal-800 md:hidden"
+            onClick={() => setMenuOpen((v) => !v)}
+            aria-label="Menu"
+          >
             {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
         </div>
         {menuOpen && (
-          <div className="mx-auto mt-2 max-w-6xl space-y-3 rounded-3xl border border-white/10 bg-black/80 px-5 py-4 text-sm text-white/70 backdrop-blur-xl md:hidden">
+          <div className="app-card mx-auto mt-2 max-w-6xl space-y-3 rounded-[24px] px-5 py-4 text-sm text-teal-900/70 md:hidden">
             {NAV.map((item) => (
-              <a key={item.href} className="block py-1 hover:text-white" href={item.href} onClick={() => setMenuOpen(false)}>
+              <a key={item.href} className="block py-1 hover:text-teal-950" href={item.href} onClick={() => setMenuOpen(false)}>
                 {item.label}
               </a>
             ))}
-            <Link to={workspace} className="block py-1 text-white" onClick={() => setMenuOpen(false)}>
+            <Link to={workspace} className="block py-1 font-medium text-teal-950" onClick={() => setMenuOpen(false)}>
               {workspaceLabel}
             </Link>
+            <a href="#contact" className="block py-1 font-medium text-teal-800" onClick={() => setMenuOpen(false)}>
+              Contact us
+            </a>
           </div>
         )}
       </header>
 
-      <main id="top">
+      <main id="top" className="relative z-10">
         <Hero workspace={workspace} workspaceLabel={workspaceLabel} />
-        <Scenarios />
+        <Tour />
         <Features />
         <HowItWorks />
         <Why />
@@ -71,76 +95,159 @@ export function LandingPage() {
         <Contact />
       </main>
 
-      <footer className="border-t border-white/10 px-5 py-12">
-        <div className="mx-auto flex max-w-6xl flex-col gap-10">
-          <div className="flex flex-col justify-between gap-8 sm:flex-row">
-            <div>
-              <WwtWordmark />
-              <p className="mt-3 max-w-sm text-sm text-white/45">
-                WWT is the privacy-first workspace for organizations that need roles, reviews, and a tenant of their own.
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-6 text-sm text-white/50">
-              <a href="#features" className="landing-ease hover:text-white">Features</a>
-              <a href="#how" className="landing-ease hover:text-white">How it works?</a>
-              <a href="#contact" className="landing-ease hover:text-white">Contact us</a>
-              <Link to="/login" className="landing-ease hover:text-white">Log in</Link>
-            </div>
-          </div>
-          <div className="font-display text-[22vw] leading-[0.75] font-semibold tracking-[-0.06em] text-white/[0.07] select-none sm:text-[14vw]">
-            WWT
-          </div>
-          <div className="flex flex-wrap items-center justify-between gap-3 font-mono text-[11px] tracking-wide text-white/30 uppercase">
-            <span>© {new Date().getFullYear()} WWT · WeWorkTogether</span>
-            <span className="inline-flex items-center gap-2">
-              <span className="h-1.5 w-1.5 rounded-full bg-teal-400" />
-              All systems operational
-            </span>
-          </div>
-        </div>
-      </footer>
+      <LandingFooter />
     </div>
   )
 }
 
+function LandingFooter() {
+  const { user } = useAuth()
+  const workspace = user ? '/app' : '/login'
+  const workspaceLabel = user ? 'Open workspace' : 'Log in'
+  const markRef = useRef<HTMLAnchorElement>(null)
+  const [spot, setSpot] = useState({ x: 50, y: 40, on: false })
+
+  const onMove = (event: MouseEvent<HTMLAnchorElement>) => {
+    const box = markRef.current?.getBoundingClientRect()
+    if (!box) return
+    setSpot({
+      x: ((event.clientX - box.left) / box.width) * 100,
+      y: ((event.clientY - box.top) / box.height) * 100,
+      on: true,
+    })
+  }
+
+  return (
+    <footer className="relative z-10 px-3 pb-4 pt-8 sm:px-5">
+      <div className="landing-stage relative mx-auto max-w-6xl overflow-hidden rounded-[32px] px-5 pt-8 pb-4 sm:px-8 sm:pt-10">
+        <div className="app-orb pointer-events-none absolute -top-16 right-10 h-48 w-48 rounded-full bg-teal-300/25 blur-3xl" />
+        <div className="app-orb pointer-events-none absolute bottom-0 left-8 h-40 w-40 rounded-full bg-amber-200/20 blur-3xl" />
+        <div className="relative flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
+          <div className="max-w-sm">
+            <WwtWordmark className="text-teal-950" />
+            <p className="mt-3 text-sm leading-relaxed text-teal-900/55">
+              WWT is the privacy-first workspace for organizations that need roles, reviews, and a tenant of their own.
+            </p>
+            <div className="mt-5 flex flex-wrap gap-2">
+              <a href="#contact">
+                <Button type="button">
+                  Contact us
+                  <ArrowUpRight className="h-4 w-4" />
+                </Button>
+              </a>
+              <Link to={workspace}>
+                <Button variant="secondary" type="button">
+                  {workspaceLabel}
+                </Button>
+              </Link>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-8 sm:gap-12">
+            <div>
+              <div className="font-mono text-[11px] tracking-[0.28em] text-teal-700/70 uppercase">Product</div>
+              <div className="mt-3 flex flex-col gap-2.5 text-sm text-teal-800/75">
+                <a className="landing-nav-link w-fit" href="#features">
+                  Features
+                </a>
+                <a className="landing-nav-link w-fit" href="#how">
+                  How it works
+                </a>
+                <a className="landing-nav-link w-fit" href="#privacy">
+                  Privacy
+                </a>
+              </div>
+            </div>
+            <div>
+              <div className="font-mono text-[11px] tracking-[0.28em] text-teal-700/70 uppercase">Workspace</div>
+              <div className="mt-3 flex flex-col gap-2.5 text-sm text-teal-800/75">
+                <a className="landing-nav-link w-fit" href="#contact">
+                  Contact us
+                </a>
+                <Link className="landing-nav-link w-fit" to={workspace}>
+                  {workspaceLabel}
+                </Link>
+                <a className="landing-nav-link w-fit" href="#top">
+                  Back to top
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <a
+          ref={markRef}
+          href="#top"
+          aria-label="Back to top"
+          className="landing-footer-word group relative mt-10 block overflow-hidden"
+          onMouseMove={onMove}
+          onMouseEnter={() => setSpot((s) => ({ ...s, on: true }))}
+          onMouseLeave={() => setSpot((s) => ({ ...s, on: false }))}
+        >
+          <span
+            className="landing-footer-spot pointer-events-none absolute h-64 w-64 -translate-x-1/2 -translate-y-1/2 rounded-full bg-teal-300/45 blur-3xl"
+            style={{
+              left: `${spot.x}%`,
+              top: `${spot.y}%`,
+              opacity: spot.on ? 1 : 0,
+            }}
+          />
+          <span className="relative flex font-display text-[28vw] leading-[0.78] font-semibold tracking-[-0.07em] sm:text-[16vw] lg:text-[14vw]">
+            {['W', 'W', 'T'].map((letter, index) => (
+              <span key={`${letter}-${index}`} className="landing-footer-letter" style={{ transitionDelay: `${index * 40}ms` }}>
+                {letter}
+              </span>
+            ))}
+          </span>
+          <span className="landing-footer-hint pointer-events-none absolute right-0 bottom-3 font-mono text-[10px] tracking-[0.28em] text-teal-800/0 uppercase group-hover:text-teal-800/50">
+            Back to top
+          </span>
+        </a>
+
+        <div className="relative mt-2 flex flex-wrap items-center justify-between gap-3 border-t border-teal-900/10 pt-4 font-mono text-[11px] tracking-wide text-teal-800/45 uppercase">
+          <span>© {new Date().getFullYear()} WWT · WeWorkTogether</span>
+          <span className="landing-inset inline-flex items-center gap-2 rounded-full px-3 py-1">
+            <span className="landing-pulse h-1.5 w-1.5 rounded-full bg-teal-500" />
+            All systems operational
+          </span>
+        </div>
+      </div>
+    </footer>
+  )
+}
+
 function Eyebrow({ children }: { children: string }) {
-  return <p className="font-mono text-[11px] tracking-[0.32em] text-teal-300/80 uppercase">{children}</p>
+  return <p className="font-mono text-[11px] tracking-[0.32em] text-teal-700/80 uppercase">{children}</p>
 }
 
 function Hero({ workspace, workspaceLabel }: { workspace: string; workspaceLabel: string }) {
   return (
     <section className="relative overflow-hidden">
-      <div className="landing-grid pointer-events-none absolute inset-0" />
-      <div className="landing-orb pointer-events-none absolute top-[-8rem] left-1/4 h-[28rem] w-[28rem] rounded-full bg-teal-500/18 blur-[90px]" />
-      <div className="landing-orb pointer-events-none absolute right-[-6rem] bottom-0 h-[22rem] w-[22rem] rounded-full bg-cyan-500/10 blur-[90px] [animation-delay:-5s]" />
-      <div className="relative mx-auto grid max-w-6xl items-center gap-14 px-5 pt-16 pb-24 lg:grid-cols-[1.05fr_0.95fr] lg:pt-24 lg:pb-28">
+      <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-5 pt-16 pb-20 lg:grid-cols-[1.05fr_0.95fr] lg:pt-20 lg:pb-24">
         <div className="landing-rise">
-          <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 font-mono text-[11px] tracking-widest text-teal-200 uppercase">
-            <span className="landing-pulse h-1.5 w-1.5 rounded-full bg-teal-400" />
+          <span className="inline-flex items-center gap-2 rounded-full border border-teal-900/12 bg-white/90 px-3 py-1 font-mono text-[11px] tracking-widest text-teal-800 uppercase shadow-[0_8px_20px_rgb(15_61_56_/_0.08)]">
+            <span className="landing-pulse h-1.5 w-1.5 rounded-full bg-teal-500" />
             WWT live
           </span>
-          <h1 className="mt-7 text-[3.2rem] leading-[0.9] font-semibold tracking-tight sm:text-7xl lg:text-[5.5rem]">
+          <h1 className="mt-7 text-[3.2rem] leading-[0.9] font-semibold tracking-tight text-teal-950 sm:text-7xl lg:text-[5.25rem]">
             Never chase
             <br />
-            <span className="font-serif font-normal italic text-teal-200">work</span> again.
+            <span className="font-serif font-normal italic text-teal-700">work</span> again.
           </h1>
-          <p className="mt-6 max-w-md text-lg leading-relaxed text-white/55">
+          <p className="mt-6 max-w-md font-serif text-lg italic leading-relaxed text-teal-900/55">
             WWT gives every person a role, every project a board, and every organization a private tenant — no overlap, no
             guessing, no noise.
           </p>
           <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
-            <a
-              href="#contact"
-              className="landing-btn inline-flex items-center justify-center gap-2 rounded-full bg-white px-6 py-3.5 text-sm font-medium text-black hover:bg-teal-300"
-            >
-              Want your organisation also?
-              <ArrowUpRight className="landing-arrow h-4 w-4" />
+            <a href="#contact">
+              <Button type="button" className="px-6 py-3.5">
+                Want your organisation also?
+                <ArrowUpRight className="h-4 w-4" />
+              </Button>
             </a>
-            <Link
-              to={workspace}
-              className="landing-ease inline-flex items-center justify-center rounded-full border border-white/15 px-6 py-3.5 text-sm text-white/80 hover:border-white/40 hover:bg-white/5 hover:text-white"
-            >
-              {workspaceLabel}
+            <Link to={workspace}>
+              <Button variant="secondary" type="button" className="px-6 py-3.5">
+                {workspaceLabel}
+              </Button>
             </Link>
           </div>
         </div>
@@ -179,7 +286,10 @@ function HeroStage() {
               { c: 'Review', t: 'QA checkout', p: 'MED' },
               { c: 'Done', t: 'Brand tokens', p: 'LOW' },
             ].map((col) => (
-              <div key={col.c} className="landing-ease rounded-2xl bg-white/4 p-2.5 ring-1 ring-white/6 hover:bg-white/8 hover:ring-teal-300/30">
+              <div
+                key={col.c}
+                className="landing-ease rounded-2xl bg-white/4 p-2.5 ring-1 ring-white/6 hover:bg-white/8 hover:ring-teal-300/30"
+              >
                 <div className="font-mono text-[9px] tracking-widest text-white/35 uppercase">{col.c}</div>
                 <div className="mt-2 rounded-xl bg-[#151b24] p-2">
                   <div className="text-[11px] leading-snug text-white/90">{col.t}</div>
@@ -194,125 +304,17 @@ function HeroStage() {
   )
 }
 
-const SCENARIOS = [
-  {
-    id: 'squads',
-    label: 'Product squads',
-    kind: 'Squad',
-    place: 'Bengaluru, India',
-    task: 'Atlas release',
-    image:
-      'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1800&q=80',
-  },
-  {
-    id: 'agencies',
-    label: 'Agencies',
-    kind: 'Studio',
-    place: 'Mumbai, India',
-    task: 'Client rebrand',
-    image:
-      'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?auto=format&fit=crop&w=1800&q=80',
-  },
-  {
-    id: 'ops',
-    label: 'Operations',
-    kind: 'Ops',
-    place: 'Hyderabad, India',
-    task: 'Vendor onboarding',
-    image:
-      'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1800&q=80',
-  },
-  {
-    id: 'orgs',
-    label: 'Multi-department',
-    kind: 'Org',
-    place: 'Pune, India',
-    task: 'Quarterly rollout',
-    image:
-      'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1800&q=80',
-  },
-]
-
-function Scenarios() {
-  const [index, setIndex] = useState(0)
-  const [paused, setPaused] = useState(false)
-  const [clock, setClock] = useState('14:02')
-  const active = SCENARIOS[index]
-
-  useEffect(() => {
-    const tick = () =>
-      setClock(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }))
-    tick()
-    const id = setInterval(tick, 1000)
-    return () => clearInterval(id)
-  }, [])
-
-  useEffect(() => {
-    if (paused) return
-    const id = setInterval(() => setIndex((i) => (i + 1) % SCENARIOS.length), 4500)
-    return () => clearInterval(id)
-  }, [paused])
-
+function Tour() {
   return (
-    <section className="px-5 py-24" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
+    <section className="px-5 py-20">
       <div className="mx-auto max-w-6xl">
-        <Eyebrow>Scenarios</Eyebrow>
-        <div className="mt-6 grid items-end gap-10 lg:grid-cols-[0.9fr_1.1fr]">
-          <div>
-            <h2 className="text-4xl leading-[0.95] font-semibold tracking-tight sm:text-6xl">
-              ANYWHERE TEAMS
-              <br />
-              ARE ALIGNED.
-            </h2>
-            <ul className="mt-10 space-y-1">
-              {SCENARIOS.map((item, i) => (
-                <li key={item.id}>
-                  <button
-                    type="button"
-                    onMouseEnter={() => setIndex(i)}
-                    onClick={() => setIndex(i)}
-                    className={cn(
-                      'landing-ease group flex w-full items-center gap-4 rounded-2xl px-2 py-3 text-left text-xl sm:text-2xl',
-                      i === index ? 'text-white' : 'text-white/30 hover:text-white/70',
-                    )}
-                  >
-                    <span
-                      className={cn(
-                        'landing-ease h-px w-8',
-                        i === index ? 'w-12 bg-teal-400' : 'bg-white/20 group-hover:w-10 group-hover:bg-white/50',
-                      )}
-                    />
-                    {item.label}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div className="relative aspect-[4/5] overflow-hidden rounded-[32px] sm:aspect-[16/11] lg:aspect-[5/4]">
-            {SCENARIOS.map((item, i) => (
-              <img
-                key={item.id}
-                src={item.image}
-                alt={item.label}
-                className={cn(
-                  'landing-kenburns absolute inset-0 h-full w-full object-cover transition-opacity duration-700',
-                  i === index ? 'opacity-100' : 'opacity-0',
-                )}
-              />
-            ))}
-            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/25 to-black/20" />
-            <div className="absolute top-5 left-5 rounded-full border border-white/15 bg-black/35 px-3 py-1 font-mono text-[10px] tracking-[0.22em] text-white/80 backdrop-blur-md">
-              WWT · LIVE
-            </div>
-            <div className="absolute right-5 bottom-5 left-5 flex items-end justify-between gap-4">
-              <div>
-                <div className="text-sm tracking-[0.2em] text-white/70 uppercase">{active.kind}</div>
-                <div className="mt-1 text-3xl font-semibold tracking-tight sm:text-4xl">{active.task}</div>
-                <div className="mt-2 text-sm text-white/70">{active.place}</div>
-              </div>
-              <div className="font-mono text-sm text-teal-200">{clock}</div>
-            </div>
-          </div>
+        <Eyebrow>Workspace</Eyebrow>
+        <h2 className="mt-4 text-4xl font-semibold tracking-tight text-teal-950 sm:text-5xl">See the product.</h2>
+        <p className="mt-3 max-w-xl font-serif text-lg italic text-teal-900/55">
+          The same dashboard, board, reviews, and members your organization will use.
+        </p>
+        <div className="mt-10">
+          <ProductTour />
         </div>
       </div>
     </section>
@@ -321,84 +323,126 @@ function Scenarios() {
 
 function Features() {
   return (
-    <section id="features" className="px-5 py-24">
+    <section id="features" className="px-5 py-20">
       <div className="mx-auto max-w-6xl">
         <Eyebrow>Product</Eyebrow>
-        <h2 className="mt-4 max-w-3xl text-4xl leading-[0.95] font-semibold tracking-tight sm:text-6xl">
+        <h2 className="mt-4 max-w-3xl text-4xl leading-[0.95] font-semibold tracking-tight text-teal-950 sm:text-5xl">
           Built for privacy.
           <br />
           Designed for scale.
         </h2>
-        <p className="mt-5 max-w-xl text-lg text-white/50">
+        <p className="mt-5 max-w-xl text-lg text-teal-900/55">
           WWT removed the clutter. No mixed tenants, no mystery permissions — work organized by role, reviewed in the open,
           and capped by the plan you bought.
         </p>
-        <div className="mt-14 grid gap-4 lg:grid-cols-3">
-          <article className="landing-card landing-shine rounded-[28px] border border-white/8 bg-white/[0.03] p-6">
-            <h3 className="text-xl font-semibold">Privacy focused</h3>
-            <p className="mt-2 text-sm leading-relaxed text-white/50">
+        <div className="mt-12 grid gap-4 lg:grid-cols-3">
+          <Card interactive className="app-shine">
+            <CardTitle className="text-xl">Privacy focused</CardTitle>
+            <p className="mt-2 text-sm leading-relaxed text-teal-900/55">
               SuperAdmins manage the customer. They never inspect tasks, comments, or employee activity inside an organization.
             </p>
-            <div className="mt-8 rounded-2xl border border-red-400/20 bg-red-500/5 p-5 text-center">
-              <div className="font-mono text-[10px] tracking-[0.3em] text-red-300/70">CROSS-ORG ACCESS</div>
-              <div className="landing-denied mt-3 text-3xl font-semibold tracking-tight text-red-300">DENIED</div>
+            <div className="mt-6 flex items-center gap-4 landing-inset rounded-2xl p-4">
+              <RingChart value={0} max={1} size={72} stroke={8} tone="coral" />
+              <div>
+                <div className="font-mono text-[10px] tracking-[0.22em] text-rose-800/70 uppercase">Cross-org access</div>
+                <div className="landing-denied mt-1 text-2xl font-semibold tracking-tight text-rose-700">DENIED</div>
+                <Badge tone="red">Tasks hidden</Badge>
+              </div>
             </div>
-          </article>
-          <article className="landing-card landing-shine rounded-[28px] border border-white/8 bg-white/[0.03] p-6">
-            <h3 className="text-xl font-semibold">Role-aware, always</h3>
-            <p className="mt-2 text-sm leading-relaxed text-white/50">
+          </Card>
+          <Card interactive className="app-shine">
+            <CardTitle className="text-xl">Role-aware, always</CardTitle>
+            <p className="mt-2 text-sm leading-relaxed text-teal-900/55">
               SuperAdmin, Admin, Project Manager, Member. Each person only receives the authority the work requires.
             </p>
-            <div className="mt-8 grid grid-cols-2 gap-2">
-              {['SUPERADMIN', 'ADMIN', 'PM', 'MEMBER'].map((role, i) => (
+            <div className="mt-6 grid grid-cols-2 gap-2">
+              {['SUPER ADMIN', 'ADMIN', 'PM', 'MEMBER'].map((role, i) => (
                 <div
                   key={role}
                   className={cn(
-                    'landing-ease rounded-2xl px-3 py-4 font-mono text-[11px] tracking-widest hover:scale-[1.03]',
-                    i === 2 ? 'bg-teal-400 text-black' : 'bg-white/5 text-white/60 hover:bg-white/10 hover:text-white',
+                    'rounded-full px-3 py-2.5 text-center font-mono text-[10px] tracking-[0.18em]',
+                    i === 2
+                      ? 'bg-teal-300 text-teal-950 shadow-[0_10px_24px_rgb(45_212_191_/_0.28)]'
+                      : 'landing-inset text-teal-900/70',
                   )}
                 >
                   {role}
                 </div>
               ))}
             </div>
-          </article>
-          <article className="landing-card landing-shine rounded-[28px] border border-white/8 bg-white/[0.03] p-6">
-            <h3 className="text-xl font-semibold">Quota-true plans</h3>
-            <p className="mt-2 text-sm leading-relaxed text-white/50">
+          </Card>
+          <Card interactive className="app-shine">
+            <CardTitle className="text-xl">Quota-true plans</CardTitle>
+            <p className="mt-2 text-sm leading-relaxed text-teal-900/55">
               Members, projects, and storage are enforced. Growth is visible before it becomes a surprise.
             </p>
-            <div className="mt-8 space-y-4">
-              {[
-                ['Members', '72 / 100', 'w-[72%]'],
-                ['Projects', '11 / 20', 'w-[55%]'],
-                ['Storage', '41 GB', 'w-[41%]'],
-              ].map(([k, v, w]) => (
-                <div key={k}>
-                  <div className="mb-1 flex justify-between font-mono text-[10px] text-white/40">
-                    <span>{k}</span>
-                    <span>{v}</span>
-                  </div>
-                  <div className="h-1 rounded-full bg-white/10">
-                    <div className={cn('h-full rounded-full bg-teal-400', w)} />
-                  </div>
+            <div className="mt-6 landing-inset space-y-3 rounded-2xl p-4">
+              <QuotaMeter label="Members" used={72} max={100} />
+              <QuotaMeter label="Projects" used={11} max={20} />
+              <QuotaMeter label="Storage" used={41 * 1024 * 1024 * 1024} max={100 * 1024 * 1024 * 1024} format="bytes" />
+            </div>
+          </Card>
+        </div>
+        <div className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <Card interactive className="app-shine">
+            <CardTitle>Kanban workflow</CardTitle>
+            <p className="mt-2 text-sm leading-relaxed text-teal-900/55">
+              To do → Doing → Review → Blocked → Done. Invalid jumps are rejected.
+            </p>
+            <div className="mt-4 rounded-[22px] border border-amber-200 bg-amber-50 p-2 shadow-[0_10px_24px_rgb(15_61_56_/_0.08)]">
+              <div className="mb-2 flex items-center gap-1.5 text-[11px] font-medium text-teal-950">
+                <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                Doing
+              </div>
+              <div className="app-card relative overflow-hidden rounded-2xl p-2.5">
+                <span className="absolute inset-y-0 left-0 w-1 bg-rose-500" />
+                <div className="pl-2 text-[11px] font-medium text-teal-950">Pricing page</div>
+                <div className="mt-2 pl-2">
+                  <Badge tone="red">URGENT</Badge>
+                </div>
+              </div>
+            </div>
+          </Card>
+          <Card interactive className="app-shine">
+            <CardTitle>Reviews & comments</CardTitle>
+            <p className="mt-2 text-sm leading-relaxed text-teal-900/55">
+              Work is signed off on the task, with conversation attached to the work.
+            </p>
+            <div className="mt-4 landing-inset rounded-2xl p-3">
+              <div className="flex items-center gap-2 text-sm font-medium text-teal-950">
+                <Avatar name="Arun Mehta" size="sm" />
+                Arun Mehta
+              </div>
+              <p className="mt-1.5 text-xs text-teal-900/70">Looks good — approving after the tax path check.</p>
+              <div className="mt-2 flex items-center gap-1 text-[10px] text-teal-800">
+                <MessageSquare className="h-3 w-3" />
+                Review thread
+              </div>
+            </div>
+          </Card>
+          <Card interactive className="app-shine">
+            <CardTitle>Files & activity</CardTitle>
+            <p className="mt-2 text-sm leading-relaxed text-teal-900/55">
+              Attachments count against storage. Every important move leaves a trail.
+            </p>
+            <div className="mt-4 space-y-2">
+              {['qa-notes.pdf · 240 KB', 'checkout-flow.png · 1.1 MB'].map((file) => (
+                <div key={file} className="landing-inset flex items-center gap-2 rounded-2xl px-3 py-2 text-xs text-teal-800">
+                  <Paperclip className="h-3.5 w-3.5" />
+                  {file}
                 </div>
               ))}
             </div>
-          </article>
-        </div>
-        <div className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {[
-            ['Kanban workflow', 'To do → Doing → Review → Blocked → Done. Invalid jumps are rejected.'],
-            ['Reviews & comments', 'Work is signed off on the task, with conversation attached to the work.'],
-            ['Files & activity', 'Attachments count against storage. Every important move leaves a trail.'],
-            ['Live dashboards', 'Overdue, due soon, awaiting review — the numbers that keep delivery honest.'],
-          ].map(([t, d]) => (
-            <article key={t} className="landing-card landing-shine rounded-[28px] border border-white/8 bg-white/[0.03] p-6">
-              <h3 className="text-lg font-semibold">{t}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-white/50">{d}</p>
-            </article>
-          ))}
+          </Card>
+          <Card interactive className="app-shine">
+            <CardTitle>Live dashboards</CardTitle>
+            <p className="mt-2 text-sm leading-relaxed text-teal-900/55">
+              Overdue, due soon, awaiting review — the numbers that keep delivery honest.
+            </p>
+            <div className="mt-4">
+              <MetricCard label="Overdue" value="3" hint="Needs attention now" tone="coral" />
+            </div>
+          </Card>
         </div>
       </div>
     </section>
@@ -407,21 +451,29 @@ function Features() {
 
 function HowItWorks() {
   return (
-    <section id="how" className="px-5 py-24">
+    <section id="how" className="px-5 py-20">
       <div className="mx-auto max-w-6xl">
         <Eyebrow>Workflow</Eyebrow>
-        <h2 className="mt-4 text-4xl font-semibold tracking-tight sm:text-6xl">HOW IT WORKS.</h2>
+        <h2 className="mt-4 text-4xl font-semibold tracking-tight text-teal-950 sm:text-5xl">How it works.</h2>
         <div className="mt-12 grid items-start gap-8 lg:grid-cols-[1.1fr_0.9fr]">
-          <div className="landing-card overflow-hidden rounded-[28px] border border-white/10 bg-[#0c1016] p-6">
-            <div className="flex flex-wrap justify-between gap-3 font-mono text-[11px] text-white/40">
-              <span>WWT · SESSION 8X-291A</span>
+          <Card>
+            <div className="flex flex-wrap justify-between gap-3 font-mono text-[11px] text-teal-800/50">
+              <span>Northwind Labs</span>
               <span>124 TASKS · 18 PROJECTS</span>
             </div>
-            <div className="mt-6 rounded-2xl border border-white/8 p-4">
-              <div className="font-mono text-[10px] tracking-[0.25em] text-teal-300">ROLE ENGINE</div>
+            <div className="mt-5 landing-inset rounded-2xl p-4">
+              <div className="font-mono text-[10px] tracking-[0.25em] text-teal-700/80 uppercase">Role engine</div>
               <div className="mt-4 flex flex-wrap gap-2">
                 {['SuperAdmin', 'Admin', 'Project Manager', 'Member'].map((role, i) => (
-                  <span key={role} className="landing-ease inline-flex items-center gap-2 rounded-full bg-white/5 px-3 py-1.5 text-sm hover:bg-teal-400 hover:text-black">
+                  <span
+                    key={role}
+                    className={cn(
+                      'inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm',
+                      i === 2
+                        ? 'bg-teal-300 text-teal-950 shadow-[0_10px_24px_rgb(45_212_191_/_0.28)]'
+                        : 'landing-inset text-teal-900/70',
+                    )}
+                  >
                     <span className="font-mono text-[10px] opacity-50">0{i + 1}</span>
                     {role}
                   </span>
@@ -430,33 +482,35 @@ function HowItWorks() {
             </div>
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
               {[
-                ['AL', 'Priya Shah', 'Admin · 42 members'],
-                ['AR', 'Arun Mehta', 'PM · Atlas board'],
-                ['DV', 'Dev Patel', 'Member · 6 assigned'],
-                ['MY', 'Maya Rao', 'Review · 3 waiting'],
-              ].map(([ini, name, meta]) => (
-                <div key={name} className="landing-ease flex items-center gap-3 rounded-2xl bg-white/4 p-3 hover:bg-white/8">
-                  <div className="grid h-10 w-10 place-items-center rounded-full bg-teal-400/15 font-mono text-xs text-teal-200">{ini}</div>
+                ['Priya Shah', 'Admin · 42 members'],
+                ['Arun Mehta', 'PM · Atlas board'],
+                ['Dev Patel', 'Member · 6 assigned'],
+                ['Maya Rao', 'Review · 3 waiting'],
+              ].map(([name, meta]) => (
+                <div key={name} className="landing-inset flex items-center gap-3 rounded-2xl p-3">
+                  <Avatar name={name} />
                   <div>
-                    <div className="text-sm">{name}</div>
-                    <div className="text-xs text-white/40">{meta}</div>
+                    <div className="text-sm font-medium text-teal-950">{name}</div>
+                    <div className="text-xs text-teal-900/45">{meta}</div>
                   </div>
                 </div>
               ))}
             </div>
-          </div>
-          <ol className="space-y-2">
+          </Card>
+          <ol className="space-y-3">
             {[
               ['01', 'Contact us', 'Tell us the organization, team size, and how you work. There is no public signup.'],
               ['02', 'We create the tenant', 'A SuperAdmin stands up the org, plan, quotas, and your Admin account.'],
               ['03', 'The team ships', 'Admins invite people, PMs run the board, members move work, reviews close the loop.'],
             ].map(([n, t, d]) => (
-              <li key={n} className="landing-ease group grid grid-cols-[auto_1fr] gap-5 rounded-3xl p-4 hover:bg-white/5">
-                <div className="landing-ease font-mono text-sm text-white/30 group-hover:text-teal-300">{n}</div>
-                <div>
-                  <h3 className="text-2xl font-semibold">{t}</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-white/50">{d}</p>
-                </div>
+              <li key={n}>
+                <Card className="grid grid-cols-[auto_1fr] gap-5">
+                  <div className="font-mono text-sm text-teal-700/60">{n}</div>
+                  <div>
+                    <h3 className="text-xl font-semibold text-teal-950">{t}</h3>
+                    <p className="mt-2 text-sm leading-relaxed text-teal-900/55">{d}</p>
+                  </div>
+                </Card>
               </li>
             ))}
           </ol>
@@ -475,18 +529,18 @@ function Why() {
     'If a task is yours, it is in front of you — privately, inside your tenant.',
   ]
   return (
-    <section className="px-5 py-24">
+    <section className="px-5 py-20">
       <div className="mx-auto max-w-6xl">
-        <h2 className="text-4xl font-semibold tracking-tight sm:text-6xl">Why WWT?</h2>
-        <ol className="group/why mt-8">
+        <h2 className="text-4xl font-semibold tracking-tight text-teal-950 sm:text-5xl">Why WWT?</h2>
+        <ol className="group/why landing-stage mt-8 overflow-hidden rounded-[28px] px-4 sm:px-6">
           {items.map((item, i) => (
             <li
               key={item}
-              className="landing-ease group/item grid cursor-default grid-cols-[4.5rem_1fr_auto] items-center gap-4 border-b border-white/8 py-7 sm:grid-cols-[6rem_1fr_auto] sm:py-9 group-hover/why:opacity-25 hover:!opacity-100"
+              className="landing-ease group/item grid cursor-default grid-cols-[4.5rem_1fr_auto] items-center gap-4 border-b border-teal-900/10 py-7 last:border-b-0 sm:grid-cols-[6rem_1fr_auto] sm:py-9 group-hover/why:opacity-40 hover:!opacity-100"
             >
-              <span className="landing-ease font-mono text-sm text-white/25 group-hover/item:text-teal-300">0{i + 1}</span>
-              <span className="text-xl leading-tight font-medium tracking-tight sm:text-4xl">{item}</span>
-              <ArrowUpRight className="landing-ease h-6 w-6 text-teal-300 opacity-0 group-hover/item:translate-x-0.5 group-hover/item:-translate-y-0.5 group-hover/item:opacity-100" />
+              <span className="landing-ease font-mono text-sm text-teal-800/30 group-hover/item:text-teal-700">0{i + 1}</span>
+              <span className="text-xl leading-tight font-medium tracking-tight text-teal-950 sm:text-3xl">{item}</span>
+              <ArrowUpRight className="landing-ease h-6 w-6 text-teal-700 opacity-0 group-hover/item:translate-x-0.5 group-hover/item:-translate-y-0.5 group-hover/item:opacity-100" />
             </li>
           ))}
         </ol>
@@ -503,26 +557,26 @@ function Privacy() {
     ['WWT keeps growth honest', 'landing-marquee landing-marquee-slow'],
   ]
   return (
-    <section id="privacy" className="overflow-hidden py-24">
+    <section id="privacy" className="overflow-hidden py-20">
       <div className="mx-auto max-w-6xl px-5">
         <Eyebrow>Privacy first</Eyebrow>
-        <h2 className="mt-4 text-4xl leading-[0.95] font-semibold tracking-tight sm:text-6xl">
-          BUILT FOR PRIVACY,
+        <h2 className="mt-4 text-4xl leading-[0.95] font-semibold tracking-tight text-teal-950 sm:text-5xl">
+          Built for privacy,
           <br />
-          NOT SURVEILLANCE.
+          not surveillance.
         </h2>
-        <p className="mt-6 font-mono text-sm text-white/40">
+        <p className="mt-6 font-mono text-sm text-teal-800/50">
           // WWT SuperAdmins never see your tasks.
           <br />
           // Organization data is isolated and kept that way.
         </p>
       </div>
-      <div className="mt-12 space-y-0">
+      <div className="landing-stage mt-12 overflow-hidden">
         {rows.map(([text, cls]) => (
-          <div key={text} className="landing-marquee-row landing-ease overflow-hidden border-y border-white/5 py-4 hover:bg-white/[0.03]">
+          <div key={text} className="landing-marquee-row landing-ease overflow-hidden border-y border-teal-900/8 py-4 first:border-t-0 last:border-b-0 hover:bg-white">
             <div className={cls}>
               {Array.from({ length: 16 }, (_, i) => (
-                <span key={i} className="mx-8 text-lg text-white/30 sm:text-3xl">
+                <span key={i} className="mx-8 text-lg text-teal-900/30 sm:text-3xl">
                   {text}
                 </span>
               ))}
@@ -557,77 +611,69 @@ function Contact() {
     }
   }
 
-  const field =
-    'w-full rounded-xl border border-white/10 bg-white/5 px-3 py-3 text-sm text-white outline-none ring-teal-400/20 placeholder:text-white/25 transition focus:border-teal-300/40 focus:ring-4'
-
   return (
-    <section id="contact" className="px-5 py-24">
+    <section id="contact" className="px-5 py-20">
       <div className="mx-auto grid max-w-6xl gap-12 lg:grid-cols-[1fr_1fr]">
         <div>
           <Eyebrow>Now available</Eyebrow>
-          <h2 className="mt-4 text-4xl leading-[0.92] font-semibold tracking-tight sm:text-6xl">
-            WANT WWT
+          <h2 className="mt-4 text-4xl leading-[0.92] font-semibold tracking-tight text-teal-950 sm:text-5xl">
+            Want WWT
             <br />
-            FOR YOUR
+            for your
             <br />
-            <span className="font-serif font-normal italic text-teal-200">organisation?</span>
+            <span className="font-serif font-normal italic text-teal-700">organisation?</span>
           </h2>
-          <p className="mt-6 max-w-md font-mono text-sm leading-relaxed text-white/45">
-            {'>'} Contact us. We create the tenant.
-            <br />
-            {'>'} Your Admin gets the keys. Your work stays yours.
+          <p className="mt-6 max-w-md font-serif text-lg italic leading-relaxed text-teal-900/55">
+            Contact us. We create the tenant. Your Admin gets the keys. Your work stays yours.
           </p>
-          <ul className="mt-8 space-y-3 text-sm text-white/70">
-            {['Dedicated WWT organization', 'Plan and quotas configured for you', 'Internal work invisible to the platform owner'].map((item) => (
-              <li key={item} className="flex gap-2">
-                <Check className="mt-0.5 h-4 w-4 text-teal-400" />
-                {item}
-              </li>
-            ))}
+          <ul className="mt-8 space-y-3 text-sm text-teal-900/70">
+            {['Dedicated WWT organization', 'Plan and quotas configured for you', 'Internal work invisible to the platform owner'].map(
+              (item) => (
+                <li key={item} className="landing-inset flex gap-2 rounded-2xl px-3 py-2.5">
+                  <Check className="mt-0.5 h-4 w-4 text-teal-700" />
+                  {item}
+                </li>
+              ),
+            )}
           </ul>
         </div>
-        <div className="landing-card rounded-[28px] border border-white/10 bg-white/[0.03] p-6 sm:p-8">
+        <Card className="p-6 sm:p-8">
           {sent ? (
             <div className="py-16 text-center">
-              <div className="font-mono text-xs tracking-widest text-teal-300">WWT · INQUIRY_RECEIVED</div>
-              <h3 className="mt-4 text-3xl font-semibold">We’ll take it from here.</h3>
-              <p className="mt-3 text-sm text-white/50">
+              <div className="font-mono text-xs tracking-widest text-teal-700/70">WWT · INQUIRY RECEIVED</div>
+              <h3 className="mt-4 text-3xl font-semibold text-teal-950">We’ll take it from here.</h3>
+              <p className="mt-3 text-sm text-teal-900/55">
                 A platform owner will follow up about bringing {organizationName || 'your organization'} onto WWT.
               </p>
             </div>
           ) : (
             <form className="space-y-4" onSubmit={onSubmit}>
-              <div className="font-mono text-[11px] tracking-[0.28em] text-white/35 uppercase">Contact us</div>
+              <div className="font-mono text-[11px] tracking-[0.28em] text-teal-700/70 uppercase">Contact us</div>
               <div className="grid gap-4 sm:grid-cols-2">
-                <label className="block text-xs text-white/45">
-                  Your name
-                  <input className={`mt-1 ${field}`} value={name} onChange={(e) => setName(e.target.value)} required maxLength={80} />
-                </label>
-                <label className="block text-xs text-white/45">
-                  Work email
-                  <input className={`mt-1 ${field}`} type="email" value={email} onChange={(e) => setEmail(e.target.value)} required maxLength={160} />
-                </label>
+                <Field label="Your name">
+                  <Input value={name} onChange={(e) => setName(e.target.value)} required maxLength={80} />
+                </Field>
+                <Field label="Work email">
+                  <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required maxLength={160} />
+                </Field>
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
-                <label className="block text-xs text-white/45">
-                  Organization
-                  <input className={`mt-1 ${field}`} value={organizationName} onChange={(e) => setOrganizationName(e.target.value)} required maxLength={120} />
-                </label>
-                <label className="block text-xs text-white/45">
-                  Team size
-                  <select className={`mt-1 ${field}`} value={teamSize} onChange={(e) => setTeamSize(e.target.value)}>
-                    <option className="bg-[#111]">1-10</option>
-                    <option className="bg-[#111]">11-50</option>
-                    <option className="bg-[#111]">51-200</option>
-                    <option className="bg-[#111]">201-500</option>
-                    <option className="bg-[#111]">500+</option>
+                <Field label="Organization">
+                  <Input value={organizationName} onChange={(e) => setOrganizationName(e.target.value)} required maxLength={120} />
+                </Field>
+                <Field label="Team size">
+                  <select className="app-select" value={teamSize} onChange={(e) => setTeamSize(e.target.value)}>
+                    <option>1-10</option>
+                    <option>11-50</option>
+                    <option>51-200</option>
+                    <option>201-500</option>
+                    <option>500+</option>
                   </select>
-                </label>
+                </Field>
               </div>
-              <label className="block text-xs text-white/45">
-                How can we help?
-                <textarea
-                  className={`mt-1 min-h-28 ${field}`}
+              <Field label="How can we help?">
+                <Textarea
+                  className="min-h-28"
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   required
@@ -635,14 +681,14 @@ function Contact() {
                   maxLength={2000}
                   placeholder="What does the team need to ship?"
                 />
-              </label>
-              <button type="submit" disabled={pending} className="landing-btn inline-flex w-full items-center justify-center gap-2 rounded-full bg-white py-3.5 text-sm font-medium text-black hover:bg-teal-300 disabled:opacity-50">
+              </Field>
+              <Button type="submit" className="w-full py-3.5" disabled={pending}>
                 {pending ? 'Sending…' : 'Contact us'}
-                <ArrowUpRight className="landing-arrow h-4 w-4" />
-              </button>
+                <ArrowUpRight className="h-4 w-4" />
+              </Button>
             </form>
           )}
-        </div>
+        </Card>
       </div>
     </section>
   )
