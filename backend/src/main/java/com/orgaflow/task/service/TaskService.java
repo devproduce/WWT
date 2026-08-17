@@ -51,7 +51,7 @@ public class TaskService {
         Project project = accessGuard.requireProjectManagerOrAdmin(actor, projectId);
         String assigneeId = request.assigneeId();
         if (assigneeId != null && !assigneeId.isBlank()) {
-            assertAssignee(project, assigneeId);
+            TaskAssignmentRules.validate(actor, project, assigneeId);
         } else {
             assigneeId = null;
         }
@@ -134,7 +134,7 @@ public class TaskService {
             task.setDeadline(request.deadline());
         }
         if (request.assigneeId() != null && !request.assigneeId().equals(task.getAssigneeId())) {
-            assertAssignee(project, request.assigneeId());
+            TaskAssignmentRules.validate(actor, project, request.assigneeId());
             task.setAssigneeId(request.assigneeId());
             activityService.record(actor, project.getOrganizationId(), project.getId(), task.getId(),
                     ActivityType.TASK_ASSIGNED, actor.displayName() + " assigned \"" + task.getTitle() + "\"");
@@ -241,18 +241,13 @@ public class TaskService {
                 task.getCreatedAt(),
                 task.getUpdatedAt(),
                 task.getCompletedAt(),
-                TaskWorkflow.allowedTargets(task.getStatus(), privileged)
+                TaskWorkflow.allowedTargets(task.getStatus(), privileged),
+                privileged
         );
     }
 
     private Task loadOwned(CurrentUser actor, String taskId) {
         return loadVisible(actor, taskId);
-    }
-
-    private void assertAssignee(Project project, String assigneeId) {
-        if (!project.getMemberIds().contains(assigneeId) && !assigneeId.equals(project.getManagerId())) {
-            throw ApiException.badRequest("Assignee must be a member of this project");
-        }
     }
 
     public List<Task> overdueInOrg(String organizationId) {

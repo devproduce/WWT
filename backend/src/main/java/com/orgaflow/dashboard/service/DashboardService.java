@@ -1,5 +1,6 @@
 package com.orgaflow.dashboard.service;
 
+import com.orgaflow.activity.model.Activity;
 import com.orgaflow.activity.repository.ActivityRepository;
 import com.orgaflow.common.enums.OrganizationStatus;
 import com.orgaflow.common.enums.ProjectStatus;
@@ -22,10 +23,10 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class DashboardService {
@@ -118,15 +119,37 @@ public class DashboardService {
         metrics.put("completedProjects", projects.stream().filter(p -> p.getStatus() == ProjectStatus.COMPLETED).count());
         metrics.put("overdueTasks", overdue.size());
         metrics.put("upcomingDeadlines", upcoming.size());
+        List<Task> orgTasks = taskRepository.findByOrganizationId(org.getId());
+        Map<TaskStatus, Long> mix = mixOf(orgTasks);
+        metrics.put("todo", mix.get(TaskStatus.TODO));
+        metrics.put("inProgress", mix.get(TaskStatus.IN_PROGRESS));
+        metrics.put("review", mix.get(TaskStatus.REVIEW));
+        metrics.put("blocked", mix.get(TaskStatus.BLOCKED));
+        metrics.put("done", mix.get(TaskStatus.DONE));
+        metrics.put("recentActivity", activityRows(
+                activityRepository.findTop15ByOrganizationIdOrderByCreatedAtDesc(org.getId())));
+        List<Map<String, Object>> deadlines = new ArrayList<>();
+        overdue.forEach(task -> deadlines.add(deadlineRow(task, "overdue")));
+        upcoming.forEach(task -> deadlines.add(deadlineRow(task, "upcoming")));
+        metrics.put("deadlineTasks", deadlines);
+        Map<String, List<Task>> tasksByProject = orgTasks.stream()
+                .filter(task -> task.getProjectId() != null)
+                .collect(Collectors.groupingBy(Task::getProjectId));
         List<Map<String, Object>> items = new ArrayList<>();
         projects.forEach(project -> {
-            Map<String, Object> row = new HashMap<>();
+            List<Task> tasks = tasksByProject.getOrDefault(project.getId(), List.of());
+            Map<TaskStatus, Long> projectMix = mixOf(tasks);
+            Map<String, Object> row = new LinkedHashMap<>();
             row.put("type", "project");
             row.put("id", project.getId());
             row.put("name", project.getName());
             row.put("status", project.getStatus());
-            row.put("totalTasks", taskRepository.countByProjectId(project.getId()));
-            row.put("doneTasks", taskRepository.countByProjectIdAndStatus(project.getId(), TaskStatus.DONE));
+            row.put("totalTasks", tasks.size());
+            row.put("doneTasks", projectMix.get(TaskStatus.DONE));
+            row.put("todo", projectMix.get(TaskStatus.TODO));
+            row.put("inProgress", projectMix.get(TaskStatus.IN_PROGRESS));
+            row.put("review", projectMix.get(TaskStatus.REVIEW));
+            row.put("blocked", projectMix.get(TaskStatus.BLOCKED));
             items.add(row);
         });
         return new DashboardResponse(Role.ADMIN.name(), false, metrics, items);
@@ -165,6 +188,17 @@ public class DashboardService {
             metrics.put("pmBlocked", projectTasks.stream().filter(t -> t.getStatus() == TaskStatus.BLOCKED).count());
             metrics.put("pmDone", projectTasks.stream().filter(t -> t.getStatus() == TaskStatus.DONE).count());
         }
+        List<String> visibleProjectIds = new ArrayList<>();
+        managed.forEach(project -> visibleProjectIds.add(project.getId()));
+        mine.forEach(task -> {
+            if (task.getProjectId() != null && !visibleProjectIds.contains(task.getProjectId())) {
+                visibleProjectIds.add(task.getProjectId());
+            }
+        });
+        metrics.put("recentActivity", visibleProjectIds.isEmpty()
+                ? List.of()
+                : activityRows(activityRepository.findTop15ByOrganizationIdAndProjectIdInOrderByCreatedAtDesc(
+                        org.getId(), visibleProjectIds)));
         List<Map<String, Object>> items = mine.stream().map(task -> {
             Map<String, Object> row = new LinkedHashMap<>();
             row.put("id", task.getId());
@@ -176,5 +210,46 @@ public class DashboardService {
             return row;
         }).toList();
         return new DashboardResponse(Role.MEMBER.name(), false, metrics, items);
+    }
+
+    private List<Map<String, Object>> activityRows(List<Activity> activities) {
+        return activities.stream().map(activity -> {
+            Map<String, Object> row = new LinkedHashMap<>();
+            row.put("id", activity.getId());
+            row.put("message", activity.getMessage());
+            row.put("actorName", activity.getActorName());
+            row.put("type", activity.getType() == null ? null : activity.getType().name());
+            row.put("taskId", activity.getTaskId());
+            row.put("projectId", activity.getProjectId());
+            row.put("createdAt", activity.getCreatedAt());
+            return row;
+        }).toList();
+    }
+
+    private Map<TaskStatus, Long> mixOf(List<Task> tasks) {
+        Map<TaskStatus, Long> mix = new LinkedHashMap<>();
+        mix.put(TaskStatus.TODO, 0L);
+        mix.put(TaskStatus.IN_PROGRESS, 0L);
+        mix.put(TaskStatus.REVIEW, 0L);
+        mix.put(TaskStatus.BLOCKED, 0L);
+        mix.put(TaskStatus.DONE, 0L);
+        for (Task task : tasks) {
+            if (task.getStatus() == null) {
+                continue;
+            }
+            mix.merge(task.getStatus(), 1L, Long::sum);
+        }
+        return mix;
+    }
+
+    private Map<String, Object> deadlineRow(Task task, String kind) {
+        Map<String, Object> row = new LinkedHashMap<>();
+        row.put("id", task.getId());
+        row.put("title", task.getTitle());
+        row.put("status", task.getStatus());
+        row.put("deadline", task.getDeadline());
+        row.put("projectId", task.getProjectId());
+        row.put("kind", kind);
+        return row;
     }
 }

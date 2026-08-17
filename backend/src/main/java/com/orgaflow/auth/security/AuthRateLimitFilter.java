@@ -25,7 +25,9 @@ public class AuthRateLimitFilter extends OncePerRequestFilter {
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
         String path = request.getRequestURI();
-        if ("POST".equals(request.getMethod()) && (path.equals("/api/auth/login") || path.equals("/api/auth/forgot-password"))) {
+        if ("POST".equals(request.getMethod()) && (path.equals("/api/auth/login")
+                || path.equals("/api/auth/forgot-password")
+                || path.equals("/api/public/contact"))) {
             String key = request.getRemoteAddr() + ":" + path;
             if (!allow(key)) {
                 response.setStatus(429);

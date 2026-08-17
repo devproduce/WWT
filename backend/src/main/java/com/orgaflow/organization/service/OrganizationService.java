@@ -11,6 +11,7 @@ import com.orgaflow.common.mail.MailService;
 import com.orgaflow.common.security.AccessGuard;
 import com.orgaflow.common.security.CurrentUser;
 import com.orgaflow.organization.dto.CreateOrganizationRequest;
+import com.orgaflow.organization.dto.EntitlementOverrideRequest;
 import com.orgaflow.organization.dto.OrganizationSummaryResponse;
 import com.orgaflow.organization.dto.QuotaOverrideRequest;
 import com.orgaflow.organization.model.Organization;
@@ -81,7 +82,7 @@ public class OrganizationService {
         org.setPlanId(plan.getId());
         org.setPlanName(plan.getName());
         org.setQuotas(copyQuotas(plan.getQuotas(), request.maxMembers(), request.maxProjects(), request.maxStorageBytes()));
-        org.setEntitlements(request.entitlements() != null ? request.entitlements() : copyEntitlements(plan.getEntitlements()));
+        org.setEntitlements(copyEntitlements(request.entitlements() != null ? request.entitlements() : plan.getEntitlements()));
         org.setStorageUsedBytes(0);
         org.setCreatedAt(Instant.now());
         org.setUpdatedAt(Instant.now());
@@ -145,6 +146,22 @@ public class OrganizationService {
         if (request.maxStorageBytes() != null) {
             quotas.setMaxStorageBytes(request.maxStorageBytes());
         }
+        org.setUpdatedAt(Instant.now());
+        organizationRepository.save(org);
+        return toSummary(org, null);
+    }
+
+    public OrganizationSummaryResponse overrideEntitlements(CurrentUser actor, String id, EntitlementOverrideRequest request) {
+        accessGuard.requireSuperAdmin(actor);
+        Organization org = organizationRepository.findById(id)
+                .orElseThrow(() -> ApiException.notFound("Organization not found"));
+        FeatureEntitlements entitlements = new FeatureEntitlements();
+        entitlements.setKanban(request.kanban());
+        entitlements.setComments(request.comments());
+        entitlements.setNotifications(request.notifications());
+        entitlements.setFileAttachments(request.fileAttachments());
+        entitlements.setAdvancedReporting(request.advancedReporting());
+        org.setEntitlements(copyEntitlements(entitlements));
         org.setUpdatedAt(Instant.now());
         organizationRepository.save(org);
         return toSummary(org, null);

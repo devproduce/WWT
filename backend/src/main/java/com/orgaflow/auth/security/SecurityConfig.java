@@ -58,6 +58,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/refresh",
                                 "/api/auth/setup-password", "/api/auth/forgot-password", "/api/auth/reset-password")
                         .permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/public/contact").permitAll()
                         .requestMatchers("/actuator/health", "/actuator/health/**", "/actuator/info").permitAll()
                         .requestMatchers("/api/**").authenticated()
                         .anyRequest().permitAll()

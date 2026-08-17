@@ -2,6 +2,7 @@ package com.orgaflow.organization.controller;
 
 import com.orgaflow.common.security.CurrentUser;
 import com.orgaflow.organization.dto.CreateOrganizationRequest;
+import com.orgaflow.organization.dto.EntitlementOverrideRequest;
 import com.orgaflow.organization.dto.OrganizationSummaryResponse;
 import com.orgaflow.organization.dto.QuotaOverrideRequest;
 import com.orgaflow.organization.service.OrganizationService;
@@ -55,6 +56,11 @@ public class OrganizationController {
     @PatchMapping("/{id}/quotas")
     public OrganizationSummaryResponse quotas(CurrentUser user, @PathVariable String id, @RequestBody QuotaOverrideRequest request) {
         return organizationService.overrideQuotas(user, id, request);
+    }
+
+    @PatchMapping("/{id}/entitlements")
+    public OrganizationSummaryResponse entitlements(CurrentUser user, @PathVariable String id, @RequestBody EntitlementOverrideRequest request) {
+        return organizationService.overrideEntitlements(user, id, request);
     }
 
     @PostMapping("/{id}/reset-admin")

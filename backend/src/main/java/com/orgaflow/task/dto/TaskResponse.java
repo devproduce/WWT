@@ -22,6 +22,7 @@ public record TaskResponse(
         Instant createdAt,
         Instant updatedAt,
         Instant completedAt,
-        Set<TaskStatus> allowedTransitions
+        Set<TaskStatus> allowedTransitions,
+        boolean canReview
 ) {
 }

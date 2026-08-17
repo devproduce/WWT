@@ -6,3 +6,4 @@
 # SUPERADMIN_EMAIL: you@example.com
 # SUPERADMIN_PASSWORD: a strong password
 # SMTP_HOST / SMTP_PORT / SMTP_USERNAME / SMTP_PASSWORD: optional until email is needed
+# CONTACT_EMAIL: optional inbox for landing-page organization inquiries (defaults to SUPERADMIN_EMAIL)

@@ -24,9 +24,10 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
 @Service
 public class ProjectService {
@@ -87,10 +88,14 @@ public class ProjectService {
         if (actor.isAdmin()) {
             projects = projectRepository.findByOrganizationIdOrderByCreatedAtDesc(org.getId());
         } else {
-            Set<Project> visible = new LinkedHashSet<>();
-            visible.addAll(projectRepository.findByOrganizationIdAndManagerId(org.getId(), actor.id()));
-            visible.addAll(projectRepository.findByOrganizationIdAndMemberIdsContaining(org.getId(), actor.id()));
-            projects = new ArrayList<>(visible);
+            Map<String, Project> visible = new LinkedHashMap<>();
+            for (Project project : projectRepository.findByOrganizationIdAndManagerId(org.getId(), actor.id())) {
+                visible.put(project.getId(), project);
+            }
+            for (Project project : projectRepository.findByOrganizationIdAndMemberIdsContaining(org.getId(), actor.id())) {
+                visible.putIfAbsent(project.getId(), project);
+            }
+            projects = new ArrayList<>(visible.values());
         }
         return projects.stream().map(this::toResponse).toList();
     }
