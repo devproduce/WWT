@@ -13,13 +13,13 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { MetricCard } from '@/components/MetricCard'
 import { QuotaMeter } from '@/components/QuotaMeter'
-import { RingChart, Avatar } from '@/components/charts'
+import { Avatar } from '@/components/charts'
 import { ProductTour } from '@/components/landing/WorkspacePreview'
 import { cn } from '@/lib/utils'
 
 const NAV = [
-  { href: '#features', label: 'Features' },
   { href: '#how', label: 'How it works?' },
+  { href: '#features', label: 'Features' },
   { href: '#privacy', label: 'Privacy' },
   { href: '#contact', label: 'Contact' },
 ]
@@ -88,8 +88,8 @@ export function LandingPage() {
       <main id="top" className="relative z-10">
         <Hero workspace={workspace} workspaceLabel={workspaceLabel} />
         <Tour />
-        <Features />
         <HowItWorks />
+        <Features />
         <Why />
         <Privacy />
         <Contact />
@@ -146,11 +146,11 @@ function LandingFooter() {
             <div>
               <div className="font-mono text-[11px] tracking-[0.28em] text-teal-700/70 uppercase">Product</div>
               <div className="mt-3 flex flex-col gap-2.5 text-sm text-teal-800/75">
-                <a className="landing-nav-link w-fit" href="#features">
-                  Features
-                </a>
                 <a className="landing-nav-link w-fit" href="#how">
                   How it works
+                </a>
+                <a className="landing-nav-link w-fit" href="#features">
+                  Features
                 </a>
                 <a className="landing-nav-link w-fit" href="#privacy">
                   Privacy
@@ -325,57 +325,23 @@ function Features() {
   return (
     <section id="features" className="px-5 py-20">
       <div className="mx-auto max-w-6xl">
-        <Eyebrow>Product</Eyebrow>
+        <Eyebrow>What your people get</Eyebrow>
         <h2 className="mt-4 max-w-3xl text-4xl leading-[0.95] font-semibold tracking-tight text-teal-950 sm:text-5xl">
-          Built for privacy.
+          The right work
           <br />
-          Designed for scale.
+          in front of the right person.
         </h2>
         <p className="mt-5 max-w-xl text-lg text-teal-900/55">
-          WWT removed the clutter. No mixed tenants, no mystery permissions — work organized by role, reviewed in the open,
-          and capped by the plan you bought.
+          On Atlas, Priya runs the company, Arun runs the board, and Dev and Maya ship assigned work — nothing more,
+          nothing less.
         </p>
         <div className="mt-12 grid gap-4 lg:grid-cols-3">
           <Card interactive className="app-shine">
-            <CardTitle className="text-xl">Privacy focused</CardTitle>
+            <div className="font-mono text-[10px] tracking-[0.22em] text-teal-700/80 uppercase">Admin · Priya Shah</div>
+            <CardTitle className="mt-2 text-xl">Runs the organization</CardTitle>
             <p className="mt-2 text-sm leading-relaxed text-teal-900/55">
-              Your board stays inside your organization. Another company cannot see it — and WWT does not inspect tasks,
-              comments, or activity.
-            </p>
-            <div className="mt-6 flex items-center gap-4 landing-inset rounded-2xl p-4">
-              <RingChart value={0} max={1} size={72} stroke={8} tone="coral" />
-              <div>
-                <div className="font-mono text-[10px] tracking-[0.22em] text-rose-800/70 uppercase">Cross-org access</div>
-                <div className="landing-denied mt-1 text-2xl font-semibold tracking-tight text-rose-700">DENIED</div>
-                <Badge tone="red">Tasks hidden</Badge>
-              </div>
-            </div>
-          </Card>
-          <Card interactive className="app-shine">
-            <CardTitle className="text-xl">Role-aware, always</CardTitle>
-            <p className="mt-2 text-sm leading-relaxed text-teal-900/55">
-              Admin, Project Manager, Member. Each person only receives the authority the work requires.
-            </p>
-            <div className="mt-6 grid grid-cols-3 gap-2">
-              {['ADMIN', 'PM', 'MEMBER'].map((role, i) => (
-                <div
-                  key={role}
-                  className={cn(
-                    'rounded-full px-3 py-2.5 text-center font-mono text-[10px] tracking-[0.18em]',
-                    i === 1
-                      ? 'bg-teal-300 text-teal-950 shadow-[0_10px_24px_rgb(45_212_191_/_0.28)]'
-                      : 'landing-inset text-teal-900/70',
-                  )}
-                >
-                  {role}
-                </div>
-              ))}
-            </div>
-          </Card>
-          <Card interactive className="app-shine">
-            <CardTitle className="text-xl">Quota-true plans</CardTitle>
-            <p className="mt-2 text-sm leading-relaxed text-teal-900/55">
-              Members, projects, and storage are enforced. Growth is visible before it becomes a surprise.
+              Priya invites the team, opens projects, and sees Northwind end to end. Members, projects, and storage stay
+              visible before they become a surprise.
             </p>
             <div className="mt-6 landing-inset space-y-3 rounded-2xl p-4">
               <QuotaMeter label="Members" used={72} max={100} />
@@ -383,12 +349,55 @@ function Features() {
               <QuotaMeter label="Storage" used={41 * 1024 * 1024 * 1024} max={100 * 1024 * 1024 * 1024} format="bytes" />
             </div>
           </Card>
+          <Card interactive className="app-shine">
+            <div className="font-mono text-[10px] tracking-[0.22em] text-teal-700/80 uppercase">Project Manager · Arun Mehta</div>
+            <CardTitle className="mt-2 text-xl">Owns the Atlas board</CardTitle>
+            <p className="mt-2 text-sm leading-relaxed text-teal-900/55">
+              Arun assigns work, runs To do through Done, and is the one who signs off review. Done is a decision, not a
+              guess.
+            </p>
+            <div className="mt-6 rounded-[22px] border border-amber-200 bg-amber-50 p-2 shadow-[0_10px_24px_rgb(15_61_56_/_0.08)]">
+              <div className="mb-2 flex items-center gap-1.5 text-[11px] font-medium text-teal-950">
+                <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                Doing · Atlas
+              </div>
+              <div className="app-card relative overflow-hidden rounded-2xl p-2.5">
+                <span className="absolute inset-y-0 left-0 w-1 bg-rose-500" />
+                <div className="pl-2 text-[11px] font-medium text-teal-950">Pricing page</div>
+                <div className="mt-2 pl-2">
+                  <Badge tone="red">URGENT</Badge>
+                </div>
+              </div>
+            </div>
+          </Card>
+          <Card interactive className="app-shine">
+            <div className="font-mono text-[10px] tracking-[0.22em] text-teal-700/80 uppercase">Member · Dev Patel</div>
+            <CardTitle className="mt-2 text-xl">Ships assigned work</CardTitle>
+            <p className="mt-2 text-sm leading-relaxed text-teal-900/55">
+              Dev sees his Atlas tasks, comments, and files — not the rest of Northwind. He can submit for review. He
+              cannot mark Done.
+            </p>
+            <div className="mt-6 space-y-2">
+              {[
+                ['QA checkout', 'Review'],
+                ['Set up analytics', 'To do'],
+              ].map(([task, col]) => (
+                <div key={task} className="landing-inset flex items-center justify-between rounded-2xl px-3 py-2.5">
+                  <span className="text-xs font-medium text-teal-950">{task}</span>
+                  <Badge>{col}</Badge>
+                </div>
+              ))}
+              <div className="px-1 pt-1">
+                <Badge tone="red">Done locked</Badge>
+              </div>
+            </div>
+          </Card>
         </div>
         <div className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card interactive className="app-shine">
             <CardTitle>Kanban workflow</CardTitle>
             <p className="mt-2 text-sm leading-relaxed text-teal-900/55">
-              To do → Doing → Review → Blocked → Done. Invalid jumps are rejected.
+              Atlas moves To do → Doing → Review → Blocked → Done. Invalid jumps are rejected.
             </p>
             <div className="mt-4 rounded-[22px] border border-amber-200 bg-amber-50 p-2 shadow-[0_10px_24px_rgb(15_61_56_/_0.08)]">
               <div className="mb-2 flex items-center gap-1.5 text-[11px] font-medium text-teal-950">
@@ -407,7 +416,7 @@ function Features() {
           <Card interactive className="app-shine">
             <CardTitle>Reviews & comments</CardTitle>
             <p className="mt-2 text-sm leading-relaxed text-teal-900/55">
-              Work is signed off on the task, with conversation attached to the work.
+              Maya submits QA checkout. Arun signs it off on the task — the conversation stays with the work.
             </p>
             <div className="mt-4 landing-inset rounded-2xl p-3">
               <div className="flex items-center gap-2 text-sm font-medium text-teal-950">
@@ -424,7 +433,7 @@ function Features() {
           <Card interactive className="app-shine">
             <CardTitle>Files & activity</CardTitle>
             <p className="mt-2 text-sm leading-relaxed text-teal-900/55">
-              Attachments count against storage. Every important move leaves a trail.
+              Checkout screenshots live on the Atlas task. Attachments count against storage. Every move leaves a trail.
             </p>
             <div className="mt-4 space-y-2">
               {['qa-notes.pdf · 240 KB', 'checkout-flow.png · 1.1 MB'].map((file) => (
@@ -438,7 +447,7 @@ function Features() {
           <Card interactive className="app-shine">
             <CardTitle>Live dashboards</CardTitle>
             <p className="mt-2 text-sm leading-relaxed text-teal-900/55">
-              Overdue, due soon, awaiting review — the numbers that keep delivery honest.
+              Priya sees overdue, due soon, and awaiting review — the numbers that keep Atlas honest.
             </p>
             <div className="mt-4">
               <MetricCard label="Overdue" value="3" hint="Needs attention now" tone="coral" />
