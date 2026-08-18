@@ -71,7 +71,7 @@ export function AuthShell({ title, subtitle, children }: { title: string; subtit
               A role-aware workspace for <span className="font-serif italic text-teal-200">real</span> organizations.
             </h1>
             <p className="mt-4 max-w-md text-teal-100/70">
-              SuperAdmins run the platform. Admins run the company. Project Managers run delivery. Members get work done.
+              Admins run the company. Project Managers run delivery. Members get work done.
             </p>
           </div>
           <div className="relative z-10 text-sm text-teal-200/50">Privacy-first multi-tenant SaaS</div>
