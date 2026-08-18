@@ -17,6 +17,10 @@ spring:
     properties:
       mail.smtp.auth: true
       mail.smtp.starttls.enable: true
+      mail.smtp.starttls.required: true
+      mail.smtp.connectiontimeout: 10000
+      mail.smtp.timeout: 10000
+      mail.smtp.writetimeout: 10000
 
 server:
   port: 8080
@@ -31,11 +35,13 @@ app:
     password: ${SUPERADMIN_PASSWORD:ChangeMe_Admin1!}
     name: ${SUPERADMIN_NAME:Platform Owner}
   cors:
-    origins: ${CORS_ORIGINS:http://localhost:5173}
+    origins: ${CORS_ORIGINS:http://localhost:5173,https://weworktogether.me,https://www.weworktogether.me}
   storage:
     dir: ${STORAGE_DIR:./uploads}
     max-file-bytes: ${MAX_FILE_BYTES:10485760}
   frontend-url: ${FRONTEND_URL:http://localhost:5173}
+  mail:
+    from-name: ${MAIL_FROM_NAME:WeWorkTogether}
   contact:
     to: ${CONTACT_EMAIL:}
 

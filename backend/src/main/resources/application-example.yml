@@ -5,5 +5,10 @@
 # JWT_SECRET: generate a long random 32+ character string
 # SUPERADMIN_EMAIL: you@example.com
 # SUPERADMIN_PASSWORD: a strong password
-# SMTP_HOST / SMTP_PORT / SMTP_USERNAME / SMTP_PASSWORD: optional until email is needed
+# SMTP_HOST: smtp.gmail.com
+# SMTP_PORT: 587
+# SMTP_USERNAME: your Gmail address
+# SMTP_PASSWORD: Google App Password (not your normal Gmail password)
+# MAIL_FROM_NAME: WeWorkTogether
+# FRONTEND_URL: https://weworktogether.me  (used in invite/reset links)
 # CONTACT_EMAIL: optional inbox for landing-page organization inquiries (defaults to SUPERADMIN_EMAIL)

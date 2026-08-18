@@ -2,6 +2,7 @@ package com.orgaflow.notification.service;
 
 import com.orgaflow.common.enums.NotificationType;
 import com.orgaflow.common.enums.TaskStatus;
+import com.orgaflow.common.mail.EmailTemplates;
 import com.orgaflow.common.mail.MailService;
 import com.orgaflow.notification.model.Notification;
 import com.orgaflow.notification.repository.NotificationRepository;
@@ -60,7 +61,7 @@ public class NotificationService {
         notification.setCreatedAt(Instant.now());
         notificationRepository.save(notification);
         userRepository.findById(recipientId).ifPresent(user ->
-                mailService.send(user.getEmail(), title, message));
+                mailService.send(user.getEmail(), EmailTemplates.notification(title, message)));
     }
 
     public List<Notification> list(String userId) {

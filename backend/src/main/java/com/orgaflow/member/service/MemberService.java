@@ -6,6 +6,7 @@ import com.orgaflow.common.enums.NotificationType;
 import com.orgaflow.common.enums.Role;
 import com.orgaflow.common.enums.UserStatus;
 import com.orgaflow.common.exception.ApiException;
+import com.orgaflow.common.mail.EmailTemplates;
 import com.orgaflow.common.mail.MailService;
 import com.orgaflow.common.security.AccessGuard;
 import com.orgaflow.common.security.CurrentUser;
@@ -69,8 +70,8 @@ public class MemberService {
         user.setUpdatedAt(Instant.now());
         userRepository.save(user);
         String invite = authService.issueOneTimeToken(user.getId(), OneTimeToken.Purpose.INVITE, 24 * 7);
-        mailService.send(user.getEmail(), "Join " + org.getName() + " on WeWorkTogether",
-                "You have been invited. Set your password:\n" + frontendUrl + "/setup-password?token=" + invite);
+        String link = EmailTemplates.setupPasswordUrl(frontendUrl, invite);
+        mailService.send(user.getEmail(), EmailTemplates.memberInvite(user.getFirstName(), org.getName(), link));
         notificationService.notifyUser(org.getId(), user.getId(), NotificationType.ACCOUNT_EVENT,
                 "Account created", "Your WeWorkTogether account is ready. Set your password to get started.",
                 null, null);
@@ -116,6 +117,7 @@ public class MemberService {
 
     public MemberResponse resetPassword(CurrentUser actor, String memberId) {
         accessGuard.requireAdmin(actor);
+        Organization org = accessGuard.requireOrg(actor);
         User user = accessGuard.requireOrgUser(actor, memberId);
         user.setPasswordHash(null);
         user.setStatus(UserStatus.PENDING_SETUP);
@@ -123,9 +125,8 @@ public class MemberService {
         userRepository.save(user);
         authService.logoutAll(user.getId());
         String invite = authService.issueOneTimeToken(user.getId(), OneTimeToken.Purpose.INVITE, 24 * 7);
-        mailService.send(user.getEmail(), "WeWorkTogether password reset",
-                "Your password was reset by your Admin. Set a new one:\n"
-                        + frontendUrl + "/setup-password?token=" + invite);
+        String link = EmailTemplates.setupPasswordUrl(frontendUrl, invite);
+        mailService.send(user.getEmail(), EmailTemplates.memberReset(user.getFirstName(), org.getName(), link));
         return toResponse(user, invite);
     }
 

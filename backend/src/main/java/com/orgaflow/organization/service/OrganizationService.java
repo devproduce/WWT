@@ -7,6 +7,7 @@ import com.orgaflow.common.enums.ProjectStatus;
 import com.orgaflow.common.enums.Role;
 import com.orgaflow.common.enums.UserStatus;
 import com.orgaflow.common.exception.ApiException;
+import com.orgaflow.common.mail.EmailTemplates;
 import com.orgaflow.common.mail.MailService;
 import com.orgaflow.common.security.AccessGuard;
 import com.orgaflow.common.security.CurrentUser;
@@ -103,9 +104,8 @@ public class OrganizationService {
         organizationRepository.save(org);
 
         String invite = authService.issueOneTimeToken(admin.getId(), OneTimeToken.Purpose.INVITE, 24 * 7);
-        String link = frontendUrl + "/setup-password?token=" + invite;
-        mailService.send(admin.getEmail(), "Welcome to WeWorkTogether",
-                "You have been invited as Admin of " + org.getName() + ".\nSet your password:\n" + link);
+        String link = EmailTemplates.setupPasswordUrl(frontendUrl, invite);
+        mailService.send(admin.getEmail(), EmailTemplates.adminInvite(admin.getFirstName(), org.getName(), link));
 
         return toSummary(org, invite);
     }
@@ -179,8 +179,8 @@ public class OrganizationService {
         userRepository.save(admin);
         authService.logoutAll(admin.getId());
         String invite = authService.issueOneTimeToken(admin.getId(), OneTimeToken.Purpose.INVITE, 24 * 7);
-        mailService.send(admin.getEmail(), "WeWorkTogether Admin reset",
-                "Your Admin account was reset. Set a new password:\n" + frontendUrl + "/setup-password?token=" + invite);
+        String link = EmailTemplates.setupPasswordUrl(frontendUrl, invite);
+        mailService.send(admin.getEmail(), EmailTemplates.adminReset(admin.getFirstName(), org.getName(), link));
         return toSummary(org, invite);
     }
 

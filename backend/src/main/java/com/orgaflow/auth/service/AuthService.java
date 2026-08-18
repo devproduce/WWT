@@ -10,6 +10,7 @@ import com.orgaflow.common.enums.OrganizationStatus;
 import com.orgaflow.common.enums.Role;
 import com.orgaflow.common.enums.UserStatus;
 import com.orgaflow.common.exception.ApiException;
+import com.orgaflow.common.mail.EmailTemplates;
 import com.orgaflow.common.mail.MailService;
 import com.orgaflow.common.security.CurrentUser;
 import com.orgaflow.common.util.Tokens;
@@ -130,9 +131,8 @@ public class AuthService {
                 return;
             }
             String raw = issueOneTimeToken(user.getId(), OneTimeToken.Purpose.PASSWORD_RESET, 1);
-            String link = frontendUrl + "/reset-password?token=" + raw;
-            mailService.send(user.getEmail(), "WeWorkTogether password reset",
-                    "Reset your password using this link (valid for 1 hour):\n" + link);
+            String link = EmailTemplates.resetPasswordUrl(frontendUrl, raw);
+            mailService.send(user.getEmail(), EmailTemplates.forgotPassword(user.getFirstName(), link));
         });
     }
 

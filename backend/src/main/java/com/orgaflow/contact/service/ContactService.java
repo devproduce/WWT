@@ -1,5 +1,6 @@
 package com.orgaflow.contact.service;
 
+import com.orgaflow.common.mail.EmailTemplates;
 import com.orgaflow.common.mail.MailService;
 import com.orgaflow.contact.dto.ContactInquiryRequest;
 import org.slf4j.Logger;
@@ -30,13 +31,13 @@ public class ContactService {
     public void submit(ContactInquiryRequest request) {
         String recipient = StringUtils.hasText(contactTo) ? contactTo : superAdminEmail;
         String teamSize = StringUtils.hasText(request.teamSize()) ? request.teamSize() : "Not specified";
-        String body = "A new organization wants to join WeWorkTogether."
-                + "\n\nName: " + request.name().trim()
-                + "\nEmail: " + request.email().trim()
-                + "\nOrganization: " + request.organizationName().trim()
-                + "\nTeam size: " + teamSize
-                + "\n\nMessage:\n" + request.message().trim();
         log.info("Organization inquiry org={} email={}", request.organizationName(), request.email());
-        mailService.send(recipient, "WeWorkTogether inquiry: " + request.organizationName().trim(), body);
+        mailService.send(recipient, EmailTemplates.inquiry(
+                request.name(),
+                request.email(),
+                request.organizationName(),
+                teamSize,
+                request.message()
+        ));
     }
 }
