@@ -454,16 +454,19 @@ function HowItWorks() {
   return (
     <section id="how" className="px-5 py-20">
       <div className="mx-auto max-w-6xl">
-        <Eyebrow>Workflow</Eyebrow>
+        <Eyebrow>From first call to first Done</Eyebrow>
         <h2 className="mt-4 text-4xl font-semibold tracking-tight text-teal-950 sm:text-5xl">How it works.</h2>
+        <p className="mt-3 max-w-xl font-serif text-lg italic text-teal-900/55">
+          Northwind Labs needed Atlas out the door. Here is the same path your organization follows.
+        </p>
         <div className="mt-12 grid items-start gap-8 lg:grid-cols-[1.1fr_0.9fr]">
           <Card>
             <div className="flex flex-wrap justify-between gap-3 font-mono text-[11px] text-teal-800/50">
-              <span>Northwind Labs</span>
+              <span>Northwind Labs · Atlas</span>
               <span>124 TASKS · 18 PROJECTS</span>
             </div>
             <div className="mt-5 landing-inset rounded-2xl p-4">
-              <div className="font-mono text-[10px] tracking-[0.25em] text-teal-700/80 uppercase">Role engine</div>
+              <div className="font-mono text-[10px] tracking-[0.25em] text-teal-700/80 uppercase">Who runs Atlas</div>
               <div className="mt-4 flex flex-wrap gap-2">
                 {['Admin', 'Project Manager', 'Member'].map((role, i) => (
                   <span
@@ -483,10 +486,10 @@ function HowItWorks() {
             </div>
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
               {[
-                ['Priya Shah', 'Admin · 42 members'],
-                ['Arun Mehta', 'PM · Atlas board'],
+                ['Priya Shah', 'Admin · invites the team'],
+                ['Arun Mehta', 'PM · owns the Atlas board'],
                 ['Dev Patel', 'Member · 6 assigned'],
-                ['Maya Rao', 'Review · 3 waiting'],
+                ['Maya Rao', 'Member · submits for review'],
               ].map(([name, meta]) => (
                 <div key={name} className="landing-inset flex items-center gap-3 rounded-2xl p-3">
                   <Avatar name={name} />
@@ -500,9 +503,26 @@ function HowItWorks() {
           </Card>
           <ol className="space-y-3">
             {[
-              ['01', 'Contact us', 'Tell us the organization, team size, and how you work. There is no public signup.'],
-              ['02', 'We create the tenant', 'We set up your organization, plan, quotas, and Admin account. Your Admin gets the keys.'],
-              ['03', 'The team ships', 'Admins invite people, PMs run the board, members move work, reviews close the loop.'],
+              [
+                '01',
+                'Contact us',
+                'Tell us the organization, team size, and how you work. There is no public signup.',
+              ],
+              [
+                '02',
+                'We open your workspace',
+                'We create Northwind’s organization, pick a plan, and send Priya — the Admin — her invite. She gets the keys.',
+              ],
+              [
+                '03',
+                'Admin builds the team',
+                'Priya invites people, opens the Atlas project, and names Arun as Project Manager.',
+              ],
+              [
+                '04',
+                'The team ships',
+                'Arun assigns work. Dev and Maya move their cards and submit for review. Arun signs off Done — it is never assumed.',
+              ],
             ].map(([n, t, d]) => (
               <li key={n}>
                 <Card className="grid grid-cols-[auto_1fr] gap-5">
