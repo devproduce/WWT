@@ -8,7 +8,6 @@ import com.orgaflow.notification.model.Notification;
 import com.orgaflow.notification.repository.NotificationRepository;
 import com.orgaflow.task.model.Task;
 import com.orgaflow.task.repository.TaskRepository;
-import com.orgaflow.user.model.User;
 import com.orgaflow.user.repository.UserRepository;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -46,6 +45,19 @@ public class NotificationService {
             String projectId,
             String taskId
     ) {
+        notifyUser(organizationId, recipientId, type, title, message, projectId, taskId, true);
+    }
+
+    public void notifyUser(
+            String organizationId,
+            String recipientId,
+            NotificationType type,
+            String title,
+            String message,
+            String projectId,
+            String taskId,
+            boolean sendEmail
+    ) {
         if (recipientId == null) {
             return;
         }
@@ -60,6 +72,9 @@ public class NotificationService {
         notification.setRead(false);
         notification.setCreatedAt(Instant.now());
         notificationRepository.save(notification);
+        if (!sendEmail) {
+            return;
+        }
         userRepository.findById(recipientId).ifPresent(user ->
                 mailService.send(user.getEmail(), EmailTemplates.notification(title, message)));
     }

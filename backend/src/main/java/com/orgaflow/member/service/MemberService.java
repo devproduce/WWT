@@ -12,9 +12,12 @@ import com.orgaflow.common.security.AccessGuard;
 import com.orgaflow.common.security.CurrentUser;
 import com.orgaflow.member.dto.CreateMemberRequest;
 import com.orgaflow.member.dto.MemberResponse;
+import com.orgaflow.member.dto.UpdateMemberRequest;
 import com.orgaflow.notification.service.NotificationService;
 import com.orgaflow.organization.model.Organization;
 import com.orgaflow.organization.service.OrganizationService;
+import com.orgaflow.project.model.Project;
+import com.orgaflow.project.repository.ProjectRepository;
 import com.orgaflow.user.model.User;
 import com.orgaflow.user.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,6 +35,7 @@ public class MemberService {
     private final AuthService authService;
     private final MailService mailService;
     private final NotificationService notificationService;
+    private final ProjectRepository projectRepository;
     private final String frontendUrl;
 
     public MemberService(
@@ -41,6 +45,7 @@ public class MemberService {
             AuthService authService,
             MailService mailService,
             NotificationService notificationService,
+            ProjectRepository projectRepository,
             @Value("${app.frontend-url}") String frontendUrl
     ) {
         this.userRepository = userRepository;
@@ -49,6 +54,7 @@ public class MemberService {
         this.authService = authService;
         this.mailService = mailService;
         this.notificationService = notificationService;
+        this.projectRepository = projectRepository;
         this.frontendUrl = frontendUrl;
     }
 
@@ -74,7 +80,7 @@ public class MemberService {
         mailService.send(user.getEmail(), EmailTemplates.memberInvite(user.getFirstName(), org.getName(), link));
         notificationService.notifyUser(org.getId(), user.getId(), NotificationType.ACCOUNT_EVENT,
                 "Account created", "Your WeWorkTogether account is ready. Set your password to get started.",
-                null, null);
+                null, null, false);
         return toResponse(user, invite);
     }
 
@@ -124,10 +130,86 @@ public class MemberService {
         user.setUpdatedAt(Instant.now());
         userRepository.save(user);
         authService.logoutAll(user.getId());
+        authService.invalidateUnusedTokens(user.getId(), OneTimeToken.Purpose.INVITE);
         String invite = authService.issueOneTimeToken(user.getId(), OneTimeToken.Purpose.INVITE, 24 * 7);
         String link = EmailTemplates.setupPasswordUrl(frontendUrl, invite);
         mailService.send(user.getEmail(), EmailTemplates.memberReset(user.getFirstName(), org.getName(), link));
         return toResponse(user, invite);
+    }
+
+    public MemberResponse update(CurrentUser actor, String memberId, UpdateMemberRequest request) {
+        accessGuard.requireAdmin(actor);
+        Organization org = accessGuard.requireOrg(actor);
+        User user = requireEditableMember(actor, memberId);
+        String email = request.email().trim().toLowerCase();
+        userRepository.findByEmailIgnoreCase(email).ifPresent(existing -> {
+            if (!existing.getId().equals(user.getId())) {
+                throw ApiException.conflict("An account with this email already exists");
+            }
+        });
+        boolean emailChanged = !email.equalsIgnoreCase(user.getEmail());
+        user.setFirstName(request.firstName().trim());
+        user.setLastName(request.lastName().trim());
+        user.setEmail(email);
+        user.setUpdatedAt(Instant.now());
+        userRepository.save(user);
+        if (emailChanged && user.getStatus() == UserStatus.PENDING_SETUP) {
+            return sendFreshInvite(org, user);
+        }
+        return toResponse(user, null);
+    }
+
+    public MemberResponse resendInvite(CurrentUser actor, String memberId) {
+        accessGuard.requireAdmin(actor);
+        Organization org = accessGuard.requireOrg(actor);
+        User user = requirePendingMember(actor, memberId);
+        return sendFreshInvite(org, user);
+    }
+
+    public void cancelInvite(CurrentUser actor, String memberId) {
+        accessGuard.requireAdmin(actor);
+        User user = requirePendingMember(actor, memberId);
+        authService.invalidateUnusedTokens(user.getId(), OneTimeToken.Purpose.INVITE);
+        authService.logoutAll(user.getId());
+        removeFromProjects(user);
+        userRepository.deleteById(user.getId());
+    }
+
+    private MemberResponse sendFreshInvite(Organization org, User user) {
+        authService.invalidateUnusedTokens(user.getId(), OneTimeToken.Purpose.INVITE);
+        String invite = authService.issueOneTimeToken(user.getId(), OneTimeToken.Purpose.INVITE, 24 * 7);
+        String link = EmailTemplates.setupPasswordUrl(frontendUrl, invite);
+        mailService.send(user.getEmail(), EmailTemplates.memberInvite(user.getFirstName(), org.getName(), link));
+        return toResponse(user, invite);
+    }
+
+    private User requireEditableMember(CurrentUser actor, String memberId) {
+        User user = accessGuard.requireOrgUser(actor, memberId);
+        if (user.getRole() == Role.ADMIN) {
+            throw ApiException.forbidden("The Admin account cannot be edited here");
+        }
+        return user;
+    }
+
+    private User requirePendingMember(CurrentUser actor, String memberId) {
+        User user = requireEditableMember(actor, memberId);
+        if (user.getStatus() != UserStatus.PENDING_SETUP) {
+            throw ApiException.badRequest("This member has already activated their account");
+        }
+        return user;
+    }
+
+    private void removeFromProjects(User user) {
+        List<Project> projects = projectRepository.findByOrganizationIdAndMemberIdsContaining(
+                user.getOrganizationId(), user.getId());
+        for (Project project : projects) {
+            List<String> next = project.getMemberIds().stream()
+                    .filter(id -> !id.equals(user.getId()))
+                    .toList();
+            project.setMemberIds(next);
+            project.setUpdatedAt(Instant.now());
+            projectRepository.save(project);
+        }
     }
 
     public static MemberResponse toResponse(User user, String inviteToken) {

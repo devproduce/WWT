@@ -21,8 +21,11 @@ MONGODB_URI=mongodb+srv://USER:PASSWORD@cluster0.xxxxx.mongodb.net/weworktogethe
 JWT_SECRET=replace-with-a-long-random-secret-at-least-32-chars
 SUPERADMIN_EMAIL=you@example.com
 SUPERADMIN_PASSWORD=ChangeMe_Admin1!
-VITE_API_BASE_URL=http://localhost:8080
+VITE_USE_HOSTED_API=no
+VITE_API_BASE_URL=https://api.weworktogether.me
 ```
+
+`VITE_USE_HOSTED_API=yes` points the Vite app at the hosted API (`VITE_API_BASE_URL`). `no` points it at `http://localhost:8080`. Restart `npm run dev` after changing it.
 
 If `.env` is missing, copy `.env.example` to `.env`.
 

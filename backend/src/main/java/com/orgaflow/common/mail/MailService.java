@@ -32,6 +32,11 @@ public class MailService {
         this.host = host;
         this.from = from;
         this.fromName = fromName;
+        if (enabled()) {
+            log.info("Mail enabled host={}", host);
+        } else {
+            log.info("Mail stubbed (set SMTP_HOST and SMTP_USERNAME to send)");
+        }
     }
 
     public boolean enabled() {

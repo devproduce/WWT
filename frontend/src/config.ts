@@ -1,7 +1,6 @@
-const raw = import.meta.env.VITE_API_BASE_URL
+import { resolveApiBaseUrl } from '@/lib/resolveApiBaseUrl'
 
-if (!raw) {
-  throw new Error('VITE_API_BASE_URL is not set. Add it to the project root .env')
-}
-
-export const API_BASE_URL = raw.replace(/\/$/, '')
+export const API_BASE_URL = resolveApiBaseUrl(
+  import.meta.env.VITE_USE_HOSTED_API,
+  import.meta.env.VITE_API_BASE_URL,
+)

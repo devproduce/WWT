@@ -3,6 +3,7 @@ import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { resolveApiBaseUrl } from './src/lib/resolveApiBaseUrl'
 
 const dir = path.dirname(fileURLToPath(import.meta.url))
 const repoRoot = path.resolve(dir, '..')
@@ -18,10 +19,11 @@ function envDirFor(mode: string) {
 export default defineConfig(({ mode }) => {
   const envDir = envDirFor(mode)
   const env = loadEnv(mode, envDir, 'VITE_')
-  const backend = env.VITE_API_BASE_URL || process.env.VITE_API_BASE_URL
-  if (!backend) {
-    throw new Error('VITE_API_BASE_URL is not set. Add it to the project root .env')
-  }
+  const backend = resolveApiBaseUrl(
+    env.VITE_USE_HOSTED_API || process.env.VITE_USE_HOSTED_API,
+    env.VITE_API_BASE_URL || process.env.VITE_API_BASE_URL,
+  )
+  console.info(`[vite] API → ${backend}`)
 
   return {
     envDir,

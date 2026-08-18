@@ -4,6 +4,7 @@ import com.orgaflow.common.enums.UserStatus;
 import com.orgaflow.common.security.CurrentUser;
 import com.orgaflow.member.dto.CreateMemberRequest;
 import com.orgaflow.member.dto.MemberResponse;
+import com.orgaflow.member.dto.UpdateMemberRequest;
 import com.orgaflow.member.service.MemberService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -51,6 +52,22 @@ public class MemberController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> remove(CurrentUser user, @PathVariable String id) {
         memberService.remove(user, id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{id}")
+    public MemberResponse update(CurrentUser user, @PathVariable String id, @Valid @RequestBody UpdateMemberRequest request) {
+        return memberService.update(user, id, request);
+    }
+
+    @PostMapping("/{id}/resend-invite")
+    public MemberResponse resendInvite(CurrentUser user, @PathVariable String id) {
+        return memberService.resendInvite(user, id);
+    }
+
+    @PostMapping("/{id}/cancel-invite")
+    public ResponseEntity<Void> cancelInvite(CurrentUser user, @PathVariable String id) {
+        memberService.cancelInvite(user, id);
         return ResponseEntity.noContent().build();
     }
 

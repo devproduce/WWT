@@ -162,6 +162,15 @@ public class AuthService {
         return raw;
     }
 
+    public void invalidateUnusedTokens(String userId, OneTimeToken.Purpose purpose) {
+        List<OneTimeToken> tokens = oneTimeTokenRepository.findByUserIdAndPurposeAndUsedFalse(userId, purpose);
+        if (tokens.isEmpty()) {
+            return;
+        }
+        tokens.forEach(token -> token.setUsed(true));
+        oneTimeTokenRepository.saveAll(tokens);
+    }
+
     public MeResponse toMe(User user) {
         String orgName = null;
         OrganizationStatus orgStatus = null;
