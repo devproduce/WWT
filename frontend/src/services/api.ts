@@ -1,4 +1,5 @@
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios'
+import { API_BASE_URL } from '@/config'
 import type { AuthResponse } from '@/types'
 
 const ACCESS = 'wwt_access'
@@ -19,7 +20,7 @@ export function clearTokens() {
 }
 
 export const api = axios.create({
-  baseURL: '/api',
+  baseURL: `${API_BASE_URL}/api`,
 })
 
 api.interceptors.request.use((config) => {
@@ -35,7 +36,7 @@ let refreshing: Promise<string | null> | null = null
 async function refreshAccessToken() {
   const refreshToken = localStorage.getItem(REFRESH)
   if (!refreshToken) return null
-  const { data } = await axios.post<AuthResponse>('/api/auth/refresh', { refreshToken })
+  const { data } = await axios.post<AuthResponse>(`${API_BASE_URL}/api/auth/refresh`, { refreshToken })
   setTokens(data)
   return data.accessToken
 }
