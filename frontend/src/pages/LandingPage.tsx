@@ -339,7 +339,8 @@ function Features() {
           <Card interactive className="app-shine">
             <CardTitle className="text-xl">Privacy focused</CardTitle>
             <p className="mt-2 text-sm leading-relaxed text-teal-900/55">
-              SuperAdmins manage the customer. They never inspect tasks, comments, or employee activity inside an organization.
+              Your board stays inside your organization. Another company cannot see it — and WWT does not inspect tasks,
+              comments, or activity.
             </p>
             <div className="mt-6 flex items-center gap-4 landing-inset rounded-2xl p-4">
               <RingChart value={0} max={1} size={72} stroke={8} tone="coral" />
@@ -353,15 +354,15 @@ function Features() {
           <Card interactive className="app-shine">
             <CardTitle className="text-xl">Role-aware, always</CardTitle>
             <p className="mt-2 text-sm leading-relaxed text-teal-900/55">
-              SuperAdmin, Admin, Project Manager, Member. Each person only receives the authority the work requires.
+              Admin, Project Manager, Member. Each person only receives the authority the work requires.
             </p>
-            <div className="mt-6 grid grid-cols-2 gap-2">
-              {['SUPER ADMIN', 'ADMIN', 'PM', 'MEMBER'].map((role, i) => (
+            <div className="mt-6 grid grid-cols-3 gap-2">
+              {['ADMIN', 'PM', 'MEMBER'].map((role, i) => (
                 <div
                   key={role}
                   className={cn(
                     'rounded-full px-3 py-2.5 text-center font-mono text-[10px] tracking-[0.18em]',
-                    i === 2
+                    i === 1
                       ? 'bg-teal-300 text-teal-950 shadow-[0_10px_24px_rgb(45_212_191_/_0.28)]'
                       : 'landing-inset text-teal-900/70',
                   )}
