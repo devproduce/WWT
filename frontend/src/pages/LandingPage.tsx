@@ -13,7 +13,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { MetricCard } from '@/components/MetricCard'
 import { QuotaMeter } from '@/components/QuotaMeter'
-import { Avatar } from '@/components/charts'
+import { RingChart, Avatar } from '@/components/charts'
 import { ProductTour } from '@/components/landing/WorkspacePreview'
 import { cn } from '@/lib/utils'
 
@@ -126,7 +126,7 @@ function LandingFooter() {
           <div className="max-w-sm">
             <WwtWordmark className="text-teal-950" />
             <p className="mt-3 text-sm leading-relaxed text-teal-900/55">
-              WWT is the privacy-first workspace for organizations that need roles, reviews, and a tenant of their own.
+              WWT is the privacy-first workspace for organizations that need clear ownership, reviews, and a place of their own.
             </p>
             <div className="mt-5 flex flex-wrap gap-2">
               <a href="#contact">
@@ -234,8 +234,8 @@ function Hero({ workspace, workspaceLabel }: { workspace: string; workspaceLabel
             <span className="font-serif font-normal italic text-teal-700">work</span> again.
           </h1>
           <p className="mt-6 max-w-md font-serif text-lg italic leading-relaxed text-teal-900/55">
-            WWT gives every person a role, every project a board, and every organization a private tenant — no overlap, no
-            guessing, no noise.
+            Your Admin runs the company. Your project manager runs the board. Your people see only the work they should —
+            in a workspace that stays yours.
           </p>
           <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
             <a href="#contact">
@@ -311,7 +311,7 @@ function Tour() {
         <Eyebrow>Workspace</Eyebrow>
         <h2 className="mt-4 text-4xl font-semibold tracking-tight text-teal-950 sm:text-5xl">See the product.</h2>
         <p className="mt-3 max-w-xl font-serif text-lg italic text-teal-900/55">
-          The same dashboard, board, reviews, and members your organization will use.
+          Northwind’s dashboard, Atlas board, reviews, and members — the same workspace your organization will use.
         </p>
         <div className="mt-10">
           <ProductTour />
@@ -552,11 +552,11 @@ function HowItWorks() {
 
 function Why() {
   const items = [
-    'No wondering who owns what',
-    'No mixing another company’s work with yours',
-    'Everyone receives only the work they should see',
-    'Never skip review. Never lose the trail.',
-    'If a task is yours, it is in front of you — privately, inside your tenant.',
+    'Priya always knows who owns Atlas',
+    'Northwind’s work never sits next to another company’s',
+    'Dev sees his tasks — not the whole company',
+    'Arun signs off review. The trail stays on the task.',
+    'If a task is yours, it is in front of you — inside your organization.',
   ]
   return (
     <section className="px-5 py-20">
@@ -596,10 +596,18 @@ function Privacy() {
           not surveillance.
         </h2>
         <p className="mt-6 font-mono text-sm text-teal-800/50">
-          // WWT SuperAdmins never see your tasks.
+          // Your tasks stay inside your organization.
           <br />
-          // Organization data is isolated and kept that way.
+          // Another company’s board cannot see yours.
         </p>
+        <div className="mt-8 flex max-w-sm items-center gap-4 landing-inset rounded-2xl p-4">
+          <RingChart value={0} max={1} size={72} stroke={8} tone="coral" />
+          <div>
+            <div className="font-mono text-[10px] tracking-[0.22em] text-rose-800/70 uppercase">Cross-org access</div>
+            <div className="landing-denied mt-1 text-2xl font-semibold tracking-tight text-rose-700">DENIED</div>
+            <Badge tone="red">Tasks hidden</Badge>
+          </div>
+        </div>
       </div>
       <div className="landing-stage mt-12 overflow-hidden">
         {rows.map(([text, cls]) => (
@@ -654,10 +662,10 @@ function Contact() {
             <span className="font-serif font-normal italic text-teal-700">organisation?</span>
           </h2>
           <p className="mt-6 max-w-md font-serif text-lg italic leading-relaxed text-teal-900/55">
-            Contact us. We create the tenant. Your Admin gets the keys. Your work stays yours.
+            Contact us. We open your workspace. Your Admin gets the keys. Your work stays yours.
           </p>
           <ul className="mt-8 space-y-3 text-sm text-teal-900/70">
-            {['Dedicated WWT organization', 'Plan and quotas configured for you', 'Internal work invisible to the platform owner'].map(
+            {['Dedicated WWT organization', 'Plan and quotas configured for you', 'Internal work stays inside your organization'].map(
               (item) => (
                 <li key={item} className="landing-inset flex gap-2 rounded-2xl px-3 py-2.5">
                   <Check className="mt-0.5 h-4 w-4 text-teal-700" />
