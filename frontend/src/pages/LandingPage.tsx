@@ -465,12 +465,12 @@ function HowItWorks() {
             <div className="mt-5 landing-inset rounded-2xl p-4">
               <div className="font-mono text-[10px] tracking-[0.25em] text-teal-700/80 uppercase">Role engine</div>
               <div className="mt-4 flex flex-wrap gap-2">
-                {['SuperAdmin', 'Admin', 'Project Manager', 'Member'].map((role, i) => (
+                {['Admin', 'Project Manager', 'Member'].map((role, i) => (
                   <span
                     key={role}
                     className={cn(
                       'inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm',
-                      i === 2
+                      i === 1
                         ? 'bg-teal-300 text-teal-950 shadow-[0_10px_24px_rgb(45_212_191_/_0.28)]'
                         : 'landing-inset text-teal-900/70',
                     )}
@@ -501,7 +501,7 @@ function HowItWorks() {
           <ol className="space-y-3">
             {[
               ['01', 'Contact us', 'Tell us the organization, team size, and how you work. There is no public signup.'],
-              ['02', 'We create the tenant', 'A SuperAdmin stands up the org, plan, quotas, and your Admin account.'],
+              ['02', 'We create the tenant', 'We set up your organization, plan, quotas, and Admin account. Your Admin gets the keys.'],
               ['03', 'The team ships', 'Admins invite people, PMs run the board, members move work, reviews close the loop.'],
             ].map(([n, t, d]) => (
               <li key={n}>
