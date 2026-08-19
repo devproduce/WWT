@@ -31,4 +31,9 @@ public class User {
     private UserStatus status;
     private Instant createdAt;
     private Instant updatedAt;
+
+    private Boolean emailComments;
+    private Boolean emailAssignments;
+    private Boolean emailReviews;
+    private Boolean emailDeadlines;
 }

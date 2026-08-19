@@ -2,12 +2,16 @@ package com.orgaflow.notification.service;
 
 import com.orgaflow.common.enums.NotificationType;
 import com.orgaflow.common.enums.TaskStatus;
+import com.orgaflow.common.exception.ApiException;
 import com.orgaflow.common.mail.EmailTemplates;
 import com.orgaflow.common.mail.MailService;
+import com.orgaflow.notification.dto.NotificationPrefs;
+import com.orgaflow.notification.dto.UpdateNotificationPrefsRequest;
 import com.orgaflow.notification.model.Notification;
 import com.orgaflow.notification.repository.NotificationRepository;
 import com.orgaflow.task.model.Task;
 import com.orgaflow.task.repository.TaskRepository;
+import com.orgaflow.user.model.User;
 import com.orgaflow.user.repository.UserRepository;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -75,8 +79,11 @@ public class NotificationService {
         if (!sendEmail) {
             return;
         }
-        userRepository.findById(recipientId).ifPresent(user ->
-                mailService.send(user.getEmail(), EmailTemplates.notification(title, message)));
+        userRepository.findById(recipientId).ifPresent(user -> {
+            if (NotificationEmailPolicy.shouldEmail(type, NotificationPrefs.from(user))) {
+                mailService.send(user.getEmail(), EmailTemplates.notification(title, message));
+            }
+        });
     }
 
     public List<Notification> list(String userId) {
@@ -98,6 +105,30 @@ public class NotificationService {
         List<Notification> items = notificationRepository.findByRecipientIdOrderByCreatedAtDesc(userId);
         items.forEach(n -> n.setRead(true));
         notificationRepository.saveAll(items);
+    }
+
+    public NotificationPrefs prefs(String userId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> ApiException.unauthorized("User not found"));
+        return NotificationPrefs.from(user);
+    }
+
+    public NotificationPrefs updatePrefs(String userId, UpdateNotificationPrefsRequest request) {
+        User user = userRepository.findById(userId).orElseThrow(() -> ApiException.unauthorized("User not found"));
+        if (request.emailComments() != null) {
+            user.setEmailComments(request.emailComments());
+        }
+        if (request.emailAssignments() != null) {
+            user.setEmailAssignments(request.emailAssignments());
+        }
+        if (request.emailReviews() != null) {
+            user.setEmailReviews(request.emailReviews());
+        }
+        if (request.emailDeadlines() != null) {
+            user.setEmailDeadlines(request.emailDeadlines());
+        }
+        user.setUpdatedAt(Instant.now());
+        userRepository.save(user);
+        return NotificationPrefs.from(user);
     }
 
     @Scheduled(cron = "0 0 8 * * *")
