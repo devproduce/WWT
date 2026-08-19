@@ -60,11 +60,19 @@ export function MyDayPanel({ filter = 'ALL' }: { filter?: FocusFilter }) {
       ? (mine.data ?? []).filter((task) => !listedIds.has(task.id) && task.status !== 'DONE')
       : []
 
-  if (day.isLoading || !data) {
+  if (day.isPending) {
     return (
       <Card>
         <CardTitle>My Day</CardTitle>
         <p className="mt-3 text-sm text-teal-900/50">Choosing what matters today…</p>
+      </Card>
+    )
+  }
+  if (day.isError || !data) {
+    return (
+      <Card>
+        <CardTitle>My Day</CardTitle>
+        <p className="mt-3 text-sm text-rose-800">{apiError(day.error, 'Could not load your day.')}</p>
       </Card>
     )
   }
@@ -195,8 +203,11 @@ function MyDayRowCard({
 
 function filterDay(data: MyDayResponse | undefined, filter: FocusFilter, query: string) {
   const q = query.trim().toLowerCase()
-  const matchesQuery = (item: MyDayItem) =>
-    !q || item.task.title.toLowerCase().includes(q) || item.projectName.toLowerCase().includes(q)
+  const matchesQuery = (item: MyDayItem) => {
+    const title = item.task?.title ?? ''
+    const project = item.projectName ?? ''
+    return !q || title.toLowerCase().includes(q) || project.toLowerCase().includes(q)
+  }
   const today = new Date()
   today.setHours(0, 0, 0, 0)
   const matchesFilter = (item: MyDayItem) => {
@@ -214,7 +225,7 @@ function filterDay(data: MyDayResponse | undefined, filter: FocusFilter, query: 
     return true
   }
   return {
-    focus: (data?.focus ?? []).filter(matchesFilter).filter(matchesQuery),
-    waiting: (data?.waiting ?? []).filter(matchesFilter).filter(matchesQuery),
+    focus: (data?.focus ?? []).filter((item) => item?.task?.id).filter(matchesFilter).filter(matchesQuery),
+    waiting: (data?.waiting ?? []).filter((item) => item?.task?.id).filter(matchesFilter).filter(matchesQuery),
   }
 }

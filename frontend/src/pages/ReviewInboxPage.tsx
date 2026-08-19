@@ -21,7 +21,7 @@ export function ReviewInboxPage() {
   const [returnItem, setReturnItem] = useState<ReviewQueueItem | null>(null)
   const queue = useQuery({
     queryKey: ['review-queue', query],
-    queryFn: async () => (await api.get<ReviewQueueItem[]>('/tasks/review-queue', { params: { q: query || undefined } })).data,
+    queryFn: async () => (await api.get<ReviewQueueItem[]>('/reviews', { params: { q: query || undefined } })).data,
   })
   const refresh = () => {
     queryClient.invalidateQueries({ queryKey: ['review-queue'] })
@@ -46,7 +46,7 @@ export function ReviewInboxPage() {
     onError: (err) => toast.error(apiError(err)),
   })
 
-  const items = queue.data ?? []
+  const items = Array.isArray(queue.data) ? queue.data.filter((item) => item?.task?.id) : []
 
   return (
     <div className="space-y-5">
@@ -58,7 +58,11 @@ export function ReviewInboxPage() {
           <Input className="w-56" placeholder="Search title, project, person" value={query} onChange={(event) => setQuery(event.target.value)} />
         }
       />
-      {items.length === 0 ? (
+      {queue.isError ? (
+        <Card>
+          <EmptyState title="Could not load the inbox" description={apiError(queue.error, 'The review queue is unavailable.')} />
+        </Card>
+      ) : items.length === 0 ? (
         <Card>
           <EmptyState title="Inbox zero" description="Nothing is waiting for your review." />
         </Card>
