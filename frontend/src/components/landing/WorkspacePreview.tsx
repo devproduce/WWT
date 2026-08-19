@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import {
   AlertTriangle,
-  Bell,
   CalendarClock,
   CheckCircle2,
   ClipboardList,
@@ -60,7 +59,7 @@ function priorityEdge(priority: string) {
 
 function DashboardView() {
   return (
-    <div className="relative space-y-4">
+    <div className="space-y-4">
       <div className="flex items-end justify-between gap-3">
         <div>
           <div className="font-mono text-[11px] tracking-[0.32em] text-teal-700/80 uppercase">Organization</div>
@@ -164,19 +163,6 @@ function DashboardView() {
             </div>
           </Card>
         ))}
-      </div>
-      <div className="landing-inset absolute right-4 bottom-6 hidden w-64 rounded-[24px] p-3 shadow-[0_24px_60px_rgb(15_61_56_/_0.2)] lg:block">
-        <div className="mb-2 flex items-center justify-between px-1">
-          <span className="flex items-center gap-1.5 text-sm font-medium text-teal-950">
-            <Bell className="h-3.5 w-3.5" />
-            Notifications
-          </span>
-          <span className="landing-pulse h-1.5 w-1.5 rounded-full bg-rose-500" />
-        </div>
-        <div className="rounded-2xl bg-teal-50 px-3 py-2 text-sm text-teal-950">
-          <div className="font-medium">QA checkout is in review</div>
-          <div className="text-teal-900/60">Arun can approve or return.</div>
-        </div>
       </div>
     </div>
   )

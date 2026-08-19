@@ -459,7 +459,76 @@ function Features() {
   )
 }
 
+const HOW_ROLES = [
+  {
+    id: 'admin' as const,
+    label: 'Admin',
+    person: 'Priya Shah',
+    blurb: 'Runs Northwind. Invites people, opens projects, sees every board.',
+    features: [
+      'Invite, disable, and reset members',
+      'Create projects and name a Project Manager',
+      'See every task in the organization',
+      'Watch members, projects, and storage against the plan',
+    ],
+    people: [
+      { name: 'Priya Shah', meta: 'Admin · invites the team' },
+    ],
+  },
+  {
+    id: 'pm' as const,
+    label: 'Project Manager',
+    person: 'Arun Mehta',
+    blurb: 'Owns the Atlas board. Assigns work and signs off Done.',
+    features: [
+      'Run the Atlas Kanban board',
+      'Assign work to members on the project',
+      'Review submissions and send work back',
+      'Mark Done — members cannot',
+    ],
+    people: [{ name: 'Arun Mehta', meta: 'PM · owns the Atlas board' }],
+  },
+  {
+    id: 'member' as const,
+    label: 'Member',
+    person: 'Dev Patel',
+    blurb: 'Ships assigned Atlas work. Submits for review. Cannot mark Done.',
+    features: [
+      'See only assigned tasks',
+      'Move work To do → Doing → Review or Blocked',
+      'Comment and attach files on their tasks',
+      'Submit for review — cannot mark Done',
+    ],
+    people: [
+      { name: 'Dev Patel', meta: 'Member · 6 assigned' },
+      { name: 'Maya Rao', meta: 'Member · submits for review' },
+    ],
+  },
+]
+
+const HOW_STEPS = [
+  ['01', 'Contact us', 'Tell us the organization, team size, and how you work. There is no public signup.'],
+  [
+    '02',
+    'We open your workspace',
+    'We create Northwind’s organization, pick a plan, and send Priya — the Admin — her invite. She gets the keys.',
+  ],
+  [
+    '03',
+    'Admin builds the team',
+    'Priya invites people, opens the Atlas project, and names Arun as Project Manager.',
+  ],
+  [
+    '04',
+    'The team ships',
+    'Arun assigns work. Dev and Maya move their cards and submit for review. Arun signs off Done — it is never assumed.',
+  ],
+]
+
 function HowItWorks() {
+  const [roleId, setRoleId] = useState<(typeof HOW_ROLES)[number]['id']>('admin')
+  const role = HOW_ROLES.find((item) => item.id === roleId) ?? HOW_ROLES[0]
+
   return (
     <section id="how" className="px-5 py-20">
       <div className="mx-auto max-w-6xl">
@@ -468,8 +537,8 @@ function HowItWorks() {
         <p className="mt-3 max-w-xl font-serif text-lg italic text-teal-900/55">
           Northwind Labs needed Atlas out the door. Here is the same path your organization follows.
         </p>
-        <div className="mt-12 grid items-start gap-8 lg:grid-cols-[1.1fr_0.9fr]">
-          <Card>
+        <div className="mt-12 grid items-stretch gap-8 lg:grid-cols-2">
+          <Card className="flex h-full flex-col">
             <div className="flex flex-wrap justify-between gap-3 font-mono text-[11px] text-teal-800/50">
               <span>Northwind Labs · Atlas</span>
               <span>124 TASKS · 18 PROJECTS</span>
@@ -477,64 +546,80 @@ function HowItWorks() {
             <div className="mt-5 landing-inset rounded-2xl p-4">
               <div className="font-mono text-[10px] tracking-[0.25em] text-teal-700/80 uppercase">Who runs Atlas</div>
               <div className="mt-4 flex flex-wrap gap-2">
-                {['Admin', 'Project Manager', 'Member'].map((role, i) => (
-                  <span
-                    key={role}
-                    className={cn(
-                      'inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm',
-                      i === 1
-                        ? 'bg-teal-300 text-teal-950 shadow-[0_10px_24px_rgb(45_212_191_/_0.28)]'
-                        : 'landing-inset text-teal-900/70',
-                    )}
-                  >
-                    <span className="font-mono text-[10px] opacity-50">0{i + 1}</span>
-                    {role}
-                  </span>
-                ))}
+                {HOW_ROLES.map((item, i) => {
+                  const active = item.id === roleId
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => setRoleId(item.id)}
+                      aria-pressed={active}
+                      className={cn(
+                        'inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm transition',
+                        active
+                          ? 'bg-teal-300 text-teal-950 shadow-[0_10px_24px_rgb(45_212_191_/_0.28)]'
+                          : 'landing-inset text-teal-900/70 hover:bg-white hover:text-teal-950',
+                      )}
+                    >
+                      <span className="font-mono text-[10px] opacity-50">0{i + 1}</span>
+                      {item.label}
+                    </button>
+                  )
+                })}
               </div>
             </div>
-            <div className="mt-4 grid gap-3 sm:grid-cols-2">
-              {[
-                ['Priya Shah', 'Admin · invites the team'],
-                ['Arun Mehta', 'PM · owns the Atlas board'],
-                ['Dev Patel', 'Member · 6 assigned'],
-                ['Maya Rao', 'Member · submits for review'],
-              ].map(([name, meta]) => (
-                <div key={name} className="landing-inset flex items-center gap-3 rounded-2xl p-3">
-                  <Avatar name={name} />
-                  <div>
-                    <div className="text-sm font-medium text-teal-950">{name}</div>
-                    <div className="text-xs text-teal-900/45">{meta}</div>
-                  </div>
+            <div className="mt-5 flex-1 rounded-2xl landing-inset p-4">
+              <div className="flex items-center gap-3">
+                <Avatar name={role.person} />
+                <div>
+                  <div className="text-sm font-medium text-teal-950">{role.person}</div>
+                  <div className="text-xs text-teal-900/45">{role.label}</div>
                 </div>
-              ))}
+              </div>
+              <p className="mt-3 text-sm leading-relaxed text-teal-900/55">{role.blurb}</p>
+              <ul className="mt-4 space-y-2">
+                {role.features.map((feature) => (
+                  <li key={feature} className="flex gap-2 text-sm text-teal-900/80">
+                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-teal-700" />
+                    {feature}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              {HOW_ROLES.flatMap((item) => item.people.map((person) => ({ ...person, roleId: item.id }))).map(
+                (person) => {
+                  const active = person.roleId === roleId
+                  return (
+                    <button
+                      key={person.name}
+                      type="button"
+                      onClick={() => setRoleId(person.roleId)}
+                      aria-pressed={active}
+                      className={cn(
+                        'flex items-center gap-3 rounded-2xl p-3 text-left transition',
+                        active
+                          ? 'bg-teal-300/70 text-teal-950 shadow-[0_10px_24px_rgb(45_212_191_/_0.18)]'
+                          : 'landing-inset text-teal-900/70 hover:bg-white hover:text-teal-950',
+                      )}
+                    >
+                      <Avatar name={person.name} />
+                      <div>
+                        <div className="text-sm font-medium text-teal-950">{person.name}</div>
+                        <div className={cn('text-xs', active ? 'text-teal-900/60' : 'text-teal-900/45')}>
+                          {person.meta}
+                        </div>
+                      </div>
+                    </button>
+                  )
+                },
+              )}
             </div>
           </Card>
-          <ol className="space-y-3">
-            {[
-              [
-                '01',
-                'Contact us',
-                'Tell us the organization, team size, and how you work. There is no public signup.',
-              ],
-              [
-                '02',
-                'We open your workspace',
-                'We create Northwind’s organization, pick a plan, and send Priya — the Admin — her invite. She gets the keys.',
-              ],
-              [
-                '03',
-                'Admin builds the team',
-                'Priya invites people, opens the Atlas project, and names Arun as Project Manager.',
-              ],
-              [
-                '04',
-                'The team ships',
-                'Arun assigns work. Dev and Maya move their cards and submit for review. Arun signs off Done — it is never assumed.',
-              ],
-            ].map(([n, t, d]) => (
-              <li key={n}>
-                <Card className="grid grid-cols-[auto_1fr] gap-5">
+          <ol className="flex h-full flex-col gap-3">
+            {HOW_STEPS.map(([n, t, d]) => (
+              <li key={n} className="flex min-h-0 flex-1">
+                <Card className="grid h-full w-full grid-cols-[auto_1fr] items-center gap-5">
                   <div className="font-mono text-sm text-teal-700/60">{n}</div>
                   <div>
                     <h3 className="text-xl font-semibold text-teal-950">{t}</h3>
