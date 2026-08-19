@@ -66,7 +66,9 @@ public class MyDayService {
                 toItems(actor, ranked.focus(), projectNames),
                 toItems(actor, ranked.waiting(), projectNames),
                 ranked.hiddenCount(),
-                ranked.overflowCount()
+                ranked.overflowCount(),
+                prefs.getPinnedTaskIds() == null ? List.of() : prefs.getPinnedTaskIds(),
+                prefs.getHiddenTaskIds() == null ? List.of() : prefs.getHiddenTaskIds()
         );
     }
 

@@ -8,6 +8,8 @@ public record MyDayResponse(
         List<MyDayItem> focus,
         List<MyDayItem> waiting,
         int hiddenCount,
-        int overflowCount
+        int overflowCount,
+        List<String> pinnedTaskIds,
+        List<String> hiddenTaskIds
 ) {
 }
