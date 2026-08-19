@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import {
@@ -128,6 +128,7 @@ function SuperAdminHome({ data }: { data: Dashboard }) {
             hint={`${num(m.aggregateProjects)} live projects`}
             icon={<Users className="h-5 w-5" />}
             tone="sky"
+            to="/app/organizations"
           />
         </div>
       </div>
@@ -180,11 +181,18 @@ function AdminHome({ data }: { data: Dashboard }) {
   const m = data.metrics
   const [statusFilter, setStatusFilter] = useState('ALL')
   const [focus, setFocus] = useState<'all' | 'overdue' | 'upcoming'>('all')
+  const deadlineStripRef = useRef<HTMLDivElement>(null)
   const projects = data.items.filter((item) => statusFilter === 'ALL' || str(item.status) === statusFilter)
   const deadlines = Array.isArray(m.deadlineTasks) ? (m.deadlineTasks as Record<string, unknown>[]) : []
   const activity = Array.isArray(m.recentActivity) ? (m.recentActivity as Record<string, unknown>[]) : []
   const visibleDeadlines = deadlines.filter((item) => focus === 'all' || str(item.kind) === (focus === 'overdue' ? 'overdue' : 'upcoming'))
   const mix = deliveryMix(m, data.items)
+  const focusDeadlines = (next: 'overdue' | 'upcoming') => {
+    setFocus(focus === next ? 'all' : next)
+    window.setTimeout(() => {
+      deadlineStripRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 0)
+  }
 
   return (
     <div className="space-y-6">
@@ -206,6 +214,7 @@ function AdminHome({ data }: { data: Dashboard }) {
           icon={<Users className="h-5 w-5" />}
           tone="teal"
           ring={{ value: num(m.memberCount), max: num(m.memberLimit) }}
+          to="/app/members"
         />
         <MetricCard
           label="Projects"
@@ -214,6 +223,7 @@ function AdminHome({ data }: { data: Dashboard }) {
           icon={<FolderKanban className="h-5 w-5" />}
           tone="sky"
           ring={{ value: num(m.projectCount), max: num(m.projectLimit) }}
+          to="/app/projects"
         />
         <MetricCard
           label="Overdue"
@@ -222,7 +232,7 @@ function AdminHome({ data }: { data: Dashboard }) {
           icon={<AlertTriangle className="h-5 w-5" />}
           tone="coral"
           active={focus === 'overdue'}
-          onClick={() => setFocus(focus === 'overdue' ? 'all' : 'overdue')}
+          onClick={() => focusDeadlines('overdue')}
         />
         <MetricCard
           label="Due this week"
@@ -231,7 +241,7 @@ function AdminHome({ data }: { data: Dashboard }) {
           icon={<CalendarClock className="h-5 w-5" />}
           tone="amber"
           active={focus === 'upcoming'}
-          onClick={() => setFocus(focus === 'upcoming' ? 'all' : 'upcoming')}
+          onClick={() => focusDeadlines('upcoming')}
         />
       </div>
       <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
@@ -242,27 +252,29 @@ function AdminHome({ data }: { data: Dashboard }) {
             <StatusStack counts={mix} />
           </div>
         </Card>
-        <Card>
-          <CardTitle>Deadline strip</CardTitle>
-          <div className="mt-4 space-y-2">
-            {visibleDeadlines.length === 0 && (
-              <p className="text-sm text-teal-900/50">No matching deadlines. The calendar is clear.</p>
-            )}
-            {visibleDeadlines.slice(0, 6).map((item) => (
-              <Link
-                key={str(item.id)}
-                to={`/app/tasks/${str(item.id)}`}
-                className="flex items-center justify-between rounded-2xl bg-white/70 px-3 py-2 hover:bg-white"
-              >
-                <div className="min-w-0">
-                  <div className="truncate text-sm font-medium text-teal-950">{str(item.title)}</div>
-                  <div className="text-xs text-teal-900/50">{formatDay(str(item.deadline))}</div>
-                </div>
-                <Badge tone={str(item.kind) === 'overdue' ? 'red' : 'amber'}>{str(item.kind)}</Badge>
-              </Link>
-            ))}
-          </div>
-        </Card>
+        <div ref={deadlineStripRef}>
+          <Card>
+            <CardTitle>Deadline strip</CardTitle>
+            <div className="mt-4 space-y-2">
+              {visibleDeadlines.length === 0 && (
+                <p className="text-sm text-teal-900/50">No matching deadlines. The calendar is clear.</p>
+              )}
+              {visibleDeadlines.slice(0, 6).map((item) => (
+                <Link
+                  key={str(item.id)}
+                  to={`/app/tasks/${str(item.id)}`}
+                  className="flex items-center justify-between rounded-2xl bg-white/70 px-3 py-2 hover:bg-white"
+                >
+                  <div className="min-w-0">
+                    <div className="truncate text-sm font-medium text-teal-950">{str(item.title)}</div>
+                    <div className="text-xs text-teal-900/50">{formatDay(str(item.deadline))}</div>
+                  </div>
+                  <Badge tone={str(item.kind) === 'overdue' ? 'red' : 'amber'}>{str(item.kind)}</Badge>
+                </Link>
+              ))}
+            </div>
+          </Card>
+        </div>
       </div>
       <div className="flex items-center justify-between">
         <CardTitle>Project portfolio</CardTitle>
