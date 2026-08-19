@@ -1,5 +1,15 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Bell, Building2, ClipboardList, FolderKanban, LayoutDashboard, LogOut, Users } from 'lucide-react'
+import {
+  Bell,
+  Building2,
+  ClipboardList,
+  FolderKanban,
+  LayoutDashboard,
+  LogOut,
+  Menu,
+  PanelLeftClose,
+  Users,
+} from 'lucide-react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/features/auth/AuthContext'
 import { api } from '@/services/api'
@@ -7,12 +17,14 @@ import type { NotificationItem } from '@/types'
 import { Button } from '@/components/ui/button'
 import { formatDate, greetingFor } from '@/lib/utils'
 import { WwtMark } from '@/components/WwtMark'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 export function AppLayout() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
-  const [open, setOpen] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [notificationsOpen, setNotificationsOpen] = useState(false)
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const queryClient = useQueryClient()
   const notifications = useQuery({
     queryKey: ['notifications'],
@@ -23,6 +35,37 @@ export function AppLayout() {
     mutationFn: () => api.post('/notifications/read-all'),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notifications'] }),
   })
+
+  const cancelSidebarClose = () => {
+    if (closeTimer.current) {
+      clearTimeout(closeTimer.current)
+      closeTimer.current = null
+    }
+  }
+
+  const openSidebar = () => {
+    cancelSidebarClose()
+    setSidebarOpen(true)
+  }
+
+  const closeSidebar = () => {
+    cancelSidebarClose()
+    setSidebarOpen(false)
+  }
+
+  const scheduleSidebarClose = () => {
+    cancelSidebarClose()
+    closeTimer.current = setTimeout(() => {
+      setSidebarOpen(false)
+      closeTimer.current = null
+    }, 300)
+  }
+
+  useEffect(() => {
+    return () => {
+      if (closeTimer.current) clearTimeout(closeTimer.current)
+    }
+  }, [])
 
   if (!user) return null
 
@@ -41,8 +84,25 @@ export function AppLayout() {
     <div className="app-canvas relative h-screen overflow-hidden p-3">
       <div className="app-orb pointer-events-none absolute -top-24 left-10 h-72 w-72 rounded-full bg-teal-300/30 blur-3xl" />
       <div className="app-orb pointer-events-none absolute top-1/3 -right-16 h-80 w-80 rounded-full bg-amber-200/25 blur-3xl" style={{ animationDelay: '4s' }} />
-      <div className="relative z-10 flex h-full gap-3">
-        <aside className="flex h-full w-64 shrink-0 flex-col rounded-[28px] bg-[#0f3d38] text-teal-50 shadow-[0_24px_60px_rgb(15_61_56_/_0.28)]">
+      <div
+        className={`relative z-10 flex h-full transition-[gap] duration-300 [transition-timing-function:var(--ease-app)] ${
+          sidebarOpen ? 'gap-3' : 'gap-0'
+        }`}
+      >
+        {!sidebarOpen && (
+          <div aria-hidden className="absolute inset-y-0 left-0 z-20 w-3" onMouseEnter={openSidebar} />
+        )}
+        <div
+          className={`h-full shrink-0 overflow-hidden transition-[width] duration-300 [transition-timing-function:var(--ease-app)] ${
+            sidebarOpen ? 'w-64' : 'w-0'
+          }`}
+        >
+          <aside
+            className="flex h-full w-64 flex-col rounded-[28px] bg-[#0f3d38] text-teal-50 shadow-[0_24px_60px_rgb(15_61_56_/_0.28)]"
+            onMouseEnter={cancelSidebarClose}
+            onMouseLeave={scheduleSidebarClose}
+            aria-hidden={!sidebarOpen}
+          >
           <div className="px-5 py-6">
             <div className="flex items-center gap-2.5">
               <WwtMark />
@@ -58,6 +118,7 @@ export function AppLayout() {
                 key={link.to}
                 to={link.to}
                 end={link.to === '/app'}
+                onClick={closeSidebar}
                 className={({ isActive }) =>
                   `app-nav-pill flex items-center gap-2.5 rounded-full px-3.5 py-2.5 text-sm ${
                     isActive
@@ -91,28 +152,44 @@ export function AppLayout() {
             </Button>
           </div>
         </aside>
+        </div>
         <div className="min-h-0 min-w-0 flex-1 overflow-y-auto rounded-[28px] border border-white/50 bg-white/45 shadow-[0_24px_60px_rgb(15_61_56_/_0.08)] backdrop-blur-xl">
           <header className="flex items-center justify-between gap-4 px-6 py-4">
-            <div>
-              <div className="text-lg font-semibold tracking-tight text-teal-950">
-                {greetingFor(user.firstName)}
-              </div>
-              <div className="font-serif text-sm italic text-teal-900/55">
-                {user.organizationName ?? 'Platform console'}
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                className="shrink-0 rounded-full border border-teal-900/10 bg-white/70 p-2.5 hover:bg-white"
+                onClick={() => (sidebarOpen ? closeSidebar() : openSidebar())}
+                aria-label={sidebarOpen ? 'Close navigation' : 'Open navigation'}
+                aria-expanded={sidebarOpen}
+              >
+                {sidebarOpen ? (
+                  <PanelLeftClose className="h-5 w-5 text-teal-800" />
+                ) : (
+                  <Menu className="h-5 w-5 text-teal-800" />
+                )}
+              </button>
+              <div>
+                <div className="text-lg font-semibold tracking-tight text-teal-950">
+                  {greetingFor(user.firstName)}
+                </div>
+                <div className="font-serif text-sm italic text-teal-900/55">
+                  {user.organizationName ?? 'Platform console'}
+                </div>
               </div>
             </div>
             <div className="relative">
               <button
                 type="button"
                 className="relative rounded-full border border-teal-900/10 bg-white/70 p-2.5 hover:bg-white"
-                onClick={() => setOpen((v) => !v)}
+                onClick={() => setNotificationsOpen((v) => !v)}
               >
                 <Bell className="h-5 w-5 text-teal-800" />
                 {(notifications.data?.unreadCount ?? 0) > 0 && (
                   <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-rose-500 landing-pulse" />
                 )}
               </button>
-              {open && (
+              {notificationsOpen && (
                 <div className="app-card absolute right-0 z-20 mt-2 w-80 rounded-[24px] p-3 shadow-[0_24px_60px_rgb(15_61_56_/_0.18)]">
                   <div className="mb-2 flex items-center justify-between px-2">
                     <span className="text-sm font-medium text-teal-950">Notifications</span>
