@@ -150,12 +150,18 @@ export function ProjectBoardPage() {
           </Card>
           <Card>
             <CardTitle>By member</CardTitle>
+            <p className="mt-1 text-sm text-teal-900/50">Tasks in review or done — not every assignment.</p>
             <div className="mt-4 space-y-3">
               {Object.entries(report.data.tasksByMember).map(([name, count]) => (
-                <QuotaMeter key={name} label={name} used={count} max={Math.max(report.data.totalTasks, 1)} />
+                <QuotaMeter
+                  key={name}
+                  label={name}
+                  used={count}
+                  max={Math.max(report.data.review + report.data.done, 1)}
+                />
               ))}
               {Object.keys(report.data.tasksByMember).length === 0 && (
-                <p className="text-sm text-teal-900/50">No assignments yet.</p>
+                <p className="text-sm text-teal-900/50">No completed work yet.</p>
               )}
             </div>
           </Card>
