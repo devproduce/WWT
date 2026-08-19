@@ -14,6 +14,8 @@ import org.springframework.stereotype.Service;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -48,15 +50,17 @@ public class ReviewQueueService {
             }
         }
         Map<String, Project> projectById = projects.stream()
+                .filter(project -> project.getId() != null)
                 .collect(Collectors.toMap(Project::getId, project -> project, (a, b) -> a));
-        List<String> projectIds = projectById.keySet().stream().toList();
+        Set<String> projectIds = projectById.keySet();
         if (projectIds.isEmpty()) {
             return List.of();
         }
         String needle = q == null ? "" : q.trim().toLowerCase();
-        return taskRepository.findByOrganizationIdAndProjectIdIn(actor.organizationId(), projectIds).stream()
-                .filter(task -> task.getStatus() == TaskStatus.REVIEW)
+        return taskRepository.findByOrganizationIdAndStatus(actor.organizationId(), TaskStatus.REVIEW).stream()
+                .filter(task -> task.getProjectId() != null && projectIds.contains(task.getProjectId()))
                 .map(task -> toItem(actor, task, projectById.get(task.getProjectId())))
+                .filter(Objects::nonNull)
                 .filter(item -> matches(item, needle))
                 .sorted(Comparator.comparing(
                         item -> item.waitingSince() == null ? java.time.Instant.EPOCH : item.waitingSince()))
@@ -64,6 +68,9 @@ public class ReviewQueueService {
     }
 
     private ReviewQueueItem toItem(CurrentUser actor, Task task, Project project) {
+        if (project == null) {
+            return null;
+        }
         return new ReviewQueueItem(
                 taskService.toResponse(actor, project, task),
                 project.getName(),
