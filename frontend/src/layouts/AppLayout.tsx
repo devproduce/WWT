@@ -159,6 +159,7 @@ export function AppLayout() {
               <button
                 type="button"
                 className="shrink-0 rounded-full border border-teal-900/10 bg-white/70 p-2.5 hover:bg-white"
+                onMouseEnter={cancelSidebarClose}
                 onClick={() => (sidebarOpen ? closeSidebar() : openSidebar())}
                 aria-label={sidebarOpen ? 'Close navigation' : 'Open navigation'}
                 aria-expanded={sidebarOpen}
@@ -216,7 +217,7 @@ export function AppLayout() {
               )}
             </div>
           </header>
-          <main className="px-6 pb-6">
+          <main className="px-6 pb-6" onMouseEnter={scheduleSidebarClose} onPointerDown={closeSidebar}>
             <div className="mx-auto max-w-7xl">
               <Outlet />
             </div>
