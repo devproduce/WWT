@@ -1,6 +1,7 @@
+import { RingChart, TONE, type Tone } from '@/components/charts'
+import { Link } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 import type { ReactNode } from 'react'
-import { RingChart, TONE, type Tone } from '@/components/charts'
 
 export function MetricCard({
   label,
@@ -11,6 +12,7 @@ export function MetricCard({
   ring,
   active,
   onClick,
+  to,
 }: {
   label: string
   value: ReactNode
@@ -20,9 +22,10 @@ export function MetricCard({
   ring?: { value: number; max: number }
   active?: boolean
   onClick?: () => void
+  to?: string
 }) {
   const colors = TONE[tone]
-  const interactive = Boolean(onClick)
+  const interactive = Boolean(onClick || to)
   const className = cn(
     'app-card app-shine flex w-full items-center gap-4 rounded-[28px] p-5 text-left',
     interactive && 'app-card-lift cursor-pointer',
@@ -40,7 +43,14 @@ export function MetricCard({
       {ring && <RingChart value={ring.value} max={ring.max} size={64} stroke={7} tone={tone} />}
     </>
   )
-  if (interactive) {
+  if (to) {
+    return (
+      <Link to={to} className={className}>
+        {body}
+      </Link>
+    )
+  }
+  if (onClick) {
     return (
       <button type="button" onClick={onClick} className={className}>
         {body}
