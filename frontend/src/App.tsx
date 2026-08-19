@@ -10,6 +10,7 @@ import { OrganizationDetailPage, SuperAdminOrganizations } from '@/pages/Organiz
 import { ForgotPasswordPage, ResetPasswordPage, SetupPasswordPage } from '@/pages/PasswordPages'
 import { ProjectBoardPage } from '@/pages/ProjectBoardPage'
 import { ProjectsPage } from '@/pages/ProjectsPage'
+import { ReviewInboxPage } from '@/pages/ReviewInboxPage'
 import { TaskDetailPage } from '@/pages/TaskDetailPage'
 
 export default function App() {
@@ -34,6 +35,7 @@ export default function App() {
         <Route path="members" element={<MembersPage />} />
         <Route path="projects" element={<ProjectsPage />} />
         <Route path="projects/:id" element={<ProjectBoardPage />} />
+        <Route path="review" element={<ReviewInboxPage />} />
         <Route path="tasks/:id" element={<TaskDetailPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />

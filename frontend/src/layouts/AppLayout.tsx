@@ -4,6 +4,7 @@ import {
   Building2,
   ClipboardList,
   FolderKanban,
+  Inbox,
   LayoutDashboard,
   LogOut,
   Menu,
@@ -13,7 +14,7 @@ import {
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/features/auth/AuthContext'
 import { api } from '@/services/api'
-import type { NotificationItem } from '@/types'
+import type { NotificationItem, NotificationPrefs } from '@/types'
 import { Button } from '@/components/ui/button'
 import { formatDate, greetingFor } from '@/lib/utils'
 import { WwtMark } from '@/components/WwtMark'
@@ -34,6 +35,14 @@ export function AppLayout() {
   const markAll = useMutation({
     mutationFn: () => api.post('/notifications/read-all'),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notifications'] }),
+  })
+  const prefs = useQuery({
+    queryKey: ['notification-prefs'],
+    queryFn: async () => (await api.get<NotificationPrefs>('/me/notification-preferences')).data,
+  })
+  const updatePrefs = useMutation({
+    mutationFn: (patch: Partial<NotificationPrefs>) => api.patch('/me/notification-preferences', patch),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notification-prefs'] }),
   })
 
   const cancelSidebarClose = () => {
@@ -232,6 +241,31 @@ export function AppLayout() {
                       )
                     })}
                   </div>
+                  {prefs.data && (
+                    <div className="mt-2 space-y-1.5 border-t border-teal-900/8 px-2 pt-2 text-xs text-teal-900/70">
+                      <div className="font-medium text-teal-950">Email me about</div>
+                      <PrefToggle
+                        label="Comments"
+                        checked={prefs.data.emailComments}
+                        onChange={(emailComments) => updatePrefs.mutate({ emailComments })}
+                      />
+                      <PrefToggle
+                        label="Assignments"
+                        checked={prefs.data.emailAssignments}
+                        onChange={(emailAssignments) => updatePrefs.mutate({ emailAssignments })}
+                      />
+                      <PrefToggle
+                        label="Reviews"
+                        checked={prefs.data.emailReviews}
+                        onChange={(emailReviews) => updatePrefs.mutate({ emailReviews })}
+                      />
+                      <PrefToggle
+                        label="Deadlines"
+                        checked={prefs.data.emailDeadlines}
+                        onChange={(emailDeadlines) => updatePrefs.mutate({ emailDeadlines })}
+                      />
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -257,12 +291,23 @@ function navFor(role: string, isPm: boolean) {
   if (role === 'ADMIN') {
     return [
       { to: '/app', label: 'Dashboard', icon: <LayoutDashboard className="h-4 w-4" /> },
+      { to: '/app/review', label: 'Review inbox', icon: <Inbox className="h-4 w-4" /> },
       { to: '/app/members', label: 'Members', icon: <Users className="h-4 w-4" /> },
       { to: '/app/projects', label: 'Projects', icon: <FolderKanban className="h-4 w-4" /> },
     ]
   }
   return [
     { to: '/app', label: 'My work', icon: <ClipboardList className="h-4 w-4" /> },
+    ...(isPm ? [{ to: '/app/review', label: 'Review inbox', icon: <Inbox className="h-4 w-4" /> }] : []),
     { to: '/app/projects', label: isPm ? 'Projects' : 'My projects', icon: <FolderKanban className="h-4 w-4" /> },
   ]
+}
+
+function PrefToggle({ label, checked, onChange }: { label: string; checked: boolean; onChange: (value: boolean) => void }) {
+  return (
+    <label className="flex items-center justify-between gap-2 py-0.5">
+      <span>{label}</span>
+      <input type="checkbox" checked={checked} onChange={(event) => onChange(event.target.checked)} />
+    </label>
+  )
 }
