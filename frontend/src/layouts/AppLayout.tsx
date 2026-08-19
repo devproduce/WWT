@@ -10,7 +10,7 @@ import {
   PanelLeftClose,
   Users,
 } from 'lucide-react'
-import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/features/auth/AuthContext'
 import { api } from '@/services/api'
 import type { NotificationItem } from '@/types'
@@ -202,16 +202,35 @@ export function AppLayout() {
                     {(notifications.data?.items ?? []).length === 0 && (
                       <div className="px-2 py-6 text-center text-sm text-teal-900/50">No notifications yet</div>
                     )}
-                    {(notifications.data?.items ?? []).map((item) => (
-                      <div
-                        key={item.id}
-                        className={`rounded-2xl px-3 py-2 text-sm ${item.read ? 'text-teal-900/55' : 'bg-teal-50 text-teal-950'}`}
-                      >
-                        <div className="font-medium">{item.title}</div>
-                        <div>{item.message}</div>
-                        <div className="text-xs text-teal-900/40">{formatDate(item.createdAt)}</div>
-                      </div>
-                    ))}
+                    {(notifications.data?.items ?? []).map((item) => {
+                      const href = item.taskId
+                        ? `/app/tasks/${item.taskId}`
+                        : item.projectId
+                          ? `/app/projects/${item.projectId}`
+                          : null
+                      const body = (
+                        <>
+                          <div className="font-medium">{item.title}</div>
+                          <div>{item.message}</div>
+                          <div className="text-xs text-teal-900/40">{formatDate(item.createdAt)}</div>
+                        </>
+                      )
+                      const className = `block rounded-2xl px-3 py-2 text-sm ${item.read ? 'text-teal-900/55' : 'bg-teal-50 text-teal-950'}`
+                      return href ? (
+                        <Link
+                          key={item.id}
+                          to={href}
+                          className={`${className} hover:bg-teal-50`}
+                          onClick={() => setNotificationsOpen(false)}
+                        >
+                          {body}
+                        </Link>
+                      ) : (
+                        <div key={item.id} className={className}>
+                          {body}
+                        </div>
+                      )
+                    })}
                   </div>
                 </div>
               )}
