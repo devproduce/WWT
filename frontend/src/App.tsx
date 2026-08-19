@@ -15,7 +15,7 @@ import { TaskDetailPage } from '@/pages/TaskDetailPage'
 export default function App() {
   return (
     <Routes>
-      <Route path="/" element={<LandingPage />} />
+      <Route path="/" element={<GuestOnly><LandingPage /></GuestOnly>} />
       <Route path="/login" element={<GuestOnly><LoginPage /></GuestOnly>} />
       <Route path="/setup-password" element={<SetupPasswordPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />

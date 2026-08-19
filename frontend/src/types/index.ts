@@ -20,7 +20,7 @@ export interface Me {
 
 export interface AuthResponse {
   accessToken: string
-  refreshToken: string
+  refreshToken?: string
   user: Me
 }
 

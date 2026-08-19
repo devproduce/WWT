@@ -2,25 +2,30 @@ import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios'
 import { API_BASE_URL } from '@/config'
 import type { AuthResponse } from '@/types'
 
-const ACCESS = 'wwt_access'
-const REFRESH = 'wwt_refresh'
+let accessToken: string | null = null
+
+const SKIP_REFRESH = ['/auth/login', '/auth/setup-password', '/auth/forgot-password', '/auth/reset-password', '/auth/refresh', '/auth/logout']
 
 export function getAccessToken() {
-  return localStorage.getItem(ACCESS)
+  return accessToken
 }
 
-export function setTokens(auth: AuthResponse) {
-  localStorage.setItem(ACCESS, auth.accessToken)
-  localStorage.setItem(REFRESH, auth.refreshToken)
+export function setTokens(auth: Pick<AuthResponse, 'accessToken'>) {
+  accessToken = auth.accessToken
 }
 
 export function clearTokens() {
-  localStorage.removeItem(ACCESS)
-  localStorage.removeItem(REFRESH)
+  accessToken = null
+}
+
+function shouldSkipRefresh(url: string | undefined) {
+  if (!url) return false
+  return SKIP_REFRESH.some((path) => url.includes(path))
 }
 
 export const api = axios.create({
   baseURL: `${API_BASE_URL}/api`,
+  withCredentials: true,
 })
 
 api.interceptors.request.use((config) => {
@@ -34,18 +39,35 @@ api.interceptors.request.use((config) => {
 let refreshing: Promise<string | null> | null = null
 
 async function refreshAccessToken() {
-  const refreshToken = localStorage.getItem(REFRESH)
-  if (!refreshToken) return null
-  const { data } = await axios.post<AuthResponse>(`${API_BASE_URL}/api/auth/refresh`, { refreshToken })
-  setTokens(data)
-  return data.accessToken
+  try {
+    const { data } = await axios.post<AuthResponse>(
+      `${API_BASE_URL}/api/auth/refresh`,
+      {},
+      { withCredentials: true },
+    )
+    setTokens(data)
+    return data.accessToken
+  } catch {
+    clearTokens()
+    return null
+  }
+}
+
+export async function restoreSession() {
+  try {
+    localStorage.removeItem('wwt_access')
+    localStorage.removeItem('wwt_refresh')
+  } catch {
+    // ignore private-mode storage errors
+  }
+  return refreshAccessToken()
 }
 
 api.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
     const original = error.config as (InternalAxiosRequestConfig & { _retry?: boolean }) | undefined
-    if (error.response?.status === 401 && original && !original._retry && !original.url?.includes('/auth/')) {
+    if (error.response?.status === 401 && original && !original._retry && !shouldSkipRefresh(original.url)) {
       original._retry = true
       try {
         refreshing ??= refreshAccessToken().finally(() => {

@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
-import { api, apiError, clearTokens, setTokens } from '@/services/api'
+import { api, apiError, clearTokens, restoreSession, setTokens } from '@/services/api'
 import type { AuthResponse, Me } from '@/types'
 
 interface AuthState {
@@ -24,18 +24,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch {
       clearTokens()
       setUser(null)
-    } finally {
-      setLoading(false)
     }
   }
 
   useEffect(() => {
-    const token = localStorage.getItem('wwt_access')
-    if (!token) {
-      setLoading(false)
-      return
-    }
-    void refreshMe()
+    void (async () => {
+      try {
+        const token = await restoreSession()
+        if (!token) {
+          setUser(null)
+          return
+        }
+        await refreshMe()
+      } finally {
+        setLoading(false)
+      }
+    })()
   }, [])
 
   const value = useMemo<AuthState>(
@@ -54,7 +58,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       },
       logout: async () => {
         try {
-          await api.post('/auth/logout', { refreshToken: localStorage.getItem('wwt_refresh') })
+          await api.post('/auth/logout')
         } finally {
           clearTokens()
           setUser(null)
