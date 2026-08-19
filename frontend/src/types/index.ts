@@ -113,6 +113,12 @@ export interface TaskItem {
   createdAt: string
   updatedAt: string
   completedAt: string | null
+  lastReturnNote: string | null
+  lastReturnedAt: string | null
+  blockedReason: string | null
+  blockedWaitingOnUserId: string | null
+  blockedWaitingOnName: string | null
+  blockedAt: string | null
   allowedTransitions: TaskStatus[]
   canReview: boolean
 }
@@ -180,6 +186,62 @@ export interface AttachmentItem {
   sizeBytes: number
   uploadedBy: string
   createdAt: string
+}
+
+export type MyDayWhy =
+  | 'PINNED'
+  | 'IN_PROGRESS'
+  | 'OVERDUE'
+  | 'RETURNED'
+  | 'DUE_TODAY'
+  | 'DUE_SOON'
+  | 'HIGH_PRIORITY'
+  | 'REVIEW'
+  | 'BLOCKED'
+
+export interface MyDayItem {
+  task: TaskItem
+  projectName: string
+  why: MyDayWhy | string
+  score: number
+  pinned: boolean
+  overdue: boolean
+  primaryAction: 'START' | 'SUBMIT_REVIEW' | 'OPEN' | string
+}
+
+export interface MyDayResponse {
+  date: string
+  focus: MyDayItem[]
+  waiting: MyDayItem[]
+  hiddenCount: number
+  overflowCount: number
+  pinnedTaskIds: string[]
+  hiddenTaskIds: string[]
+}
+
+export interface ReviewQueueItem {
+  task: TaskItem
+  projectName: string
+  waitingSince: string | null
+}
+
+export interface NotificationPrefs {
+  emailComments: boolean
+  emailAssignments: boolean
+  emailReviews: boolean
+  emailDeadlines: boolean
+}
+
+export const WHY_LABEL: Record<string, string> = {
+  PINNED: 'Pinned',
+  IN_PROGRESS: 'Going on now',
+  OVERDUE: 'Overdue',
+  RETURNED: 'Returned',
+  DUE_TODAY: 'Due today',
+  DUE_SOON: 'Due soon',
+  HIGH_PRIORITY: 'High priority',
+  REVIEW: 'In review',
+  BLOCKED: 'Blocked',
 }
 
 export const TASK_COLUMNS: { id: TaskStatus; label: string }[] = [

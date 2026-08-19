@@ -25,8 +25,8 @@ export function Badge({ children, tone = 'slate' }: { children: string; tone?: k
 
 export function statusTone(status: string) {
   if (status === 'DONE' || status === 'ACTIVE' || status === 'COMPLETED') return 'green' as const
-  if (status === 'REVIEW' || status === 'PLANNED') return 'blue' as const
-  if (status === 'BLOCKED' || status === 'DISABLED' || status === 'URGENT') return 'red' as const
+  if (status === 'REVIEW' || status === 'PLANNED' || status === 'PINNED' || status === 'DUE_TODAY' || status === 'DUE_SOON') return 'blue' as const
+  if (status === 'BLOCKED' || status === 'DISABLED' || status === 'URGENT' || status === 'OVERDUE' || status === 'RETURNED') return 'red' as const
   if (status === 'IN_PROGRESS' || status === 'HIGH' || status === 'ON_HOLD') return 'amber' as const
   if (status === 'TODO' || status === 'PENDING_SETUP' || status === 'LOW') return 'slate' as const
   if (status === 'MEDIUM') return 'teal' as const

@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import {
@@ -24,7 +24,7 @@ import { useAuth } from '@/features/auth/AuthContext'
 import { api } from '@/services/api'
 import { cn, formatDate, formatDay, num, str, utilization } from '@/lib/utils'
 import type { Dashboard } from '@/types'
-import { MemberWork } from '@/pages/MemberWork'
+import { MyDayPanel } from '@/components/MyDayPanel'
 
 export function HomePage() {
   const { user } = useAuth()
@@ -356,24 +356,6 @@ function MemberHome({ data }: { data: Dashboard }) {
   const m = data.metrics
   const [filter, setFilter] = useState<'ALL' | 'OVERDUE' | 'SOON' | 'REVIEW' | 'PRIORITY'>('ALL')
   const tasks = data.items as Record<string, unknown>[]
-  const filtered = useMemo(() => {
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    return tasks.filter((task) => {
-      const status = str(task.status)
-      const priority = str(task.priority)
-      const deadline = task.deadline ? new Date(str(task.deadline)) : null
-      if (filter === 'OVERDUE') return Boolean(deadline && deadline < today && status !== 'DONE')
-      if (filter === 'SOON') {
-        const soon = new Date(today)
-        soon.setDate(soon.getDate() + 3)
-        return Boolean(deadline && deadline >= today && deadline <= soon && status !== 'DONE')
-      }
-      if (filter === 'REVIEW') return status === 'REVIEW'
-      if (filter === 'PRIORITY') return priority === 'HIGH' || priority === 'URGENT'
-      return true
-    })
-  }, [tasks, filter])
   const donutSegments = STATUS_SEGMENTS.map((segment) => ({
     color: segment.color,
     value: num(m[segment.key]),
@@ -457,8 +439,11 @@ function MemberHome({ data }: { data: Dashboard }) {
               <CardTitle className="mt-1">{str(m.pmProjectName)}</CardTitle>
               <p className="mt-1 text-sm text-teal-900/50">Pipeline across the board you own.</p>
             </div>
+            <Link to="/app/review">
+              <Button>Review inbox · {num(m.pmReview)}</Button>
+            </Link>
             <Link to={`/app/projects/${str(m.pmProjectId)}`}>
-              <Button>Open Kanban</Button>
+              <Button variant="secondary">Open Kanban</Button>
             </Link>
           </div>
           <div className="mt-5">
@@ -478,16 +463,7 @@ function MemberHome({ data }: { data: Dashboard }) {
         <CardTitle>Due timeline</CardTitle>
         <DueRail tasks={tasks} />
       </Card>
-      <MemberWork
-        tasks={filtered.map((task) => ({
-          id: str(task.id),
-          title: str(task.title),
-          status: str(task.status) as never,
-          priority: str(task.priority) as never,
-          deadline: task.deadline ? str(task.deadline) : null,
-          projectId: str(task.projectId),
-        }))}
-      />
+      <MyDayPanel filter={filter} />
       {Array.isArray(m.recentActivity) && (m.recentActivity as Record<string, unknown>[]).length > 0 && (
         <Card>
           <CardTitle>Recent activity</CardTitle>
