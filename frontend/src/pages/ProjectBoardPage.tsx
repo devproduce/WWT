@@ -21,6 +21,8 @@ import { TASK_COLUMNS } from '@/types'
 import { toast } from 'sonner'
 import { CSS } from '@dnd-kit/utilities'
 
+const COLUMN_PREVIEW = 5
+
 const COLUMN_TONE: Record<TaskStatus, string> = {
   TODO: 'bg-stone-100/80 border-stone-200',
   IN_PROGRESS: 'bg-amber-50/90 border-amber-200/80',
@@ -197,6 +199,9 @@ export function ProjectBoardPage() {
 
 function Column({ id, label, tasks }: { id: TaskStatus; label: string; tasks: TaskItem[] }) {
   const { setNodeRef, isOver } = useDroppable({ id })
+  const [viewAll, setViewAll] = useState(false)
+  const preview = tasks.slice(0, COLUMN_PREVIEW)
+  const hasMore = tasks.length > COLUMN_PREVIEW
   return (
     <div
       ref={setNodeRef}
@@ -214,16 +219,46 @@ function Column({ id, label, tasks }: { id: TaskStatus; label: string; tasks: Ta
         <span className="rounded-full bg-white/70 px-2 py-0.5 font-mono text-[10px]">{tasks.length}</span>
       </div>
       <div className="space-y-2">
-        {tasks.map((task) => (
+        {preview.map((task) => (
           <TaskCard key={task.id} task={task} />
         ))}
+        {hasMore && (
+          <button
+            type="button"
+            className="w-full rounded-2xl border border-teal-900/10 bg-white/70 px-3 py-2 text-sm font-medium text-teal-800 hover:bg-white"
+            onClick={() => setViewAll(true)}
+          >
+            View all · {tasks.length}
+          </button>
+        )}
       </div>
+      {viewAll && (
+        <Modal>
+          <div className="mb-4 flex items-start justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-semibold text-teal-950">{label}</h2>
+              <p className="text-sm text-teal-900/50">{tasks.length} tasks</p>
+            </div>
+            <Button type="button" variant="secondary" onClick={() => setViewAll(false)}>
+              Close
+            </Button>
+          </div>
+          <div className="space-y-2">
+            {tasks.map((task) => (
+              <TaskCard key={task.id} task={task} draggable={false} />
+            ))}
+          </div>
+        </Modal>
+      )}
     </div>
   )
 }
 
-function TaskCard({ task }: { task: TaskItem }) {
-  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id: task.id })
+function TaskCard({ task, draggable = true }: { task: TaskItem; draggable?: boolean }) {
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+    id: task.id,
+    disabled: !draggable,
+  })
   const style = { transform: CSS.Translate.toString(transform), opacity: isDragging ? 0.6 : 1 }
   const overdue = Boolean(task.deadline && new Date(task.deadline) < new Date() && task.status !== 'DONE')
   const priorityEdge =
@@ -236,10 +271,10 @@ function TaskCard({ task }: { task: TaskItem }) {
           : 'bg-stone-300'
   return (
     <div
-      ref={setNodeRef}
-      style={style}
-      {...listeners}
-      {...attributes}
+      ref={draggable ? setNodeRef : undefined}
+      style={draggable ? style : undefined}
+      {...(draggable ? listeners : {})}
+      {...(draggable ? attributes : {})}
       className="app-card app-card-lift relative overflow-hidden rounded-2xl p-3.5 shadow-[0_10px_24px_rgb(15_61_56_/_0.06)]"
     >
       <span className={cn('absolute inset-y-0 left-0 w-1', priorityEdge)} />
