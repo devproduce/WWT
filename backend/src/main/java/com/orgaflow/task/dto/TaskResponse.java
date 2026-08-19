@@ -22,6 +22,12 @@ public record TaskResponse(
         Instant createdAt,
         Instant updatedAt,
         Instant completedAt,
+        String lastReturnNote,
+        Instant lastReturnedAt,
+        String blockedReason,
+        String blockedWaitingOnUserId,
+        String blockedWaitingOnName,
+        Instant blockedAt,
         Set<TaskStatus> allowedTransitions,
         boolean canReview
 ) {

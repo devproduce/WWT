@@ -37,4 +37,11 @@ public class Task {
     private Instant createdAt;
     private Instant updatedAt;
     private Instant completedAt;
+
+    private String lastReturnNote;
+    private Instant lastReturnedAt;
+
+    private String blockedReason;
+    private String blockedWaitingOnUserId;
+    private Instant blockedAt;
 }

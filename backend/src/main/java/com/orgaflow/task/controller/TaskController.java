@@ -44,14 +44,16 @@ public class TaskController {
             @PathVariable String projectId,
             @RequestParam(required = false) TaskStatus status,
             @RequestParam(required = false) TaskPriority priority,
-            @RequestParam(required = false) String assigneeId
+            @RequestParam(required = false) String assigneeId,
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) Boolean overdue
     ) {
-        return taskService.list(user, projectId, status, priority, assigneeId);
+        return taskService.list(user, projectId, status, priority, assigneeId, q, overdue);
     }
 
     @GetMapping("/api/tasks/mine")
-    public List<TaskResponse> mine(CurrentUser user) {
-        return taskService.myTasks(user);
+    public List<TaskResponse> mine(CurrentUser user, @RequestParam(required = false) String q) {
+        return taskService.myTasks(user, q);
     }
 
     @GetMapping("/api/tasks/{id}")
@@ -66,7 +68,7 @@ public class TaskController {
 
     @PostMapping("/api/tasks/{id}/transition")
     public TaskResponse transition(CurrentUser user, @PathVariable String id, @Valid @RequestBody TransitionRequest request) {
-        return taskService.transition(user, id, request.status(), request.comment());
+        return taskService.transition(user, id, request);
     }
 
     @PostMapping("/api/tasks/{id}/submit-review")
@@ -81,8 +83,7 @@ public class TaskController {
 
     @PostMapping("/api/tasks/{id}/return")
     public TaskResponse returnTask(CurrentUser user, @PathVariable String id, @RequestBody(required = false) TransitionRequest request) {
-        String comment = request == null ? null : request.comment();
-        return taskService.returnForRevision(user, id, comment);
+        return taskService.returnForRevision(user, id, request);
     }
 
     @GetMapping("/api/tasks/{id}/activity")
