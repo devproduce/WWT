@@ -152,18 +152,18 @@ export function ProjectBoardPage() {
           </Card>
           <Card>
             <CardTitle>By member</CardTitle>
-            <p className="mt-1 text-sm text-teal-900/50">Tasks in review or done — not every assignment.</p>
+            <p className="mt-1 text-sm text-teal-900/50">Completed (review or done) out of each member's assigned tasks.</p>
             <div className="mt-4 space-y-3">
-              {Object.entries(report.data.tasksByMember).map(([name, count]) => (
+              {report.data.tasksByMember.map((row) => (
                 <QuotaMeter
-                  key={name}
-                  label={name}
-                  used={count}
-                  max={Math.max(report.data.review + report.data.done, 1)}
+                  key={row.name}
+                  label={row.name}
+                  used={row.completed}
+                  max={Math.max(row.assigned, 1)}
                 />
               ))}
-              {Object.keys(report.data.tasksByMember).length === 0 && (
-                <p className="text-sm text-teal-900/50">No completed work yet.</p>
+              {report.data.tasksByMember.length === 0 && (
+                <p className="text-sm text-teal-900/50">No assigned work yet.</p>
               )}
             </div>
           </Card>

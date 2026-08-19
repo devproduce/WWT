@@ -169,7 +169,7 @@ export interface ProjectReport {
   completionPercent: number
   overdue: number
   tasksByPriority: Record<string, number>
-  tasksByMember: Record<string, number>
+  tasksByMember: { name: string; completed: number; assigned: number }[]
 }
 
 export interface AttachmentItem {
