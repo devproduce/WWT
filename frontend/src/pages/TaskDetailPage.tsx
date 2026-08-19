@@ -7,12 +7,14 @@ import { Card, CardTitle } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
 import { api, apiError } from '@/services/api'
 import { bytes, cn, formatDate, formatDay } from '@/lib/utils'
-import type { ActivityItem, AttachmentItem, CommentItem, TaskItem, TaskStatus } from '@/types'
+import type { ActivityItem, AttachmentItem, CommentItem, Project, TaskItem, TaskStatus } from '@/types'
 import { TASK_COLUMNS } from '@/types'
 import { toast } from 'sonner'
 import { useAuth } from '@/features/auth/AuthContext'
 import { Avatar } from '@/components/charts'
 import { PageHeader } from '@/components/PageHeader'
+import { ReturnNoteModal } from '@/components/ReturnNoteModal'
+import { BlockedReasonModal } from '@/components/BlockedReasonModal'
 
 export function TaskDetailPage() {
   const { id } = useParams()
@@ -34,19 +36,39 @@ export function TaskDetailPage() {
     queryKey: ['attachments', id],
     queryFn: async () => (await api.get<AttachmentItem[]>(`/tasks/${id}/attachments`)).data,
   })
+  const project = useQuery({
+    queryKey: ['project', task.data?.projectId],
+    enabled: Boolean(task.data?.projectId),
+    queryFn: async () => (await api.get<Project>(`/projects/${task.data?.projectId}`)).data,
+  })
   const [comment, setComment] = useState('')
+  const [returnOpen, setReturnOpen] = useState(false)
+  const [blockOpen, setBlockOpen] = useState(false)
   const refresh = () => {
     queryClient.invalidateQueries({ queryKey: ['task', id] })
     queryClient.invalidateQueries({ queryKey: ['comments', id] })
     queryClient.invalidateQueries({ queryKey: ['task-activity', id] })
     queryClient.invalidateQueries({ queryKey: ['attachments', id] })
     queryClient.invalidateQueries({ queryKey: ['tasks'] })
+    queryClient.invalidateQueries({ queryKey: ['my-day'] })
+    queryClient.invalidateQueries({ queryKey: ['review-queue'] })
   }
   const move = useMutation({
-    mutationFn: async (status: TaskStatus) => api.post(`/tasks/${id}/transition`, { status }),
+    mutationFn: async (payload: { status: TaskStatus; blockedReason?: string; blockedWaitingOnUserId?: string | null }) =>
+      api.post(`/tasks/${id}/transition`, payload),
     onSuccess: () => {
       refresh()
+      setBlockOpen(false)
       toast.success('Status updated')
+    },
+    onError: (err) => toast.error(apiError(err)),
+  })
+  const returnTask = useMutation({
+    mutationFn: async (note: string) => api.post(`/tasks/${id}/return`, { comment: note }),
+    onSuccess: () => {
+      setReturnOpen(false)
+      refresh()
+      toast.success('Returned for revision')
     },
     onError: (err) => toast.error(apiError(err)),
   })
@@ -75,6 +97,7 @@ export function TaskDetailPage() {
     if (comment.trim()) addComment.mutate()
   }
   const currentIndex = TASK_COLUMNS.findIndex((col) => col.id === item.status)
+  const waitingOnPeople = (project.data?.members ?? []).filter((member) => member.id !== item.assigneeId)
 
   return (
     <div className="space-y-5">
@@ -88,6 +111,21 @@ export function TaskDetailPage() {
           </Link>
         }
       />
+      {item.status === 'IN_PROGRESS' && item.lastReturnNote && (
+        <Card className="border-amber-200 bg-amber-50/80">
+          <CardTitle>Changes requested</CardTitle>
+          <p className="mt-2 whitespace-pre-wrap text-sm text-amber-950">{item.lastReturnNote}</p>
+        </Card>
+      )}
+      {item.status === 'BLOCKED' && item.blockedReason && (
+        <Card className="border-rose-200 bg-rose-50/80">
+          <CardTitle>Blocked</CardTitle>
+          <p className="mt-2 text-sm text-rose-950">{item.blockedReason}</p>
+          {item.blockedWaitingOnName && (
+            <p className="mt-1 text-sm text-rose-800/70">Waiting on {item.blockedWaitingOnName}</p>
+          )}
+        </Card>
+      )}
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="space-y-4 lg:col-span-2">
           <Card>
@@ -123,15 +161,21 @@ export function TaskDetailPage() {
               {item.allowedTransitions
                 .filter((status) => !(item.status === 'IN_PROGRESS' && status === 'REVIEW'))
                 .filter((status) => !(item.status === 'REVIEW' && (status === 'DONE' || status === 'IN_PROGRESS')))
-                .map((status) => (
-                  <Button key={status} variant="secondary" onClick={() => move.mutate(status)}>
-                    Move to {status.replace('_', ' ')}
-                  </Button>
-                ))}
+                .map((status) =>
+                  status === 'BLOCKED' ? (
+                    <Button key={status} variant="secondary" onClick={() => setBlockOpen(true)}>
+                      Move to blocked
+                    </Button>
+                  ) : (
+                    <Button key={status} variant="secondary" onClick={() => move.mutate({ status })}>
+                      Move to {status.replace('_', ' ')}
+                    </Button>
+                  ),
+                )}
               {item.status === 'REVIEW' && item.canReview && (
                 <>
                   <Button onClick={() => api.post(`/tasks/${id}/approve`).then(refresh)}>Approve</Button>
-                  <Button variant="secondary" onClick={() => api.post(`/tasks/${id}/return`, { comment: 'Please revise' }).then(refresh)}>
+                  <Button variant="secondary" onClick={() => setReturnOpen(true)}>
                     Return
                   </Button>
                 </>
@@ -211,6 +255,21 @@ export function TaskDetailPage() {
           </Card>
         </div>
       </div>
+      {returnOpen && (
+        <ReturnNoteModal
+          pending={returnTask.isPending}
+          onCancel={() => setReturnOpen(false)}
+          onConfirm={(note) => returnTask.mutate(note)}
+        />
+      )}
+      {blockOpen && (
+        <BlockedReasonModal
+          people={waitingOnPeople}
+          pending={move.isPending}
+          onCancel={() => setBlockOpen(false)}
+          onConfirm={(payload) => move.mutate({ status: 'BLOCKED', ...payload })}
+        />
+      )}
     </div>
   )
 }

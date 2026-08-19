@@ -20,6 +20,7 @@ import type { Member, Project, ProjectReport, TaskItem, TaskPriority, TaskStatus
 import { TASK_COLUMNS } from '@/types'
 import { toast } from 'sonner'
 import { CSS } from '@dnd-kit/utilities'
+import { BlockedReasonModal } from '@/components/BlockedReasonModal'
 
 const COLUMN_PREVIEW = 5
 
@@ -47,10 +48,6 @@ export function ProjectBoardPage() {
     queryKey: ['project', id],
     queryFn: async () => (await api.get<Project>(`/projects/${id}`)).data,
   })
-  const tasks = useQuery({
-    queryKey: ['tasks', id],
-    queryFn: async () => (await api.get<TaskItem[]>(`/projects/${id}/tasks`)).data,
-  })
   const report = useQuery({
     queryKey: ['report', id],
     enabled: Boolean(id) && (user?.role === 'ADMIN' || user?.id === project.data?.managerId),
@@ -63,16 +60,41 @@ export function ProjectBoardPage() {
   })
   const [createOpen, setCreateOpen] = useState(false)
   const [membersOpen, setMembersOpen] = useState(false)
+  const [query, setQuery] = useState('')
+  const [priority, setPriority] = useState('')
+  const [assigneeId, setAssigneeId] = useState('')
+  const [overdueOnly, setOverdueOnly] = useState(false)
+  const [blockTask, setBlockTask] = useState<TaskItem | null>(null)
   const canManage = user?.role === 'ADMIN' || user?.id === project.data?.managerId
   const isAdmin = user?.role === 'ADMIN'
 
+  const tasks = useQuery({
+    queryKey: ['tasks', id, query, priority, assigneeId, overdueOnly],
+    queryFn: async () =>
+      (
+        await api.get<TaskItem[]>(`/projects/${id}/tasks`, {
+          params: {
+            q: query || undefined,
+            priority: priority || undefined,
+            assigneeId: assigneeId || undefined,
+            overdue: overdueOnly || undefined,
+          },
+        })
+      ).data,
+  })
+
   const transition = useMutation({
-    mutationFn: async ({ taskId, status }: { taskId: string; status: TaskStatus }) =>
-      api.post(`/tasks/${taskId}/transition`, { status }),
+    mutationFn: async (payload: {
+      taskId: string
+      status: TaskStatus
+      blockedReason?: string
+      blockedWaitingOnUserId?: string | null
+    }) => api.post(`/tasks/${payload.taskId}/transition`, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks', id] })
       queryClient.invalidateQueries({ queryKey: ['report', id] })
       queryClient.invalidateQueries({ queryKey: ['dashboard'] })
+      setBlockTask(null)
     },
     onError: (err) => toast.error(apiError(err, 'That move is not allowed')),
   })
@@ -105,6 +127,10 @@ export function ProjectBoardPage() {
       toast.error('That move is not allowed')
       return
     }
+    if (over === 'BLOCKED') {
+      setBlockTask(task)
+      return
+    }
     transition.mutate({ taskId, status: over })
   }
 
@@ -128,6 +154,28 @@ export function ProjectBoardPage() {
           </>
         }
       />
+      <div className="grid gap-3 rounded-[24px] border border-teal-900/8 bg-white/60 p-3 sm:grid-cols-2 lg:grid-cols-4">
+        <Input placeholder="Search tasks" value={query} onChange={(event) => setQuery(event.target.value)} />
+        <select className="app-select" value={assigneeId} onChange={(event) => setAssigneeId(event.target.value)}>
+          <option value="">All assignees</option>
+          {(project.data.members ?? []).map((member) => (
+            <option key={member.id} value={member.id}>
+              {member.name}
+            </option>
+          ))}
+        </select>
+        <select className="app-select" value={priority} onChange={(event) => setPriority(event.target.value)}>
+          <option value="">All priorities</option>
+          <option value="URGENT">Urgent</option>
+          <option value="HIGH">High</option>
+          <option value="MEDIUM">Medium</option>
+          <option value="LOW">Low</option>
+        </select>
+        <label className="flex items-center gap-2 rounded-xl border border-teal-900/10 bg-white/80 px-3 text-sm text-teal-900/70">
+          <input type="checkbox" checked={overdueOnly} onChange={(event) => setOverdueOnly(event.target.checked)} />
+          Overdue only
+        </label>
+      </div>
       {report.data && (
         <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
           <Card className="flex items-center gap-5">
@@ -191,6 +239,16 @@ export function ProjectBoardPage() {
           pending={updateMembers.isPending}
           onClose={() => setMembersOpen(false)}
           onSubmit={(memberIds) => updateMembers.mutate(memberIds)}
+        />
+      )}
+      {blockTask && (
+        <BlockedReasonModal
+          people={(project.data.members ?? []).filter((member) => member.id !== blockTask.assigneeId)}
+          pending={transition.isPending}
+          onCancel={() => setBlockTask(null)}
+          onConfirm={(payload) =>
+            transition.mutate({ taskId: blockTask.id, status: 'BLOCKED', ...payload })
+          }
         />
       )}
     </div>
@@ -301,8 +359,13 @@ function TaskCard({ task, draggable = true }: { task: TaskItem; draggable?: bool
           {formatDay(task.deadline)}
         </span>
       </div>
-      <div className="mt-2 pl-2">
+      <div className="mt-2 flex flex-wrap gap-1 pl-2">
         <Badge tone={statusTone(task.priority)}>{task.priority}</Badge>
+        {task.status === 'BLOCKED' && task.blockedReason && (
+          <span className="truncate rounded-full bg-rose-50 px-2 py-0.5 text-[10px] text-rose-800">
+            {task.blockedWaitingOnName ? `Waiting on ${task.blockedWaitingOnName}` : task.blockedReason}
+          </span>
+        )}
       </div>
     </div>
   )
