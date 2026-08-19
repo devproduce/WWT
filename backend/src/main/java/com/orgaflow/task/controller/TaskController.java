@@ -6,10 +6,12 @@ import com.orgaflow.common.enums.TaskPriority;
 import com.orgaflow.common.enums.TaskStatus;
 import com.orgaflow.common.security.CurrentUser;
 import com.orgaflow.task.dto.CreateTaskRequest;
+import com.orgaflow.task.dto.ReviewQueueItem;
 import com.orgaflow.task.dto.TaskResponse;
 import com.orgaflow.task.dto.TransitionRequest;
 import com.orgaflow.task.dto.UpdateTaskRequest;
 import com.orgaflow.task.model.Task;
+import com.orgaflow.task.service.ReviewQueueService;
 import com.orgaflow.task.service.TaskService;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,10 +28,12 @@ import java.util.List;
 public class TaskController {
 
     private final TaskService taskService;
+    private final ReviewQueueService reviewQueueService;
     private final ActivityService activityService;
 
-    public TaskController(TaskService taskService, ActivityService activityService) {
+    public TaskController(TaskService taskService, ReviewQueueService reviewQueueService, ActivityService activityService) {
         this.taskService = taskService;
+        this.reviewQueueService = reviewQueueService;
         this.activityService = activityService;
     }
 
@@ -54,6 +58,11 @@ public class TaskController {
     @GetMapping("/api/tasks/mine")
     public List<TaskResponse> mine(CurrentUser user, @RequestParam(required = false) String q) {
         return taskService.myTasks(user, q);
+    }
+
+    @GetMapping("/api/tasks/review-queue")
+    public List<ReviewQueueItem> reviewQueue(CurrentUser user, @RequestParam(required = false) String q) {
+        return reviewQueueService.queue(user, q);
     }
 
     @GetMapping("/api/tasks/{id}")

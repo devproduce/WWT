@@ -177,16 +177,17 @@ public class DashboardService {
         metrics.put("awaitingReview", mine.stream().filter(t -> t.getStatus() == TaskStatus.REVIEW).count());
         metrics.put("managedProjects", managed.size());
         if (!managed.isEmpty()) {
-            Project project = managed.getFirst();
-            List<Task> projectTasks = taskRepository.findByProjectIdAndOrganizationId(project.getId(), org.getId());
-            metrics.put("pmProjectId", project.getId());
-            metrics.put("pmProjectName", project.getName());
-            metrics.put("pmTotal", projectTasks.size());
-            metrics.put("pmTodo", projectTasks.stream().filter(t -> t.getStatus() == TaskStatus.TODO).count());
-            metrics.put("pmInProgress", projectTasks.stream().filter(t -> t.getStatus() == TaskStatus.IN_PROGRESS).count());
-            metrics.put("pmReview", projectTasks.stream().filter(t -> t.getStatus() == TaskStatus.REVIEW).count());
-            metrics.put("pmBlocked", projectTasks.stream().filter(t -> t.getStatus() == TaskStatus.BLOCKED).count());
-            metrics.put("pmDone", projectTasks.stream().filter(t -> t.getStatus() == TaskStatus.DONE).count());
+            List<String> managedIds = managed.stream().map(Project::getId).toList();
+            List<Task> managedTasks = taskRepository.findByOrganizationIdAndProjectIdIn(org.getId(), managedIds);
+            Map<TaskStatus, Long> managedMix = mixOf(managedTasks);
+            metrics.put("pmTotal", managedTasks.size());
+            metrics.put("pmTodo", managedMix.get(TaskStatus.TODO));
+            metrics.put("pmInProgress", managedMix.get(TaskStatus.IN_PROGRESS));
+            metrics.put("pmReview", managedMix.get(TaskStatus.REVIEW));
+            metrics.put("pmBlocked", managedMix.get(TaskStatus.BLOCKED));
+            metrics.put("pmDone", managedMix.get(TaskStatus.DONE));
+            metrics.put("pmProjectId", managed.getFirst().getId());
+            metrics.put("pmProjectName", managed.size() == 1 ? managed.getFirst().getName() : managed.size() + " projects");
         }
         List<String> visibleProjectIds = new ArrayList<>();
         managed.forEach(project -> visibleProjectIds.add(project.getId()));
