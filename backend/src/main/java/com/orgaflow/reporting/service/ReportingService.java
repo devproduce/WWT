@@ -47,6 +47,9 @@ public class ReportingService {
         }
         Map<String, Long> byMember = new LinkedHashMap<>();
         for (Task task : tasks) {
+            if (task.getStatus() != TaskStatus.REVIEW && task.getStatus() != TaskStatus.DONE) {
+                continue;
+            }
             String key = task.getAssigneeId() == null ? "Unassigned" : userRepository.findById(task.getAssigneeId())
                     .map(u -> u.getFirstName() + " " + u.getLastName())
                     .orElse("Unknown");
