@@ -327,15 +327,25 @@ function AdminHome({ data }: { data: Dashboard }) {
         <CardTitle>Recent activity</CardTitle>
         <div className="mt-4 space-y-3">
           {activity.length === 0 && <p className="text-sm text-teal-900/50">No activity yet.</p>}
-          {activity.slice(0, 8).map((event) => (
-            <div key={str(event.id)} className="flex gap-3">
-              <Avatar name={str(event.actorName, 'WWT')} size="sm" />
-              <div>
-                <div className="text-sm text-teal-950">{str(event.message)}</div>
-                <div className="text-xs text-teal-900/45">{formatDate(str(event.createdAt))}</div>
+          {activity.slice(0, 8).map((event) => {
+            const href = activityHref(event)
+            const row = (
+              <div className="flex gap-3">
+                <Avatar name={str(event.actorName, 'WWT')} size="sm" />
+                <div>
+                  <div className="text-sm text-teal-950">{str(event.message)}</div>
+                  <div className="text-xs text-teal-900/45">{formatDate(str(event.createdAt))}</div>
+                </div>
               </div>
-            </div>
-          ))}
+            )
+            return href ? (
+              <Link key={str(event.id)} to={href} className="block rounded-2xl hover:bg-white/60">
+                {row}
+              </Link>
+            ) : (
+              <div key={str(event.id)}>{row}</div>
+            )
+          })}
         </div>
       </Card>
     </div>
@@ -482,20 +492,38 @@ function MemberHome({ data }: { data: Dashboard }) {
         <Card>
           <CardTitle>Recent activity</CardTitle>
           <div className="mt-4 space-y-3">
-            {(m.recentActivity as Record<string, unknown>[]).slice(0, 6).map((event) => (
-              <div key={str(event.id)} className="flex gap-3">
-                <Avatar name={str(event.actorName, 'WWT')} size="sm" />
-                <div>
-                  <div className="text-sm text-teal-950">{str(event.message)}</div>
-                  <div className="text-xs text-teal-900/45">{formatDate(str(event.createdAt))}</div>
+            {(m.recentActivity as Record<string, unknown>[]).slice(0, 6).map((event) => {
+              const href = activityHref(event)
+              const row = (
+                <div className="flex gap-3">
+                  <Avatar name={str(event.actorName, 'WWT')} size="sm" />
+                  <div>
+                    <div className="text-sm text-teal-950">{str(event.message)}</div>
+                    <div className="text-xs text-teal-900/45">{formatDate(str(event.createdAt))}</div>
+                  </div>
                 </div>
-              </div>
-            ))}
+              )
+              return href ? (
+                <Link key={str(event.id)} to={href} className="block rounded-2xl hover:bg-white/60">
+                  {row}
+                </Link>
+              ) : (
+                <div key={str(event.id)}>{row}</div>
+              )
+            })}
           </div>
         </Card>
       )}
     </div>
   )
+}
+
+function activityHref(event: Record<string, unknown>) {
+  const taskId = str(event.taskId)
+  if (taskId) return `/app/tasks/${taskId}`
+  const projectId = str(event.projectId)
+  if (projectId) return `/app/projects/${projectId}`
+  return null
 }
 
 function DueRail({ tasks }: { tasks: Record<string, unknown>[] }) {
