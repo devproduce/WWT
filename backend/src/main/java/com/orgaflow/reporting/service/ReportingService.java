@@ -5,6 +5,7 @@ import com.orgaflow.common.enums.TaskStatus;
 import com.orgaflow.common.security.AccessGuard;
 import com.orgaflow.common.security.CurrentUser;
 import com.orgaflow.project.model.Project;
+import com.orgaflow.reporting.dto.MemberTaskStats;
 import com.orgaflow.reporting.dto.ProjectReportResponse;
 import com.orgaflow.task.model.Task;
 import com.orgaflow.task.repository.TaskRepository;
@@ -12,6 +13,8 @@ import com.orgaflow.user.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,16 +48,25 @@ public class ReportingService {
         for (TaskPriority priority : TaskPriority.values()) {
             byPriority.put(priority.name(), tasks.stream().filter(t -> t.getPriority() == priority).count());
         }
-        Map<String, Long> byMember = new LinkedHashMap<>();
+        Map<String, long[]> byMember = new LinkedHashMap<>();
         for (Task task : tasks) {
-            if (task.getStatus() != TaskStatus.REVIEW && task.getStatus() != TaskStatus.DONE) {
+            if (task.getAssigneeId() == null || task.getAssigneeId().isBlank()) {
                 continue;
             }
-            String key = task.getAssigneeId() == null ? "Unassigned" : userRepository.findById(task.getAssigneeId())
+            String key = userRepository.findById(task.getAssigneeId())
                     .map(u -> u.getFirstName() + " " + u.getLastName())
                     .orElse("Unknown");
-            byMember.merge(key, 1L, Long::sum);
+            long[] slot = byMember.computeIfAbsent(key, ignored -> new long[2]);
+            slot[1]++;
+            if (task.getStatus() == TaskStatus.REVIEW || task.getStatus() == TaskStatus.DONE) {
+                slot[0]++;
+            }
         }
+        List<MemberTaskStats> memberStats = new ArrayList<>();
+        for (Map.Entry<String, long[]> entry : byMember.entrySet()) {
+            memberStats.add(new MemberTaskStats(entry.getKey(), entry.getValue()[0], entry.getValue()[1]));
+        }
+        memberStats.sort(Comparator.comparingLong(MemberTaskStats::completed).reversed());
         double percent = total == 0 ? 0 : (done * 100.0 / total);
         return new ProjectReportResponse(
                 project.getId(),
@@ -68,7 +80,7 @@ public class ReportingService {
                 Math.round(percent * 10.0) / 10.0,
                 overdue,
                 byPriority,
-                byMember
+                memberStats
         );
     }
 

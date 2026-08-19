@@ -1,5 +1,6 @@
 package com.orgaflow.reporting.dto;
 
+import java.util.List;
 import java.util.Map;
 
 public record ProjectReportResponse(
@@ -14,6 +15,6 @@ public record ProjectReportResponse(
         double completionPercent,
         long overdue,
         Map<String, Long> tasksByPriority,
-        Map<String, Long> tasksByMember
+        List<MemberTaskStats> tasksByMember
 ) {
 }
