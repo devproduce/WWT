@@ -124,7 +124,12 @@ public class MyDayService {
     private List<MyDayItem> toItems(CurrentUser actor, List<MyDayRanker.Scored> scored, Map<String, String> projectNames) {
         return scored.stream()
                 .map(item -> {
-                    Project project = accessGuard.requireProject(actor, item.task().getProjectId());
+                    Project project = projectRepository
+                            .findByIdAndOrganizationId(item.task().getProjectId(), actor.organizationId())
+                            .orElse(null);
+                    if (project == null) {
+                        return null;
+                    }
                     return new MyDayItem(
                             taskService.toResponse(actor, project, item.task()),
                             projectNames.getOrDefault(item.task().getProjectId(), project.getName()),
@@ -135,6 +140,7 @@ public class MyDayService {
                             item.primaryAction()
                     );
                 })
+                .filter(Objects::nonNull)
                 .toList();
     }
 

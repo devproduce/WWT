@@ -68,7 +68,7 @@ public class AccessGuard {
             return project;
         }
         boolean manager = user.id().equals(project.getManagerId());
-        boolean member = project.getMemberIds().contains(user.id());
+        boolean member = project.getMemberIds() != null && project.getMemberIds().contains(user.id());
         if (!manager && !member) {
             throw ApiException.notFound("Project not found");
         }

@@ -42,6 +42,20 @@ class AccessGuardTest {
     }
 
     @Test
+    void nullMemberIdsDoNotBreakProjectAccess() {
+        CurrentUser member = new CurrentUser("m1", "m@a.com", "A", "M", Role.MEMBER, "orgA", false);
+        Project project = new Project();
+        project.setId("p1");
+        project.setOrganizationId("orgA");
+        project.setManagerId("pm");
+        project.setMemberIds(null);
+        when(organizationRepository.findById("orgA")).thenReturn(Optional.of(org("orgA")));
+        when(projectRepository.findByIdAndOrganizationId("p1", "orgA")).thenReturn(Optional.of(project));
+        ApiException ex = assertThrows(ApiException.class, () -> accessGuard.requireProject(member, "p1"));
+        assertEquals("NOT_FOUND", ex.getCode());
+    }
+
+    @Test
     void memberCannotSeeAnotherProject() {
         CurrentUser member = new CurrentUser("m1", "m@a.com", "A", "M", Role.MEMBER, "orgA", false);
         when(organizationRepository.findById("orgA")).thenReturn(Optional.of(org("orgA")));

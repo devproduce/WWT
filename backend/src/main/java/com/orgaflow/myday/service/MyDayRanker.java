@@ -52,7 +52,9 @@ public final class MyDayRanker {
                 .toList();
 
         List<Task> actionable = visible.stream()
-                .filter(task -> task.getStatus() == TaskStatus.TODO || task.getStatus() == TaskStatus.IN_PROGRESS)
+                .filter(task -> task.getStatus() == null
+                        || task.getStatus() == TaskStatus.TODO
+                        || task.getStatus() == TaskStatus.IN_PROGRESS)
                 .toList();
         Map<String, Task> byId = actionable.stream()
                 .collect(Collectors.toMap(Task::getId, Function.identity(), (a, b) -> a));

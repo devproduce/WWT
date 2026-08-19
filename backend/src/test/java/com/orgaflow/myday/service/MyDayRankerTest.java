@@ -74,6 +74,14 @@ class MyDayRankerTest {
         assertEquals(4, ranked.overflowCount());
     }
 
+    @Test
+    void nullStatusStillLandsInFocus() {
+        Task open = task("open", null, TaskPriority.MEDIUM, today);
+        MyDayRanker.Ranked ranked = MyDayRanker.rank(List.of(open), List.of(), List.of(), today, now);
+        assertEquals(1, ranked.focus().size());
+        assertEquals("open", ranked.focus().getFirst().task().getId());
+    }
+
     private static Task task(String id, TaskStatus status, TaskPriority priority, LocalDate deadline) {
         Task task = new Task();
         task.setId(id);
