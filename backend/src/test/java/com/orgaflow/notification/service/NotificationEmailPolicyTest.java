@@ -25,6 +25,8 @@ class NotificationEmailPolicyTest {
         assertFalse(NotificationEmailPolicy.matchesPrefs(NotificationType.COMMENT_ADDED, quiet));
         NotificationPrefs loud = new NotificationPrefs(true, true, true, true);
         assertTrue(NotificationEmailPolicy.matchesPrefs(NotificationType.COMMENT_ADDED, loud));
+        assertTrue(NotificationEmailPolicy.matchesPrefs(NotificationType.COMMENT_MENTIONED, loud));
+        assertFalse(NotificationEmailPolicy.matchesPrefs(NotificationType.COMMENT_MENTIONED, quiet));
     }
 
     @Test

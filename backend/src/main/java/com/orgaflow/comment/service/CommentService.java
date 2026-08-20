@@ -1,6 +1,7 @@
 package com.orgaflow.comment.service;
 
 import com.orgaflow.activity.service.ActivityService;
+import com.orgaflow.comment.dto.CommentRequest;
 import com.orgaflow.comment.dto.CommentResponse;
 import com.orgaflow.comment.model.Comment;
 import com.orgaflow.comment.repository.CommentRepository;
@@ -46,34 +47,46 @@ public class CommentService {
         this.notificationService = notificationService;
     }
 
-    public CommentResponse add(CurrentUser actor, String taskId, String content) {
+    public CommentResponse add(CurrentUser actor, String taskId, CommentRequest request) {
         Task task = taskService.loadVisible(actor, taskId);
+        Project project = projectRepository.findById(task.getProjectId()).orElse(null);
+        List<String> mentioned = CommentMentions.resolve(
+                request.mentionedUserIds(),
+                project == null ? List.of() : CommentMentions.eligibleIds(project),
+                actor.id()
+        );
         Comment comment = new Comment();
         comment.setOrganizationId(task.getOrganizationId());
         comment.setTaskId(task.getId());
         comment.setProjectId(task.getProjectId());
         comment.setAuthorId(actor.id());
-        comment.setContent(content.trim());
+        comment.setContent(request.content().trim());
+        comment.setMentionedUserIds(mentioned);
         comment.setDeleted(false);
         comment.setCreatedAt(Instant.now());
         comment.setUpdatedAt(Instant.now());
         commentRepository.save(comment);
         activityService.record(actor, task.getOrganizationId(), task.getProjectId(), task.getId(),
                 ActivityType.COMMENT_ADDED, actor.displayName() + " commented");
-        if (task.getAssigneeId() != null && !task.getAssigneeId().equals(actor.id())) {
-            notificationService.notifyUser(task.getOrganizationId(), task.getAssigneeId(),
-                    NotificationType.COMMENT_ADDED, "New comment",
-                    actor.displayName() + " commented on \"" + task.getTitle() + "\"",
+        String onTask = actor.displayName() + " commented on \"" + task.getTitle() + "\"";
+        String mentionedYou = actor.displayName() + " mentioned you on \"" + task.getTitle() + "\"";
+        for (String mentionedId : mentioned) {
+            notificationService.notifyUser(task.getOrganizationId(), mentionedId,
+                    NotificationType.COMMENT_MENTIONED, "You were mentioned", mentionedYou,
                     task.getProjectId(), task.getId());
         }
-        projectRepository.findById(task.getProjectId()).map(Project::getManagerId).ifPresent(managerId -> {
-            if (!managerId.equals(actor.id()) && !managerId.equals(task.getAssigneeId())) {
-                notificationService.notifyUser(task.getOrganizationId(), managerId,
-                        NotificationType.COMMENT_ADDED, "New comment",
-                        actor.displayName() + " commented on \"" + task.getTitle() + "\"",
-                        task.getProjectId(), task.getId());
-            }
-        });
+        if (CommentMentions.shouldNotifyComment(task.getAssigneeId(), actor.id(), mentioned)) {
+            notificationService.notifyUser(task.getOrganizationId(), task.getAssigneeId(),
+                    NotificationType.COMMENT_ADDED, "New comment", onTask,
+                    task.getProjectId(), task.getId());
+        }
+        if (project != null
+                && CommentMentions.shouldNotifyComment(project.getManagerId(), actor.id(), mentioned)
+                && !project.getManagerId().equals(task.getAssigneeId())) {
+            notificationService.notifyUser(task.getOrganizationId(), project.getManagerId(),
+                    NotificationType.COMMENT_ADDED, "New comment", onTask,
+                    task.getProjectId(), task.getId());
+        }
         return toResponse(comment);
     }
 
@@ -118,6 +131,7 @@ public class CommentService {
                 comment.getAuthorId(),
                 name,
                 comment.isDeleted() ? "[deleted]" : comment.getContent(),
+                comment.isDeleted() || comment.getMentionedUserIds() == null ? List.of() : comment.getMentionedUserIds(),
                 comment.isDeleted(),
                 comment.getCreatedAt(),
                 comment.getUpdatedAt()

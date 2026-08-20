@@ -7,6 +7,8 @@ import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -25,6 +27,7 @@ public class Comment {
     private String projectId;
     private String authorId;
     private String content;
+    private List<String> mentionedUserIds = new ArrayList<>();
     private boolean deleted;
     private Instant createdAt;
     private Instant updatedAt;

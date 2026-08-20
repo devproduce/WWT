@@ -27,7 +27,7 @@ public class CommentController {
 
     @PostMapping("/api/tasks/{taskId}/comments")
     public CommentResponse add(CurrentUser user, @PathVariable String taskId, @Valid @RequestBody CommentRequest request) {
-        return commentService.add(user, taskId, request.content());
+        return commentService.add(user, taskId, request);
     }
 
     @GetMapping("/api/tasks/{taskId}/comments")

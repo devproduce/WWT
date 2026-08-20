@@ -2,5 +2,7 @@ package com.orgaflow.comment.dto;
 
 import jakarta.validation.constraints.NotBlank;
 
-public record CommentRequest(@NotBlank String content) {
+import java.util.List;
+
+public record CommentRequest(@NotBlank String content, List<String> mentionedUserIds) {
 }
