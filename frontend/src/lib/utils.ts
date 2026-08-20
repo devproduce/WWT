@@ -57,3 +57,17 @@ export function localIsoDate(value = new Date()) {
   const day = String(value.getDate()).padStart(2, '0')
   return `${year}-${month}-${day}`
 }
+
+export function waitHours(value?: string | null, now = new Date()) {
+  if (!value) return 0
+  return Math.max(0, (now.getTime() - new Date(value).getTime()) / 3_600_000)
+}
+
+export function formatWait(value?: string | null, now = new Date()) {
+  const hours = waitHours(value, now)
+  if (hours < 1 / 60) return 'Just in'
+  if (hours < 1) return `${Math.max(1, Math.round(hours * 60))}m waiting`
+  if (hours < 24) return `${Math.round(hours)}h waiting`
+  const days = Math.round(hours / 24)
+  return days === 1 ? '1 day waiting' : `${days} days waiting`
+}
