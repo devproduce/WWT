@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { cn } from '@/lib/utils'
 
 const styles: Record<string, string> = {
@@ -10,7 +11,7 @@ const styles: Record<string, string> = {
   purple: 'bg-violet-100 text-violet-900',
 }
 
-export function Badge({ children, tone = 'slate' }: { children: string; tone?: keyof typeof styles }) {
+export function Badge({ children, tone = 'slate' }: { children: ReactNode; tone?: keyof typeof styles }) {
   return (
     <span
       className={cn(
