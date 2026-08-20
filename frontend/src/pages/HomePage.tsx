@@ -7,6 +7,7 @@ import {
   CalendarClock,
   CheckCircle2,
   FolderKanban,
+  Inbox,
   Users,
   Zap,
 } from 'lucide-react'
@@ -185,6 +186,9 @@ function AdminHome({ data }: { data: Dashboard }) {
   const projects = data.items.filter((item) => statusFilter === 'ALL' || str(item.status) === statusFilter)
   const deadlines = Array.isArray(m.deadlineTasks) ? (m.deadlineTasks as Record<string, unknown>[]) : []
   const activity = Array.isArray(m.recentActivity) ? (m.recentActivity as Record<string, unknown>[]) : []
+  const reviewsByManager = Array.isArray(m.reviewsByManager)
+    ? (m.reviewsByManager as Record<string, unknown>[])
+    : []
   const visibleDeadlines = deadlines.filter((item) => focus === 'all' || str(item.kind) === (focus === 'overdue' ? 'overdue' : 'upcoming'))
   const mix = deliveryMix(m, data.items)
   const focusDeadlines = (next: 'overdue' | 'upcoming') => {
@@ -199,7 +203,7 @@ function AdminHome({ data }: { data: Dashboard }) {
       <PageHeader
         eyebrow="Organization"
         title={str(m.organizationName)}
-        subtitle="Delivery health, quotas, and the work that needs a decision."
+        subtitle="Delivery health, quotas, and what each Project Manager still has in review."
         actions={
           <Link to="/app/projects">
             <Button>Open projects</Button>
@@ -276,6 +280,36 @@ function AdminHome({ data }: { data: Dashboard }) {
           </Card>
         </div>
       </div>
+      <Card>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <CardTitle>Awaiting review</CardTitle>
+            <p className="mt-1 text-sm text-teal-900/50">
+              How much work is waiting on each Project Manager. You can see it — they sign it off.
+            </p>
+          </div>
+          <Link to="/app/review">
+            <Button variant="secondary">
+              <Inbox className="h-4 w-4" />
+              Open reviews
+            </Button>
+          </Link>
+        </div>
+        <div className="mt-4 space-y-2">
+          {reviewsByManager.length === 0 && (
+            <p className="text-sm text-teal-900/50">Nothing is waiting in review.</p>
+          )}
+          {reviewsByManager.map((row) => (
+            <div
+              key={str(row.managerId, str(row.managerName))}
+              className="flex items-center justify-between rounded-2xl bg-white/70 px-3 py-2"
+            >
+              <span className="text-sm font-medium text-teal-950">{str(row.managerName, 'Project Manager')}</span>
+              <Badge tone="purple">{num(row.reviewCount)} in review</Badge>
+            </div>
+          ))}
+        </div>
+      </Card>
       <div className="flex items-center justify-between">
         <CardTitle>Project portfolio</CardTitle>
         <FilterChips
@@ -303,7 +337,9 @@ function AdminHome({ data }: { data: Dashboard }) {
                     <div>
                       <div className="font-semibold text-teal-950">{str(project.name)}</div>
                       <div className="text-xs text-teal-900/50">
+                        {str(project.managerName) ? `PM ${str(project.managerName)} · ` : ''}
                         {done}/{total} complete
+                        {num(project.review) > 0 ? ` · ${num(project.review)} in review` : ''}
                       </div>
                     </div>
                     <Badge tone={statusTone(str(project.status))}>{str(project.status)}</Badge>
@@ -438,10 +474,15 @@ function MemberHome({ data }: { data: Dashboard }) {
               <div className="font-mono text-[11px] tracking-[0.28em] text-teal-700/70 uppercase">Project manager</div>
               <CardTitle className="mt-1">{str(m.pmProjectName)}</CardTitle>
               <p className="mt-1 text-sm text-teal-900/50">Pipeline across the board you own.</p>
+              {num(m.pmReview) > 0 && (
+                <Link
+                  to="/app/review"
+                  className="mt-2 inline-block text-sm font-medium text-violet-800 hover:text-violet-950"
+                >
+                  {num(m.pmReview)} waiting on your review
+                </Link>
+              )}
             </div>
-            <Link to="/app/review">
-              <Button>Review inbox · {num(m.pmReview)}</Button>
-            </Link>
             <Link to={`/app/projects/${str(m.pmProjectId)}`}>
               <Button variant="secondary">Open Kanban</Button>
             </Link>

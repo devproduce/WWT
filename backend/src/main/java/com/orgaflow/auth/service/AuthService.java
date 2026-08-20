@@ -1,7 +1,9 @@
 package com.orgaflow.auth.service;
 
 import com.orgaflow.auth.dto.AuthResponse;
+import com.orgaflow.auth.dto.ChangePasswordRequest;
 import com.orgaflow.auth.dto.MeResponse;
+import com.orgaflow.auth.dto.UpdateProfileRequest;
 import com.orgaflow.auth.model.OneTimeToken;
 import com.orgaflow.auth.model.RefreshToken;
 import com.orgaflow.auth.repository.OneTimeTokenRepository;
@@ -204,6 +206,30 @@ public class AuthService {
         User user = userRepository.findById(currentUser.id())
                 .orElseThrow(() -> ApiException.unauthorized("User not found"));
         return toMe(user);
+    }
+
+    public MeResponse updateProfile(CurrentUser currentUser, UpdateProfileRequest request) {
+        User user = userRepository.findById(currentUser.id())
+                .orElseThrow(() -> ApiException.unauthorized("User not found"));
+        user.setFirstName(request.firstName().trim());
+        user.setLastName(request.lastName().trim());
+        user.setUpdatedAt(Instant.now());
+        userRepository.save(user);
+        return toMe(user);
+    }
+
+    public void changePassword(CurrentUser currentUser, ChangePasswordRequest request) {
+        User user = userRepository.findById(currentUser.id())
+                .orElseThrow(() -> ApiException.unauthorized("User not found"));
+        if (user.getPasswordHash() == null || !passwordEncoder.matches(request.currentPassword(), user.getPasswordHash())) {
+            throw ApiException.badRequest("Current password is incorrect");
+        }
+        if (request.currentPassword().equals(request.newPassword())) {
+            throw ApiException.badRequest("Choose a different new password");
+        }
+        user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
+        user.setUpdatedAt(Instant.now());
+        userRepository.save(user);
     }
 
     private AuthResponse issueTokens(User user) {

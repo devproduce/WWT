@@ -223,6 +223,8 @@ export interface MyDayResponse {
 export interface ReviewQueueItem {
   task: TaskItem
   projectName: string
+  managerId: string | null
+  managerName: string | null
   waitingSince: string | null
 }
 

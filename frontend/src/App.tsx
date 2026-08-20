@@ -11,6 +11,7 @@ import { ForgotPasswordPage, ResetPasswordPage, SetupPasswordPage } from '@/page
 import { ProjectBoardPage } from '@/pages/ProjectBoardPage'
 import { ProjectsPage } from '@/pages/ProjectsPage'
 import { ReviewInboxPage } from '@/pages/ReviewInboxPage'
+import { ProfilePage } from '@/pages/ProfilePage'
 import { TaskDetailPage } from '@/pages/TaskDetailPage'
 
 export default function App() {
@@ -36,6 +37,7 @@ export default function App() {
         <Route path="projects" element={<ProjectsPage />} />
         <Route path="projects/:id" element={<ProjectBoardPage />} />
         <Route path="review" element={<ReviewInboxPage />} />
+        <Route path="profile" element={<ProfilePage />} />
         <Route path="tasks/:id" element={<TaskDetailPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />

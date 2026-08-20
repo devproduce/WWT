@@ -287,7 +287,8 @@ public class TaskService {
         User waitingOn = task.getBlockedWaitingOnUserId() == null
                 ? null
                 : userRepository.findById(task.getBlockedWaitingOnUserId()).orElse(null);
-        boolean privileged = actor.isAdmin() || actor.id().equals(project.getManagerId());
+        boolean isProjectManager = actor.id().equals(project.getManagerId());
+        boolean isAssignee = actor.id().equals(task.getAssigneeId());
         return new TaskResponse(
                 task.getId(),
                 task.getOrganizationId(),
@@ -309,8 +310,8 @@ public class TaskService {
                 task.getBlockedWaitingOnUserId(),
                 waitingOn == null ? null : displayName(waitingOn),
                 task.getBlockedAt(),
-                TaskWorkflow.allowedTargets(task.getStatus(), privileged),
-                privileged
+                TaskWorkflow.allowedTargets(task.getStatus(), isAssignee, isProjectManager, actor.isAdmin()),
+                isProjectManager
         );
     }
 

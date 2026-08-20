@@ -9,13 +9,13 @@ import {
   LogOut,
   Menu,
   PanelLeftClose,
+  UserRound,
   Users,
 } from 'lucide-react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/features/auth/AuthContext'
 import { api } from '@/services/api'
-import type { NotificationItem, NotificationPrefs } from '@/types'
-import { Button } from '@/components/ui/button'
+import type { NotificationItem } from '@/types'
 import { formatDate, greetingFor } from '@/lib/utils'
 import { WwtMark } from '@/components/WwtMark'
 import { useEffect, useRef, useState } from 'react'
@@ -35,14 +35,6 @@ export function AppLayout() {
   const markAll = useMutation({
     mutationFn: () => api.post('/notifications/read-all'),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notifications'] }),
-  })
-  const prefs = useQuery({
-    queryKey: ['notification-prefs'],
-    queryFn: async () => (await api.get<NotificationPrefs>('/me/notification-preferences')).data,
-  })
-  const updatePrefs = useMutation({
-    mutationFn: (patch: Partial<NotificationPrefs>) => api.patch('/me/notification-preferences', patch),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notification-prefs'] }),
   })
 
   const cancelSidebarClose = () => {
@@ -80,14 +72,6 @@ export function AppLayout() {
 
   const isPm = user.managedProjectIds.length > 0
   const links = navFor(user.role, isPm)
-  const roleLabel =
-    user.role === 'SUPER_ADMIN'
-      ? 'Platform owner'
-      : user.role === 'ADMIN'
-        ? 'Organization admin'
-        : isPm
-          ? 'Project manager'
-          : 'Member'
 
   return (
     <div className="app-canvas relative h-screen overflow-hidden p-3">
@@ -141,24 +125,32 @@ export function AppLayout() {
               </NavLink>
             ))}
           </nav>
-          <div className="m-3 rounded-3xl border border-white/8 bg-white/5 p-4 text-sm">
-            <div className="font-medium text-white">
-              {user.firstName} {user.lastName}
-            </div>
-            <div className="truncate text-xs text-teal-200/60">{user.email}</div>
-            <div className="mt-2 inline-flex rounded-full bg-teal-300/15 px-2.5 py-0.5 font-mono text-[10px] tracking-[0.18em] text-teal-200 uppercase">
-              {roleLabel}
-            </div>
-            <Button
-              variant="ghost"
-              className="mt-3 w-full justify-start text-teal-100/80 hover:bg-white/8 hover:text-white"
+          <div className="space-y-1 px-3 pb-4">
+            <NavLink
+              to="/app/profile"
+              onClick={closeSidebar}
+              className={({ isActive }) =>
+                `app-nav-pill flex items-center gap-2.5 rounded-full px-3.5 py-2.5 text-sm ${
+                  isActive
+                    ? 'bg-teal-300 text-teal-950 shadow-[0_10px_24px_rgb(45_212_191_/_0.28)]'
+                    : 'text-teal-100/75 hover:bg-white/8 hover:text-white'
+                }`
+              }
+            >
+              <UserRound className="h-4 w-4" />
+              Profile
+            </NavLink>
+            <button
+              type="button"
+              className="app-nav-pill flex w-full items-center gap-2.5 rounded-full px-3.5 py-2.5 text-left text-sm text-teal-100/75 hover:bg-white/8 hover:text-white"
               onClick={async () => {
                 await logout()
                 navigate('/login')
               }}
             >
-              <LogOut className="h-4 w-4" /> Sign out
-            </Button>
+              <LogOut className="h-4 w-4" />
+              Sign out
+            </button>
           </div>
         </aside>
         </div>
@@ -255,31 +247,6 @@ export function AppLayout() {
                       )
                     })}
                   </div>
-                  {prefs.data && (
-                    <div className="mt-2 space-y-1.5 border-t border-teal-900/8 px-2 pt-2 text-xs text-teal-900/70">
-                      <div className="font-medium text-teal-950">Email me about</div>
-                      <PrefToggle
-                        label="Comments"
-                        checked={prefs.data.emailComments}
-                        onChange={(emailComments) => updatePrefs.mutate({ emailComments })}
-                      />
-                      <PrefToggle
-                        label="Assignments"
-                        checked={prefs.data.emailAssignments}
-                        onChange={(emailAssignments) => updatePrefs.mutate({ emailAssignments })}
-                      />
-                      <PrefToggle
-                        label="Reviews"
-                        checked={prefs.data.emailReviews}
-                        onChange={(emailReviews) => updatePrefs.mutate({ emailReviews })}
-                      />
-                      <PrefToggle
-                        label="Deadlines"
-                        checked={prefs.data.emailDeadlines}
-                        onChange={(emailDeadlines) => updatePrefs.mutate({ emailDeadlines })}
-                      />
-                    </div>
-                  )}
                 </div>
               )}
             </div>
@@ -305,7 +272,7 @@ function navFor(role: string, isPm: boolean) {
   if (role === 'ADMIN') {
     return [
       { to: '/app', label: 'Dashboard', icon: <LayoutDashboard className="h-4 w-4" /> },
-      { to: '/app/review', label: 'Review inbox', icon: <Inbox className="h-4 w-4" /> },
+      { to: '/app/review', label: 'Reviews', icon: <Inbox className="h-4 w-4" /> },
       { to: '/app/members', label: 'Members', icon: <Users className="h-4 w-4" /> },
       { to: '/app/projects', label: 'Projects', icon: <FolderKanban className="h-4 w-4" /> },
     ]
@@ -315,13 +282,4 @@ function navFor(role: string, isPm: boolean) {
     ...(isPm ? [{ to: '/app/review', label: 'Review inbox', icon: <Inbox className="h-4 w-4" /> }] : []),
     { to: '/app/projects', label: isPm ? 'Projects' : 'My projects', icon: <FolderKanban className="h-4 w-4" /> },
   ]
-}
-
-function PrefToggle({ label, checked, onChange }: { label: string; checked: boolean; onChange: (value: boolean) => void }) {
-  return (
-    <label className="flex items-center justify-between gap-2 py-0.5">
-      <span>{label}</span>
-      <input type="checkbox" checked={checked} onChange={(event) => onChange(event.target.checked)} />
-    </label>
-  )
 }

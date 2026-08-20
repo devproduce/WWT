@@ -135,6 +135,40 @@ public class DashboardService {
         Map<String, List<Task>> tasksByProject = orgTasks.stream()
                 .filter(task -> task.getProjectId() != null)
                 .collect(Collectors.groupingBy(Task::getProjectId));
+        Map<String, String> managerNames = new LinkedHashMap<>();
+        projects.forEach(project -> {
+            if (project.getManagerId() == null || managerNames.containsKey(project.getManagerId())) {
+                return;
+            }
+            managerNames.put(project.getManagerId(), userRepository.findById(project.getManagerId())
+                    .map(user -> (user.getFirstName() + " " + user.getLastName()).trim())
+                    .orElse("Unassigned manager"));
+        });
+        Map<String, Project> projectById = projects.stream()
+                .filter(project -> project.getId() != null)
+                .collect(Collectors.toMap(Project::getId, project -> project, (a, b) -> a));
+        Map<String, Long> reviewsByManagerId = new LinkedHashMap<>();
+        orgTasks.stream()
+                .filter(task -> task.getStatus() == TaskStatus.REVIEW && task.getProjectId() != null)
+                .forEach(task -> {
+                    Project project = projectById.get(task.getProjectId());
+                    String managerId = project == null ? null : project.getManagerId();
+                    if (managerId == null) {
+                        return;
+                    }
+                    reviewsByManagerId.merge(managerId, 1L, Long::sum);
+                });
+        List<Map<String, Object>> reviewsByManager = reviewsByManagerId.entrySet().stream()
+                .map(entry -> {
+                    Map<String, Object> row = new LinkedHashMap<>();
+                    row.put("managerId", entry.getKey());
+                    row.put("managerName", managerNames.getOrDefault(entry.getKey(), "Unassigned manager"));
+                    row.put("reviewCount", entry.getValue());
+                    return row;
+                })
+                .sorted((a, b) -> Long.compare((long) b.get("reviewCount"), (long) a.get("reviewCount")))
+                .toList();
+        metrics.put("reviewsByManager", reviewsByManager);
         List<Map<String, Object>> items = new ArrayList<>();
         projects.forEach(project -> {
             List<Task> tasks = tasksByProject.getOrDefault(project.getId(), List.of());
@@ -144,6 +178,10 @@ public class DashboardService {
             row.put("id", project.getId());
             row.put("name", project.getName());
             row.put("status", project.getStatus());
+            row.put("managerId", project.getManagerId());
+            row.put("managerName", project.getManagerId() == null
+                    ? null
+                    : managerNames.get(project.getManagerId()));
             row.put("totalTasks", tasks.size());
             row.put("doneTasks", projectMix.get(TaskStatus.DONE));
             row.put("todo", projectMix.get(TaskStatus.TODO));

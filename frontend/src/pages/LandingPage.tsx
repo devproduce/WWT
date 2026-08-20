@@ -353,7 +353,7 @@ function Features() {
             <div className="font-mono text-[10px] tracking-[0.22em] text-teal-700/80 uppercase">Project Manager · Arun Mehta</div>
             <CardTitle className="mt-2 text-xl">Owns the Atlas board</CardTitle>
             <p className="mt-2 text-sm leading-relaxed text-teal-900/55">
-              Arun assigns work, runs To do through Done, and is the one who signs off review. Done is a decision, not a
+              Arun assigns work and signs off review. Members move To do through Review. Done is a decision, not a
               guess.
             </p>
             <div className="mt-6 rounded-[22px] border border-amber-200 bg-amber-50 p-2 shadow-[0_10px_24px_rgb(15_61_56_/_0.08)]">
@@ -464,11 +464,12 @@ const HOW_ROLES = [
     id: 'admin' as const,
     label: 'Admin',
     person: 'Priya Shah',
-    blurb: 'Runs Northwind. Invites people, opens projects, sees every board.',
+    blurb: 'Runs Northwind. Invites people, opens projects, watches every board.',
     features: [
       'Invite, disable, and reset members',
       'Create projects and name a Project Manager',
-      'See every task in the organization',
+      'See every board without doing the work',
+      'See how much work is waiting on each Project Manager',
       'Watch members, projects, and storage against the plan',
     ],
     people: [
@@ -481,7 +482,7 @@ const HOW_ROLES = [
     person: 'Arun Mehta',
     blurb: 'Owns the Atlas board. Assigns work and signs off Done.',
     features: [
-      'Run the Atlas Kanban board',
+      'See the Atlas board and member progress',
       'Assign work to members on the project',
       'Review submissions and send work back',
       'Mark Done — members cannot',
@@ -495,7 +496,7 @@ const HOW_ROLES = [
     blurb: 'Ships assigned Atlas work. Submits for review. Cannot mark Done.',
     features: [
       'See only assigned tasks',
-      'Move work To do → Doing → Review or Blocked',
+      'Move work To do → Doing → Review',
       'Comment and attach files on their tasks',
       'Submit for review — cannot mark Done',
     ],

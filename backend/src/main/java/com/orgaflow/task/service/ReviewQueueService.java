@@ -9,6 +9,7 @@ import com.orgaflow.project.repository.ProjectRepository;
 import com.orgaflow.task.dto.ReviewQueueItem;
 import com.orgaflow.task.model.Task;
 import com.orgaflow.task.repository.TaskRepository;
+import com.orgaflow.user.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
@@ -23,17 +24,20 @@ public class ReviewQueueService {
 
     private final TaskRepository taskRepository;
     private final ProjectRepository projectRepository;
+    private final UserRepository userRepository;
     private final TaskService taskService;
     private final AccessGuard accessGuard;
 
     public ReviewQueueService(
             TaskRepository taskRepository,
             ProjectRepository projectRepository,
+            UserRepository userRepository,
             TaskService taskService,
             AccessGuard accessGuard
     ) {
         this.taskRepository = taskRepository;
         this.projectRepository = projectRepository;
+        this.userRepository = userRepository;
         this.taskService = taskService;
         this.accessGuard = accessGuard;
     }
@@ -74,8 +78,19 @@ public class ReviewQueueService {
         return new ReviewQueueItem(
                 taskService.toResponse(actor, project, task),
                 project.getName(),
+                project.getManagerId(),
+                managerName(project.getManagerId()),
                 task.getUpdatedAt()
         );
+    }
+
+    private String managerName(String managerId) {
+        if (managerId == null) {
+            return null;
+        }
+        return userRepository.findById(managerId)
+                .map(user -> (user.getFirstName() + " " + user.getLastName()).trim())
+                .orElse(null);
     }
 
     private boolean matches(ReviewQueueItem item, String needle) {
@@ -85,6 +100,7 @@ public class ReviewQueueService {
         String title = item.task().title() == null ? "" : item.task().title().toLowerCase();
         String project = item.projectName() == null ? "" : item.projectName().toLowerCase();
         String assignee = item.task().assigneeName() == null ? "" : item.task().assigneeName().toLowerCase();
-        return title.contains(needle) || project.contains(needle) || assignee.contains(needle);
+        String manager = item.managerName() == null ? "" : item.managerName().toLowerCase();
+        return title.contains(needle) || project.contains(needle) || assignee.contains(needle) || manager.contains(needle);
     }
 }

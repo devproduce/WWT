@@ -277,9 +277,10 @@ function Column({ id, label, tasks }: { id: TaskStatus; label: string; tasks: Ta
 }
 
 function TaskCard({ task, draggable = true }: { task: TaskItem; draggable?: boolean }) {
+  const canDrag = draggable && (task.allowedTransitions ?? []).length > 0
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: task.id,
-    disabled: !draggable,
+    disabled: !canDrag,
   })
   const style = { transform: CSS.Translate.toString(transform), opacity: isDragging ? 0.6 : 1 }
   const overdue = Boolean(task.deadline && new Date(task.deadline) < new Date() && task.status !== 'DONE')
@@ -293,11 +294,14 @@ function TaskCard({ task, draggable = true }: { task: TaskItem; draggable?: bool
           : 'bg-stone-300'
   return (
     <div
-      ref={draggable ? setNodeRef : undefined}
-      style={draggable ? style : undefined}
-      {...(draggable ? listeners : {})}
-      {...(draggable ? attributes : {})}
-      className="app-card app-card-lift relative overflow-hidden rounded-2xl p-3.5 shadow-[0_10px_24px_rgb(15_61_56_/_0.06)]"
+      ref={canDrag ? setNodeRef : undefined}
+      style={canDrag ? style : undefined}
+      {...(canDrag ? listeners : {})}
+      {...(canDrag ? attributes : {})}
+      className={cn(
+        'app-card app-card-lift relative overflow-hidden rounded-2xl p-3.5 shadow-[0_10px_24px_rgb(15_61_56_/_0.06)]',
+        canDrag ? 'cursor-grab' : 'cursor-default',
+      )}
     >
       <span className={cn('absolute inset-y-0 left-0 w-1', priorityEdge)} />
       <Link to={`/app/tasks/${task.id}`} className="block pl-2 font-medium leading-snug text-teal-950 hover:text-teal-700">
