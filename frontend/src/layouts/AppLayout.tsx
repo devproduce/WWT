@@ -217,19 +217,33 @@ export function AppLayout() {
                         : item.projectId
                           ? `/app/projects/${item.projectId}`
                           : null
+                      const mentioned = item.type === 'COMMENT_MENTIONED'
                       const body = (
                         <>
+                          {mentioned && (
+                            <div className="mb-0.5 font-mono text-[10px] tracking-[0.18em] text-violet-700 uppercase">
+                              Mentioned you
+                            </div>
+                          )}
                           <div className="font-medium">{item.title}</div>
                           <div>{item.message}</div>
                           <div className="text-xs text-teal-900/40">{formatDate(item.createdAt)}</div>
                         </>
                       )
-                      const className = `block rounded-2xl px-3 py-2 text-sm ${item.read ? 'text-teal-900/55' : 'bg-teal-50 text-teal-950'}`
+                      const className = `block rounded-2xl px-3 py-2 text-sm ${
+                        mentioned
+                          ? item.read
+                            ? 'text-violet-900/60'
+                            : 'bg-violet-50 text-violet-950'
+                          : item.read
+                            ? 'text-teal-900/55'
+                            : 'bg-teal-50 text-teal-950'
+                      }`
                       return href ? (
                         <Link
                           key={item.id}
                           to={href}
-                          className={`${className} hover:bg-teal-50`}
+                          className={`${className} ${mentioned ? 'hover:bg-violet-100' : 'hover:bg-teal-50'}`}
                           onClick={() => setNotificationsOpen(false)}
                         >
                           {body}

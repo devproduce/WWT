@@ -1,10 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useState, type FormEvent } from 'react'
+import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { Badge, statusTone } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardTitle } from '@/components/ui/card'
-import { Textarea } from '@/components/ui/textarea'
 import { api, apiError } from '@/services/api'
 import { bytes, cn, formatDate, formatDay } from '@/lib/utils'
 import type { ActivityItem, AttachmentItem, CommentItem, Project, TaskItem, TaskStatus } from '@/types'
@@ -15,6 +14,7 @@ import { Avatar } from '@/components/charts'
 import { PageHeader } from '@/components/PageHeader'
 import { ReturnNoteModal } from '@/components/ReturnNoteModal'
 import { BlockedReasonModal } from '@/components/BlockedReasonModal'
+import { CommentBody, CommentComposer } from '@/components/CommentComposer'
 
 export function TaskDetailPage() {
   const { id } = useParams()
@@ -41,7 +41,6 @@ export function TaskDetailPage() {
     enabled: Boolean(task.data?.projectId),
     queryFn: async () => (await api.get<Project>(`/projects/${task.data?.projectId}`)).data,
   })
-  const [comment, setComment] = useState('')
   const [returnOpen, setReturnOpen] = useState(false)
   const [blockOpen, setBlockOpen] = useState(false)
   const refresh = () => {
@@ -73,11 +72,9 @@ export function TaskDetailPage() {
     onError: (err) => toast.error(apiError(err)),
   })
   const addComment = useMutation({
-    mutationFn: async () => api.post(`/tasks/${id}/comments`, { content: comment }),
-    onSuccess: () => {
-      setComment('')
-      refresh()
-    },
+    mutationFn: async ({ content, mentionedUserIds }: { content: string; mentionedUserIds: string[] }) =>
+      api.post(`/tasks/${id}/comments`, { content, mentionedUserIds }),
+    onSuccess: refresh,
     onError: (err) => toast.error(apiError(err)),
   })
   const upload = useMutation({
@@ -92,10 +89,6 @@ export function TaskDetailPage() {
 
   if (!task.data) return <p className="py-16 text-center text-sm text-teal-900/50">Loading task…</p>
   const item = task.data
-  const submitComment = (event: FormEvent) => {
-    event.preventDefault()
-    if (comment.trim()) addComment.mutate()
-  }
   const currentIndex = TASK_COLUMNS.findIndex((col) => col.id === item.status)
   const waitingOnPeople = (project.data?.members ?? []).filter((member) => member.id !== item.assigneeId)
 
@@ -197,14 +190,20 @@ export function TaskDetailPage() {
                     <Avatar name={c.authorName} size="sm" />
                     {c.authorName} <span className="font-normal text-teal-900/40">{formatDate(c.createdAt)}</span>
                   </div>
-                  <div className="mt-2 whitespace-pre-wrap text-teal-900/80">{c.content}</div>
+                  <CommentBody
+                    content={c.content}
+                    mentionedIds={c.mentionedUserIds ?? []}
+                    members={project.data?.members ?? []}
+                  />
                 </div>
               ))}
             </div>
-            <form className="mt-3 space-y-2" onSubmit={submitComment}>
-              <Textarea value={comment} onChange={(e) => setComment(e.target.value)} placeholder="Write a comment" />
-              <Button disabled={addComment.isPending}>Comment</Button>
-            </form>
+            <CommentComposer
+              members={project.data?.members ?? []}
+              currentUserId={user?.id}
+              pending={addComment.isPending}
+              onSubmit={(content, mentionedUserIds) => addComment.mutate({ content, mentionedUserIds })}
+            />
           </Card>
         </div>
         <div className="space-y-4">

@@ -129,6 +129,7 @@ export interface CommentItem {
   authorId: string
   authorName: string
   content: string
+  mentionedUserIds: string[]
   deleted: boolean
   createdAt: string
 }
