@@ -257,13 +257,30 @@ public class TaskService {
                     "\"" + task.getTitle() + "\" was returned: " + comment, project.getId(), task.getId());
         }
         if (previous == TaskStatus.IN_PROGRESS && target == TaskStatus.BLOCKED) {
+            String reason = task.getBlockedReason();
             activityService.record(actor, project.getOrganizationId(), project.getId(), task.getId(),
-                    ActivityType.TASK_BLOCKED, actor.displayName() + " blocked the task: " + task.getBlockedReason());
-            if (task.getBlockedWaitingOnUserId() != null) {
-                notificationService.notifyUser(project.getOrganizationId(), task.getBlockedWaitingOnUserId(),
-                        NotificationType.TASK_BLOCKED, "Someone is waiting on you",
-                        "\"" + task.getTitle() + "\" is blocked: " + task.getBlockedReason(),
-                        project.getId(), task.getId());
+                    ActivityType.TASK_BLOCKED, actor.displayName() + " blocked the task: " + reason);
+            String blockedMessage = actor.displayName() + " blocked \"" + task.getTitle() + "\": " + reason;
+            if (project.getManagerId() != null && !project.getManagerId().equals(actor.id())) {
+                notificationService.notifyUser(
+                        project.getOrganizationId(),
+                        project.getManagerId(),
+                        NotificationType.TASK_BLOCKED,
+                        "Task blocked",
+                        blockedMessage,
+                        project.getId(),
+                        task.getId());
+            }
+            if (task.getBlockedWaitingOnUserId() != null
+                    && !task.getBlockedWaitingOnUserId().equals(project.getManagerId())) {
+                notificationService.notifyUser(
+                        project.getOrganizationId(),
+                        task.getBlockedWaitingOnUserId(),
+                        NotificationType.TASK_BLOCKED,
+                        "Someone is waiting on you",
+                        blockedMessage,
+                        project.getId(),
+                        task.getId());
             }
         }
         return toResponse(actor, project, task);

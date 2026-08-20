@@ -34,18 +34,13 @@ public final class TaskWorkflow {
         if (isAssignee) {
             switch (from) {
                 case TODO -> targets.add(TaskStatus.IN_PROGRESS);
-                case IN_PROGRESS -> targets.add(TaskStatus.REVIEW);
+                case IN_PROGRESS -> {
+                    targets.add(TaskStatus.REVIEW);
+                    targets.add(TaskStatus.BLOCKED);
+                }
                 case BLOCKED -> targets.add(TaskStatus.IN_PROGRESS);
                 default -> {
                 }
-            }
-        }
-        if (isAdmin || isProjectManager) {
-            if (from == TaskStatus.IN_PROGRESS) {
-                targets.add(TaskStatus.BLOCKED);
-            }
-            if (from == TaskStatus.BLOCKED) {
-                targets.add(TaskStatus.IN_PROGRESS);
             }
         }
         if (isProjectManager && from == TaskStatus.REVIEW) {

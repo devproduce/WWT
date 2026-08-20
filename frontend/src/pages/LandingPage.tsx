@@ -496,7 +496,7 @@ const HOW_ROLES = [
     blurb: 'Ships assigned Atlas work. Submits for review. Cannot mark Done.',
     features: [
       'See only assigned tasks',
-      'Move work To do → Doing → Review',
+      'Move work To do → Doing → Review, or Blocked with a reason',
       'Comment and attach files on their tasks',
       'Submit for review — cannot mark Done',
     ],

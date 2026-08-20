@@ -26,7 +26,9 @@ export function BlockedReasonModal({
     <Modal>
       <form className="space-y-3" onSubmit={submit}>
         <h2 className="text-lg font-semibold text-teal-950">Why is this blocked?</h2>
-        <p className="text-sm text-teal-900/55">Name the blocker and, if you can, who can unblock it.</p>
+        <p className="text-sm text-teal-900/55">
+          The Project Manager is notified with your name, this task, and the reason.
+        </p>
         <Field label="Reason">
           <Textarea
             value={reason}
