@@ -5,10 +5,12 @@ import { Textarea } from '@/components/ui/textarea'
 
 export function ReturnNoteModal({
   pending,
+  taskTitle,
   onCancel,
   onConfirm,
 }: {
   pending?: boolean
+  taskTitle?: string
   onCancel: () => void
   onConfirm: (comment: string) => void
 }) {
@@ -22,6 +24,7 @@ export function ReturnNoteModal({
     <Modal>
       <form className="space-y-3" onSubmit={submit}>
         <h2 className="text-lg font-semibold text-teal-950">What should change?</h2>
+        {taskTitle && <p className="text-sm font-medium text-teal-800">{taskTitle}</p>}
         <p className="text-sm text-teal-900/55">
           The member needs a real note so they know what to fix — not a generic bounce.
         </p>
