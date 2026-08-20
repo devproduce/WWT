@@ -60,27 +60,13 @@ export function ProjectBoardPage() {
   })
   const [createOpen, setCreateOpen] = useState(false)
   const [membersOpen, setMembersOpen] = useState(false)
-  const [query, setQuery] = useState('')
-  const [priority, setPriority] = useState('')
-  const [assigneeId, setAssigneeId] = useState('')
-  const [overdueOnly, setOverdueOnly] = useState(false)
   const [blockTask, setBlockTask] = useState<TaskItem | null>(null)
   const canManage = user?.role === 'ADMIN' || user?.id === project.data?.managerId
   const isAdmin = user?.role === 'ADMIN'
 
   const tasks = useQuery({
-    queryKey: ['tasks', id, query, priority, assigneeId, overdueOnly],
-    queryFn: async () =>
-      (
-        await api.get<TaskItem[]>(`/projects/${id}/tasks`, {
-          params: {
-            q: query || undefined,
-            priority: priority || undefined,
-            assigneeId: assigneeId || undefined,
-            overdue: overdueOnly || undefined,
-          },
-        })
-      ).data,
+    queryKey: ['tasks', id],
+    queryFn: async () => (await api.get<TaskItem[]>(`/projects/${id}/tasks`)).data,
   })
 
   const transition = useMutation({
@@ -154,28 +140,6 @@ export function ProjectBoardPage() {
           </>
         }
       />
-      <div className="grid gap-3 rounded-[24px] border border-teal-900/8 bg-white/60 p-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Input placeholder="Search tasks" value={query} onChange={(event) => setQuery(event.target.value)} />
-        <select className="app-select" value={assigneeId} onChange={(event) => setAssigneeId(event.target.value)}>
-          <option value="">All assignees</option>
-          {(project.data.members ?? []).map((member) => (
-            <option key={member.id} value={member.id}>
-              {member.name}
-            </option>
-          ))}
-        </select>
-        <select className="app-select" value={priority} onChange={(event) => setPriority(event.target.value)}>
-          <option value="">All priorities</option>
-          <option value="URGENT">Urgent</option>
-          <option value="HIGH">High</option>
-          <option value="MEDIUM">Medium</option>
-          <option value="LOW">Low</option>
-        </select>
-        <label className="flex items-center gap-2 rounded-xl border border-teal-900/10 bg-white/80 px-3 text-sm text-teal-900/70">
-          <input type="checkbox" checked={overdueOnly} onChange={(event) => setOverdueOnly(event.target.checked)} />
-          Overdue only
-        </label>
-      </div>
       {report.data && (
         <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
           <Card className="flex items-center gap-5">
