@@ -305,7 +305,7 @@ function AdminHome({ data }: { data: Dashboard }) {
               className="flex items-center justify-between rounded-2xl bg-white/70 px-3 py-2"
             >
               <span className="text-sm font-medium text-teal-950">{str(row.managerName, 'Project Manager')}</span>
-              <Badge tone="purple">{num(row.reviewCount)} in review</Badge>
+              <Badge tone="purple">{`${num(row.reviewCount)} in review`}</Badge>
             </div>
           ))}
         </div>
