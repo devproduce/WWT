@@ -5,10 +5,19 @@ import com.orgaflow.notification.dto.NotificationPrefs;
 
 public final class NotificationEmailPolicy {
 
+    public static final boolean NOTIFICATION_EMAILS_ENABLED = false;
+
     private NotificationEmailPolicy() {
     }
 
     public static boolean shouldEmail(NotificationType type, NotificationPrefs prefs) {
+        if (!NOTIFICATION_EMAILS_ENABLED) {
+            return false;
+        }
+        return matchesPrefs(type, prefs);
+    }
+
+    static boolean matchesPrefs(NotificationType type, NotificationPrefs prefs) {
         if (type == null || prefs == null) {
             return false;
         }
