@@ -34,7 +34,7 @@ const TASKS = [
 const COLUMNS = [
   { id: 'TODO', label: 'To do', tone: 'bg-stone-100 border-stone-200', dot: 'bg-stone-400' },
   { id: 'IN_PROGRESS', label: 'Doing', tone: 'bg-amber-50 border-amber-200', dot: 'bg-amber-500' },
-  { id: 'REVIEW', label: 'Review', tone: 'bg-violet-50 border-violet-200', dot: 'bg-violet-500' },
+  { id: 'REVIEW', label: 'Under review', tone: 'bg-violet-50 border-violet-200', dot: 'bg-violet-500' },
   { id: 'BLOCKED', label: 'Blocked', tone: 'bg-rose-50 border-rose-200', dot: 'bg-rose-500' },
   { id: 'DONE', label: 'Done', tone: 'bg-teal-50 border-teal-200', dot: 'bg-teal-600' },
 ]
@@ -48,7 +48,7 @@ const MEMBERS = [
   { name: 'Omar Ali', email: 'omar@northwind.example', role: 'MEMBER', status: 'PENDING_SETUP' },
 ]
 
-const STEPS = ['To do', 'Doing', 'Review', 'Blocked', 'Done']
+const STEPS = ['To do', 'Doing', 'Under review', 'Blocked', 'Done']
 
 function priorityEdge(priority: string) {
   if (priority === 'URGENT') return 'bg-rose-500'
@@ -284,7 +284,7 @@ function TaskView() {
             </div>
             <div className="mt-2 flex justify-between font-mono text-[10px] tracking-wide text-teal-800/50 uppercase">
               {STEPS.map((step) => (
-                <span key={step} className={cn(step === 'Review' && 'text-teal-800')}>
+                <span key={step} className={cn(step === 'Under review' && 'text-teal-800')}>
                   {step}
                 </span>
               ))}

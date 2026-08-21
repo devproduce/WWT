@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils'
 export const STATUS_SEGMENTS = [
   { key: 'todo', label: 'To do', color: '#94a3b8' },
   { key: 'inProgress', label: 'Doing', color: '#d97706' },
-  { key: 'review', label: 'Review', color: '#7c3aed' },
+  { key: 'review', label: 'Under review', color: '#7c3aed' },
   { key: 'blocked', label: 'Blocked', color: '#e11d48' },
   { key: 'done', label: 'Done', color: '#0f766e' },
 ] as const

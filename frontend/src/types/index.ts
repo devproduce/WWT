@@ -243,14 +243,14 @@ export const WHY_LABEL: Record<string, string> = {
   DUE_TODAY: 'Due today',
   DUE_SOON: 'Due soon',
   HIGH_PRIORITY: 'High priority',
-  REVIEW: 'In review',
+  REVIEW: 'Under review',
   BLOCKED: 'Blocked',
 }
 
 export const TASK_COLUMNS: { id: TaskStatus; label: string }[] = [
   { id: 'TODO', label: 'To do' },
   { id: 'IN_PROGRESS', label: 'In progress' },
-  { id: 'REVIEW', label: 'Review' },
+  { id: 'REVIEW', label: 'Under review' },
   { id: 'BLOCKED', label: 'Blocked' },
   { id: 'DONE', label: 'Done' },
 ]
