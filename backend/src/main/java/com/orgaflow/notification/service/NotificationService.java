@@ -11,6 +11,7 @@ import com.orgaflow.notification.model.Notification;
 import com.orgaflow.notification.repository.NotificationRepository;
 import com.orgaflow.task.model.Task;
 import com.orgaflow.task.repository.TaskRepository;
+import com.orgaflow.task.service.TaskDeadlines;
 import com.orgaflow.user.model.User;
 import com.orgaflow.user.repository.UserRepository;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -136,12 +137,15 @@ public class NotificationService {
         LocalDate tomorrow = LocalDate.now().plusDays(1);
         LocalDate today = LocalDate.now();
         for (Task task : taskRepository.findByDeadlineAndStatusNot(tomorrow, TaskStatus.DONE)) {
+            if (!TaskDeadlines.clockRunning(task.getStatus())) {
+                continue;
+            }
             notifyUser(task.getOrganizationId(), task.getAssigneeId(), NotificationType.DEADLINE_APPROACHING,
                     "Deadline approaching", "\"" + task.getTitle() + "\" is due tomorrow.",
                     task.getProjectId(), task.getId());
         }
         for (Task task : taskRepository.findByDeadlineAndStatusNot(today.minusDays(1), TaskStatus.DONE)) {
-            if (task.getDeadline() != null && task.getDeadline().isBefore(today) && task.getStatus() != TaskStatus.DONE) {
+            if (TaskDeadlines.isOverdue(task, today)) {
                 notifyUser(task.getOrganizationId(), task.getAssigneeId(), NotificationType.TASK_OVERDUE,
                         "Task overdue", "\"" + task.getTitle() + "\" is overdue.",
                         task.getProjectId(), task.getId());
