@@ -18,6 +18,7 @@ import com.orgaflow.project.model.Project;
 import com.orgaflow.project.repository.ProjectRepository;
 import com.orgaflow.task.model.Task;
 import com.orgaflow.task.repository.TaskRepository;
+import com.orgaflow.task.service.TaskDeadlines;
 import com.orgaflow.user.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
@@ -102,11 +103,11 @@ public class DashboardService {
     }
 
     private DashboardResponse admin(Organization org) {
+        LocalDate today = LocalDate.now();
         List<Project> projects = projectRepository.findByOrganizationIdOrderByCreatedAtDesc(org.getId());
-        List<Task> overdue = taskRepository.findByOrganizationIdAndDeadlineBeforeAndStatusNot(
-                org.getId(), LocalDate.now(), TaskStatus.DONE);
-        List<Task> upcoming = taskRepository.findByOrganizationIdAndDeadlineBetween(
-                org.getId(), LocalDate.now(), LocalDate.now().plusDays(7));
+        List<Task> orgTasks = taskRepository.findByOrganizationId(org.getId());
+        List<Task> overdue = orgTasks.stream().filter(task -> TaskDeadlines.isOverdue(task, today)).toList();
+        List<Task> upcoming = orgTasks.stream().filter(task -> TaskDeadlines.isUpcoming(task, today)).toList();
         Map<String, Object> metrics = new LinkedHashMap<>();
         metrics.put("organizationName", org.getName());
         metrics.put("memberCount", userRepository.countByOrganizationIdAndStatusIn(
@@ -119,7 +120,6 @@ public class DashboardService {
         metrics.put("completedProjects", projects.stream().filter(p -> p.getStatus() == ProjectStatus.COMPLETED).count());
         metrics.put("overdueTasks", overdue.size());
         metrics.put("upcomingDeadlines", upcoming.size());
-        List<Task> orgTasks = taskRepository.findByOrganizationId(org.getId());
         Map<TaskStatus, Long> mix = mixOf(orgTasks);
         metrics.put("todo", mix.get(TaskStatus.TODO));
         metrics.put("inProgress", mix.get(TaskStatus.IN_PROGRESS));
@@ -204,12 +204,9 @@ public class DashboardService {
         metrics.put("review", mine.stream().filter(t -> t.getStatus() == TaskStatus.REVIEW).count());
         metrics.put("blocked", mine.stream().filter(t -> t.getStatus() == TaskStatus.BLOCKED).count());
         metrics.put("done", mine.stream().filter(t -> t.getStatus() == TaskStatus.DONE).count());
-        metrics.put("overdue", mine.stream().filter(t -> t.getDeadline() != null
-                && t.getDeadline().isBefore(LocalDate.now()) && t.getStatus() != TaskStatus.DONE).count());
-        metrics.put("dueSoon", mine.stream().filter(t -> t.getDeadline() != null
-                && !t.getDeadline().isBefore(LocalDate.now())
-                && !t.getDeadline().isAfter(LocalDate.now().plusDays(3))
-                && t.getStatus() != TaskStatus.DONE).count());
+        LocalDate today = LocalDate.now();
+        metrics.put("overdue", mine.stream().filter(t -> TaskDeadlines.isOverdue(t, today)).count());
+        metrics.put("dueSoon", mine.stream().filter(t -> TaskDeadlines.isDueSoon(t, today)).count());
         metrics.put("highPriority", mine.stream().filter(t -> t.getPriority() == TaskPriority.HIGH
                 || t.getPriority() == TaskPriority.URGENT).count());
         metrics.put("awaitingReview", mine.stream().filter(t -> t.getStatus() == TaskStatus.REVIEW).count());
