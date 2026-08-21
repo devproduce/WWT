@@ -58,6 +58,42 @@ export function localIsoDate(value = new Date()) {
   return `${year}-${month}-${day}`
 }
 
+export function deadlineClockRunning(status?: string | null) {
+  return status !== 'REVIEW' && status !== 'DONE'
+}
+
+export function calendarDay(value?: string | Date | null) {
+  if (!value) return null
+  if (typeof value === 'string') {
+    const match = value.match(/^(\d{4}-\d{2}-\d{2})/)
+    if (match) return match[1]
+    const parsed = new Date(value)
+    return Number.isNaN(parsed.getTime()) ? null : localIsoDate(parsed)
+  }
+  return Number.isNaN(value.getTime()) ? null : localIsoDate(value)
+}
+
+export function isTaskOverdue(
+  task: { deadline?: string | Date | null; status?: string | null },
+  today = new Date(),
+) {
+  const due = calendarDay(task.deadline)
+  return Boolean(due && deadlineClockRunning(task.status) && due < localIsoDate(today))
+}
+
+export function isTaskDueSoon(
+  task: { deadline?: string | Date | null; status?: string | null },
+  today = new Date(),
+  days = 3,
+) {
+  if (days < 0) return false
+  const due = calendarDay(task.deadline)
+  if (!due || !deadlineClockRunning(task.status)) return false
+  const start = localIsoDate(today)
+  const end = new Date(today.getFullYear(), today.getMonth(), today.getDate() + days)
+  return due >= start && due <= localIsoDate(end)
+}
+
 export function waitHours(value?: string | null, now = new Date()) {
   if (!value) return 0
   return Math.max(0, (now.getTime() - new Date(value).getTime()) / 3_600_000)
