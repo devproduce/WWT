@@ -9,7 +9,7 @@ import { Card, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { EmptyState } from '@/components/EmptyState'
 import { api, apiError } from '@/services/api'
-import { cn, formatDay, localIsoDate } from '@/lib/utils'
+import { cn, formatDay, isTaskDueSoon, localIsoDate } from '@/lib/utils'
 import type { MyDayItem, MyDayResponse, TaskItem } from '@/types'
 import { WHY_LABEL } from '@/types'
 
@@ -208,18 +208,10 @@ function filterDay(data: MyDayResponse | undefined, filter: FocusFilter, query: 
     const project = item.projectName ?? ''
     return !q || title.toLowerCase().includes(q) || project.toLowerCase().includes(q)
   }
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
   const matchesFilter = (item: MyDayItem) => {
     const task = item.task
-    const deadline = task.deadline ? new Date(task.deadline) : null
     if (filter === 'OVERDUE') return item.overdue
-    if (filter === 'SOON') {
-      if (!deadline) return false
-      const soon = new Date(today)
-      soon.setDate(soon.getDate() + 3)
-      return deadline >= today && deadline <= soon && task.status !== 'DONE'
-    }
+    if (filter === 'SOON') return isTaskDueSoon(task)
     if (filter === 'REVIEW') return task.status === 'REVIEW'
     if (filter === 'PRIORITY') return task.priority === 'HIGH' || task.priority === 'URGENT'
     return true

@@ -15,7 +15,7 @@ import { RingChart, Avatar } from '@/components/charts'
 import { StatusStack } from '@/components/StatusStack'
 import { useAuth } from '@/features/auth/AuthContext'
 import { api, apiError } from '@/services/api'
-import { cn, formatDay } from '@/lib/utils'
+import { cn, formatDay, isTaskOverdue } from '@/lib/utils'
 import type { Member, Project, ProjectReport, TaskItem, TaskPriority, TaskStatus } from '@/types'
 import { TASK_COLUMNS } from '@/types'
 import { toast } from 'sonner'
@@ -283,7 +283,7 @@ function TaskCard({ task, draggable = true }: { task: TaskItem; draggable?: bool
     disabled: !canDrag,
   })
   const style = { transform: CSS.Translate.toString(transform), opacity: isDragging ? 0.6 : 1 }
-  const overdue = Boolean(task.deadline && new Date(task.deadline) < new Date() && task.status !== 'DONE')
+  const overdue = isTaskOverdue(task)
   const priorityEdge =
     task.priority === 'URGENT'
       ? 'bg-rose-500'

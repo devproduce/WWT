@@ -23,7 +23,7 @@ import { RingChart, StatusDonut, Avatar } from '@/components/charts'
 import { STATUS_SEGMENTS } from '@/components/StatusStack'
 import { useAuth } from '@/features/auth/AuthContext'
 import { api } from '@/services/api'
-import { cn, formatDate, formatDay, num, str, utilization } from '@/lib/utils'
+import { cn, formatDate, formatDay, num, str, utilization, deadlineClockRunning } from '@/lib/utils'
 import type { Dashboard } from '@/types'
 import { MyDayPanel } from '@/components/MyDayPanel'
 
@@ -545,7 +545,7 @@ function activityHref(event: Record<string, unknown>) {
 
 function DueRail({ tasks }: { tasks: Record<string, unknown>[] }) {
   const dated = tasks
-    .filter((task) => task.deadline && str(task.status) !== 'DONE')
+    .filter((task) => task.deadline && deadlineClockRunning(str(task.status)))
     .sort((a, b) => str(a.deadline).localeCompare(str(b.deadline)))
     .slice(0, 8)
   if (dated.length === 0) {

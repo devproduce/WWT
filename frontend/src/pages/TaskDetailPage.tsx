@@ -5,7 +5,7 @@ import { Badge, statusTone } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardTitle } from '@/components/ui/card'
 import { api, apiError } from '@/services/api'
-import { bytes, cn, formatDate, formatDay } from '@/lib/utils'
+import { bytes, cn, formatDate, formatDay, isTaskOverdue } from '@/lib/utils'
 import type { ActivityItem, AttachmentItem, CommentItem, Project, TaskItem, TaskStatus } from '@/types'
 import { TASK_COLUMNS } from '@/types'
 import { toast } from 'sonner'
@@ -148,7 +148,9 @@ export function TaskDetailPage() {
             <div className="mt-5 flex flex-wrap gap-2 text-sm">
               <span className="rounded-full bg-teal-50 px-3 py-1">Assignee: {item.assigneeName ?? 'Unassigned'}</span>
               <span className="rounded-full bg-amber-50 px-3 py-1">Priority: {item.priority}</span>
-              <span className="rounded-full bg-sky-50 px-3 py-1">Due: {formatDay(item.deadline)}</span>
+              <span className={cn('rounded-full px-3 py-1', isTaskOverdue(item) ? 'bg-rose-50 text-rose-800' : 'bg-sky-50')}>
+                Due: {formatDay(item.deadline)}
+              </span>
             </div>
             <div className="mt-4 flex flex-wrap gap-2">
               {item.allowedTransitions
