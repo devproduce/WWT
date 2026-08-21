@@ -337,8 +337,11 @@ public class TaskService {
     }
 
     public List<Task> overdueInOrg(String organizationId) {
+        LocalDate today = LocalDate.now();
         return taskRepository.findByOrganizationIdAndDeadlineBeforeAndStatusNot(
-                organizationId, LocalDate.now(), TaskStatus.DONE);
+                organizationId, today, TaskStatus.DONE).stream()
+                .filter(task -> TaskDeadlines.isOverdue(task, today))
+                .toList();
     }
 
     private void addReturnComment(CurrentUser actor, Task task, String content) {
@@ -384,9 +387,7 @@ public class TaskService {
         if (overdue == null || !overdue) {
             return true;
         }
-        return task.getDeadline() != null
-                && task.getDeadline().isBefore(today)
-                && task.getStatus() != TaskStatus.DONE;
+        return TaskDeadlines.isOverdue(task, today);
     }
 
     private static String displayName(User user) {
