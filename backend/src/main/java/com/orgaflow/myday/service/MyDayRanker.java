@@ -3,6 +3,7 @@ package com.orgaflow.myday.service;
 import com.orgaflow.common.enums.TaskPriority;
 import com.orgaflow.common.enums.TaskStatus;
 import com.orgaflow.task.model.Task;
+import com.orgaflow.task.service.TaskDeadlines;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -90,8 +91,9 @@ public final class MyDayRanker {
 
     static Scored score(Task task, LocalDate today, Instant now, boolean pinned) {
         int score = 0;
-        boolean overdue = isOverdue(task, today);
+        boolean overdue = TaskDeadlines.isOverdue(task, today);
         boolean inProgress = task.getStatus() == TaskStatus.IN_PROGRESS;
+        boolean review = task.getStatus() == TaskStatus.REVIEW;
         boolean returned = task.getLastReturnedAt() != null
                 && task.getLastReturnedAt().isAfter(now.minus(48, ChronoUnit.HOURS));
 
@@ -105,7 +107,7 @@ public final class MyDayRanker {
         if (returned) {
             score += 30;
         }
-        if (task.getDeadline() != null && !overdue) {
+        if (TaskDeadlines.clockRunning(task.getStatus()) && task.getDeadline() != null && !overdue) {
             long until = ChronoUnit.DAYS.between(today, task.getDeadline());
             if (until == 0) {
                 score += 35;
@@ -122,6 +124,8 @@ public final class MyDayRanker {
             why = "PINNED";
         } else if (inProgress) {
             why = "IN_PROGRESS";
+        } else if (review) {
+            why = "REVIEW";
         } else if (overdue) {
             why = "OVERDUE";
         } else if (returned) {
@@ -130,8 +134,6 @@ public final class MyDayRanker {
             why = "DUE_TODAY";
         } else if (task.getDeadline() != null && !task.getDeadline().isAfter(today.plusDays(3))) {
             why = "DUE_SOON";
-        } else if (task.getStatus() == TaskStatus.REVIEW) {
-            why = "REVIEW";
         } else if (task.getStatus() == TaskStatus.BLOCKED) {
             why = "BLOCKED";
         } else {
@@ -182,9 +184,4 @@ public final class MyDayRanker {
         return "OPEN";
     }
 
-    static boolean isOverdue(Task task, LocalDate today) {
-        return task.getDeadline() != null
-                && task.getDeadline().isBefore(today)
-                && task.getStatus() != TaskStatus.DONE;
-    }
 }

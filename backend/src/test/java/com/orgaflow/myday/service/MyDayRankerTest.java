@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class MyDayRankerTest {
@@ -45,6 +46,33 @@ class MyDayRankerTest {
         MyDayRanker.Ranked ranked = MyDayRanker.rank(List.of(review, blocked), List.of(), List.of(), today, now);
         assertTrue(ranked.focus().isEmpty());
         assertEquals(2, ranked.waiting().size());
+    }
+
+    @Test
+    void reviewPastDeadlineStaysUnderReviewNotOverdue() {
+        Task review = task("rev", TaskStatus.REVIEW, TaskPriority.URGENT, today.minusDays(4));
+        MyDayRanker.Ranked ranked = MyDayRanker.rank(List.of(review), List.of(), List.of(), today, now);
+        MyDayRanker.Scored waiting = ranked.waiting().getFirst();
+        assertEquals("REVIEW", waiting.why());
+        assertFalse(waiting.overdue());
+        assertTrue(ranked.focus().isEmpty());
+    }
+
+    @Test
+    void reviewDueTodayIsNotDueSoonPressure() {
+        Task review = task("rev", TaskStatus.REVIEW, TaskPriority.LOW, today);
+        MyDayRanker.Scored scored = MyDayRanker.score(review, today, now, false);
+        assertEquals("REVIEW", scored.why());
+        assertFalse(scored.overdue());
+    }
+
+    @Test
+    void returnedInProgressPastDeadlineIsOverdueAgain() {
+        Task returned = task("back", TaskStatus.IN_PROGRESS, TaskPriority.LOW, today.minusDays(1));
+        returned.setLastReturnedAt(now.minus(1, java.time.temporal.ChronoUnit.HOURS));
+        MyDayRanker.Ranked ranked = MyDayRanker.rank(List.of(returned), List.of(), List.of(), today, now);
+        assertEquals("IN_PROGRESS", ranked.focus().getFirst().why());
+        assertTrue(ranked.focus().getFirst().overdue());
     }
 
     @Test
