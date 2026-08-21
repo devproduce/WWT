@@ -9,6 +9,7 @@ import com.orgaflow.reporting.dto.MemberTaskStats;
 import com.orgaflow.reporting.dto.ProjectReportResponse;
 import com.orgaflow.task.model.Task;
 import com.orgaflow.task.repository.TaskRepository;
+import com.orgaflow.task.service.TaskDeadlines;
 import com.orgaflow.user.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
@@ -41,9 +42,7 @@ public class ReportingService {
         long review = count(tasks, TaskStatus.REVIEW);
         long blocked = count(tasks, TaskStatus.BLOCKED);
         long done = count(tasks, TaskStatus.DONE);
-        long overdue = tasks.stream().filter(t -> t.getDeadline() != null
-                && t.getDeadline().isBefore(LocalDate.now())
-                && t.getStatus() != TaskStatus.DONE).count();
+        long overdue = tasks.stream().filter(t -> TaskDeadlines.isOverdue(t, LocalDate.now())).count();
         Map<String, Long> byPriority = new LinkedHashMap<>();
         for (TaskPriority priority : TaskPriority.values()) {
             byPriority.put(priority.name(), tasks.stream().filter(t -> t.getPriority() == priority).count());
