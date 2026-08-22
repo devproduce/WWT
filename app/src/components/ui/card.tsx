@@ -38,6 +38,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(15,61,56,0.08)',
     borderRadius: radii.card,
     padding: 24,
+    overflow: 'hidden',
     ...cardShadow,
   },
   interactive: {

@@ -13,7 +13,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { router } from 'expo-router'
 import { EyeOff, Pin, PinOff } from 'lucide-react-native'
 import { useMemo, useState } from 'react'
-import { Alert, Pressable, StyleSheet, View } from 'react-native'
+import { toast } from '@/components/Toast'
+import { Pressable, StyleSheet, View } from 'react-native'
 
 type FocusFilter = 'ALL' | 'OVERDUE' | 'SOON' | 'REVIEW' | 'PRIORITY'
 
@@ -34,12 +35,12 @@ export function MyDayPanel({ filter = 'ALL' }: { filter?: FocusFilter }) {
   const savePins = useMutation({
     mutationFn: (taskIds: string[]) => api.put<MyDayResponse>('/me/day/pins', { date, taskIds }),
     onSuccess: (res) => queryClient.setQueryData(['my-day', date], res.data),
-    onError: (err) => Alert.alert('Could not pin', apiError(err)),
+    onError: (err) => toast.error(apiError(err)),
   })
   const saveHidden = useMutation({
     mutationFn: (taskIds: string[]) => api.put<MyDayResponse>('/me/day/hidden', { date, taskIds }),
     onSuccess: (res) => queryClient.setQueryData(['my-day', date], res.data),
-    onError: (err) => Alert.alert('Could not hide', apiError(err)),
+    onError: (err) => toast.error(apiError(err)),
   })
   const action = useMutation({
     mutationFn: async ({ task, kind }: { task: TaskItem; kind: string }) => {
@@ -51,7 +52,7 @@ export function MyDayPanel({ filter = 'ALL' }: { filter?: FocusFilter }) {
       queryClient.invalidateQueries({ queryKey: ['my-day'] })
       queryClient.invalidateQueries({ queryKey: ['dashboard'] })
     },
-    onError: (err) => Alert.alert('Could not update task', apiError(err)),
+    onError: (err) => toast.error(apiError(err)),
   })
 
   const data = day.data

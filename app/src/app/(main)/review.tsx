@@ -16,7 +16,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { router } from 'expo-router'
 import { AlertTriangle, Clock3, Inbox } from 'lucide-react-native'
 import { useMemo, useState } from 'react'
-import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native'
+import { toast } from '@/components/Toast'
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native'
 
 export default function ReviewInboxScreen() {
   const { user } = useAuth()
@@ -33,16 +34,20 @@ export default function ReviewInboxScreen() {
   }
   const approve = useMutation({
     mutationFn: (taskId: string) => api.post(`/tasks/${taskId}/approve`),
-    onSuccess: refresh,
-    onError: (err) => Alert.alert('Could not approve', apiError(err)),
+    onSuccess: () => {
+      refresh()
+      toast.success('Approved')
+    },
+    onError: (err) => toast.error(apiError(err)),
   })
   const returnTask = useMutation({
     mutationFn: ({ id, comment }: { id: string; comment: string }) => api.post(`/tasks/${id}/return`, { comment }),
     onSuccess: () => {
       setReturnItem(null)
       refresh()
+      toast.success('Returned for revision')
     },
-    onError: (err) => Alert.alert('Could not return', apiError(err)),
+    onError: (err) => toast.error(apiError(err)),
   })
 
   const items = useMemo(

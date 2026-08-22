@@ -3,6 +3,7 @@ import { Stack } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import * as SplashScreen from 'expo-splash-screen'
 import { useEffect, useState } from 'react'
+import { ToastHost } from '@/components/Toast'
 import { AuthProvider } from '@/features/auth/AuthContext'
 import { useWwtFonts } from '@/theme/fonts'
 
@@ -27,6 +28,7 @@ export default function RootLayout() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <StatusBar style="dark" />
+        <ToastHost />
         <Stack screenOptions={{ headerShown: false, animation: 'fade' }} />
       </AuthProvider>
     </QueryClientProvider>

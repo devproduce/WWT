@@ -19,7 +19,11 @@ export function AuthShell({
       <View style={[styles.orb, styles.orbTeal]} />
       <View style={[styles.orb, styles.orbAmber]} />
       <SafeAreaView style={styles.safe}>
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.flex}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 8 : 0}
+          style={styles.flex}
+        >
           <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
             <View style={styles.card}>
               <View style={styles.brand}>

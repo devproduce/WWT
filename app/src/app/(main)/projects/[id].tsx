@@ -16,10 +16,11 @@ import { colors, radii } from '@/theme/tokens'
 import type { Project, ProjectReport, TaskItem, TaskPriority, TaskStatus } from '@/types'
 import { TASK_COLUMNS } from '@/types'
 import { formatDay, isTaskOverdue } from '@/lib/utils'
+import { toast } from '@/components/Toast'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { router, useLocalSearchParams } from 'expo-router'
 import { useState } from 'react'
-import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native'
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native'
 
 const COLUMN_TONE: Record<TaskStatus, { bg: string; border: string; dot: string }> = {
   TODO: { bg: 'rgba(245,245,244,0.8)', border: '#E7E5E4', dot: '#A8A29E' },
@@ -68,15 +69,16 @@ export default function ProjectBoardScreen() {
       setBlockTask(null)
       setMoveTask(null)
     },
-    onError: (err) => Alert.alert('That move is not allowed', apiError(err)),
+    onError: (err) => toast.error(apiError(err, 'That move is not allowed')),
   })
   const createTask = useMutation({
     mutationFn: async (payload: Record<string, unknown>) => api.post(`/projects/${id}/tasks`, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks', id] })
       setCreateOpen(false)
+      toast.success('Task created')
     },
-    onError: (err) => Alert.alert('Could not create task', apiError(err)),
+    onError: (err) => toast.error(apiError(err)),
   })
 
   const moveTo = (task: TaskItem, status: TaskStatus) => {

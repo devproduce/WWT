@@ -19,7 +19,8 @@ import * as FileSystem from 'expo-file-system/legacy'
 import * as Sharing from 'expo-sharing'
 import { router, useLocalSearchParams } from 'expo-router'
 import { useState } from 'react'
-import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native'
+import { toast } from '@/components/Toast'
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native'
 
 export default function TaskDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
@@ -67,7 +68,7 @@ export default function TaskDetailScreen() {
       refresh()
       setBlockOpen(false)
     },
-    onError: (err) => Alert.alert('Could not update status', apiError(err)),
+    onError: (err) => toast.error(apiError(err)),
   })
   const returnTask = useMutation({
     mutationFn: async (note: string) => api.post(`/tasks/${id}/return`, { comment: note }),
@@ -75,13 +76,13 @@ export default function TaskDetailScreen() {
       setReturnOpen(false)
       refresh()
     },
-    onError: (err) => Alert.alert('Could not return task', apiError(err)),
+    onError: (err) => toast.error(apiError(err)),
   })
   const addComment = useMutation({
     mutationFn: async ({ content, mentionedUserIds }: { content: string; mentionedUserIds: string[] }) =>
       api.post(`/tasks/${id}/comments`, { content, mentionedUserIds }),
     onSuccess: refresh,
-    onError: (err) => Alert.alert('Could not comment', apiError(err)),
+    onError: (err) => toast.error(apiError(err)),
   })
   const upload = useMutation({
     mutationFn: async () => {
@@ -101,7 +102,7 @@ export default function TaskDetailScreen() {
     onSuccess: (res) => {
       if (res) refresh()
     },
-    onError: (err) => Alert.alert('Upload failed', apiError(err, 'Check plan entitlements and storage quota')),
+    onError: (err) => toast.error(apiError(err, 'Check plan entitlements and storage quota')),
   })
 
   const download = async (file: AttachmentItem) => {
@@ -114,10 +115,10 @@ export default function TaskDetailScreen() {
       if (await Sharing.isAvailableAsync()) {
         await Sharing.shareAsync(result.uri)
       } else {
-        Alert.alert('Saved', file.originalName)
+        toast.success(file.originalName)
       }
     } catch (err) {
-      Alert.alert('Download failed', apiError(err))
+      toast.error(apiError(err))
     }
   }
 
@@ -134,7 +135,8 @@ export default function TaskDetailScreen() {
   const waitingOnPeople = (project.data?.members ?? []).filter((member) => member.id !== item.assigneeId)
 
   return (
-    <ScrollView contentContainerStyle={styles.page}>
+    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
+    <ScrollView contentContainerStyle={styles.page} keyboardShouldPersistTaps="handled">
       <PageHeader
         eyebrow="Task"
         title={item.title}
@@ -221,7 +223,7 @@ export default function TaskDetailScreen() {
                   api
                     .post(`/tasks/${id}/approve`)
                     .then(refresh)
-                    .catch((err) => Alert.alert('Could not approve', apiError(err)))
+                    .catch((err) => toast.error(apiError(err)))
                 }
               >
                 Approve
@@ -242,7 +244,7 @@ export default function TaskDetailScreen() {
                 api
                   .post(`/tasks/${id}/submit-review`)
                   .then(refresh)
-                  .catch((err) => Alert.alert('Could not submit', apiError(err)))
+                  .catch((err) => toast.error(apiError(err)))
               }
             >
               Submit for review
@@ -320,6 +322,7 @@ export default function TaskDetailScreen() {
         onConfirm={(payload) => move.mutate({ status: 'BLOCKED', ...payload })}
       />
     </ScrollView>
+    </KeyboardAvoidingView>
   )
 }
 

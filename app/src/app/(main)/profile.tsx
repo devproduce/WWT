@@ -11,7 +11,8 @@ import { colors, radii } from '@/theme/tokens'
 import type { NotificationPrefs } from '@/types'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
-import { Alert, Pressable, ScrollView, StyleSheet, Switch, View } from 'react-native'
+import { toast } from '@/components/Toast'
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Switch, View } from 'react-native'
 
 export default function ProfileScreen() {
   const { user, refreshMe } = useAuth()
@@ -33,24 +34,24 @@ export default function ProfileScreen() {
   const updatePrefs = useMutation({
     mutationFn: (patch: Partial<NotificationPrefs>) => api.patch('/me/notification-preferences', patch),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notification-prefs'] }),
-    onError: (err) => Alert.alert('Could not save preferences', apiError(err)),
+    onError: (err) => toast.error(apiError(err)),
   })
   const saveProfile = useMutation({
     mutationFn: async () => (await api.patch('/me', { firstName: firstName.trim(), lastName: lastName.trim() })).data,
     onSuccess: async () => {
       await refreshMe()
-      Alert.alert('Saved', 'Profile updated')
+      toast.success('Profile updated')
     },
-    onError: (err) => Alert.alert('Could not update profile', apiError(err)),
+    onError: (err) => toast.error(apiError(err)),
   })
   const savePassword = useMutation({
     mutationFn: async () => api.post('/me/password', { currentPassword, newPassword }),
     onSuccess: () => {
       setCurrentPassword('')
       setNewPassword('')
-      Alert.alert('Saved', 'Password updated')
+      toast.success('Password updated')
     },
-    onError: (err) => Alert.alert('Could not update password', apiError(err)),
+    onError: (err) => toast.error(apiError(err)),
   })
 
   if (!user) return null
@@ -65,7 +66,8 @@ export default function ProfileScreen() {
           : 'Member'
 
   return (
-    <ScrollView contentContainerStyle={styles.page}>
+    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
+    <ScrollView contentContainerStyle={styles.page} keyboardShouldPersistTaps="handled">
       <PageHeader eyebrow="Account" title="Profile" subtitle="Your details and how WeWorkTogether talks to you." />
       <Card>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
@@ -171,6 +173,7 @@ export default function ProfileScreen() {
         </View>
       </Card>
     </ScrollView>
+    </KeyboardAvoidingView>
   )
 }
 
