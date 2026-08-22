@@ -200,7 +200,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
 const styles = StyleSheet.create({
   wrap: { flex: 1 },
-  overlay: { ...StyleSheet.absoluteFillObject, flexDirection: 'row' },
+  overlay: { ...StyleSheet.absoluteFill, flexDirection: 'row' },
   drawer: {
     width: 256,
     backgroundColor: colors.sidebar,

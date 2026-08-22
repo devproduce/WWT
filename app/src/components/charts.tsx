@@ -40,7 +40,7 @@ export function RingChart({
           strokeLinecap="round"
         />
       </Svg>
-      <View style={StyleSheet.absoluteFillObject} pointerEvents="none">
+      <View style={StyleSheet.absoluteFill} pointerEvents="none">
         <View style={styles.center}>
           {label ?? <Text style={styles.pct}>{pct}%</Text>}
         </View>

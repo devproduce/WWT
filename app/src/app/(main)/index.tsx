@@ -241,7 +241,7 @@ const styles = StyleSheet.create({
   page: { padding: 16, gap: 16, paddingBottom: 40 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
   donut: { width: 148, height: 148 },
-  donutLabel: { ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center' },
+  donutLabel: { ...StyleSheet.absoluteFill, alignItems: 'center', justifyContent: 'center' },
   metrics: { gap: 12 },
   activity: { flexDirection: 'row', gap: 12, alignItems: 'flex-start' },
   rail: { gap: 12, paddingTop: 16, paddingRight: 8 },
