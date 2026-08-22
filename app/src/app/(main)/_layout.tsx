@@ -1,6 +1,7 @@
+import { AppShell } from '@/components/AppShell'
 import { useAuth } from '@/features/auth/AuthContext'
 import { colors } from '@/theme/tokens'
-import { Redirect, Slot } from 'expo-router'
+import { Redirect, Stack } from 'expo-router'
 import { ActivityIndicator, StyleSheet, View } from 'react-native'
 
 export default function MainLayout() {
@@ -13,7 +14,11 @@ export default function MainLayout() {
     )
   }
   if (!user) return <Redirect href="/login" />
-  return <Slot />
+  return (
+    <AppShell>
+      <Stack screenOptions={{ headerShown: false, animation: 'fade' }} />
+    </AppShell>
+  )
 }
 
 const styles = StyleSheet.create({
