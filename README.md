@@ -81,11 +81,22 @@ Open http://localhost:5173 and sign in as SuperAdmin.
 | Project Manager | Per-project assignment (not a global role). Tasks, Kanban, reviews. |
 | Member | Assigned tasks, comments, submit for review. Cannot mark DONE. |
 
+## Companion app docs
+
+To rebuild the same UI in **React Native (Expo)** against this API, start at [`docs/README.md`](./docs/README.md):
+
+- [`docs/REACT_NATIVE.md`](./docs/REACT_NATIVE.md) — how RN works vs Flutter
+- [`docs/REACT_NATIVE_UI_SPEC.md`](./docs/REACT_NATIVE_UI_SPEC.md) — theme, components, screens
+- [`docs/BACKEND_OVERVIEW.md`](./docs/BACKEND_OVERVIEW.md) — auth, roles, errors
+- [`docs/BACKEND_API_REFERENCE.md`](./docs/BACKEND_API_REFERENCE.md) — every endpoint
+- [`docs/BACKEND_DOMAIN_AND_WORKFLOWS.md`](./docs/BACKEND_DOMAIN_AND_WORKFLOWS.md) — task flow, My Day, quotas
+
 ## Project layout
 
 ```
 backend/    Spring Boot API (com.orgaflow)
 frontend/   Vite + React
+docs/       React Native + API reference for a companion app
 .github/    CI
 ```
 
