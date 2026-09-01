@@ -10,6 +10,13 @@ import { Badge, statusTone } from '@/components/ui/badge'
 import { Avatar } from '@/components/charts'
 import { useAuth } from '@/features/auth/AuthContext'
 import { api, apiError } from '@/services/api'
+import {
+  getPermissionState,
+  isPushSupported,
+  registerWebPush,
+  unregisterWebPush,
+  formatPushError,
+} from '@/services/pushNotifications'
 import type { NotificationPrefs } from '@/types'
 
 export function ProfilePage() {
@@ -19,6 +26,13 @@ export function ProfilePage() {
   const [lastName, setLastName] = useState(user?.lastName ?? '')
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
+  const [pushSupported, setPushSupported] = useState<boolean | null>(null)
+  const [permissionState, setPermissionState] = useState(getPermissionState())
+  const [enablingPush, setEnablingPush] = useState(false)
+
+  useEffect(() => {
+    void isPushSupported().then(setPushSupported)
+  }, [])
 
   useEffect(() => {
     setFirstName(user?.firstName ?? '')
@@ -145,6 +159,82 @@ export function ProfilePage() {
       </div>
 
       <Card>
+        <CardTitle>Browser notifications</CardTitle>
+        <p className="mt-1 text-sm text-teal-900/50">
+          Get notified when tasks are assigned, comments are added, or reviews need attention — even when this tab is in the background.
+        </p>
+        <div className="mt-5 space-y-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <PushStatusBadge
+              supported={pushSupported}
+              permission={permissionState}
+              enabled={prefs.data?.pushEnabled ?? true}
+            />
+          </div>
+          {pushSupported === false ? (
+            <p className="text-sm text-teal-900/50">This browser does not support push notifications.</p>
+          ) : (
+            <div className="flex flex-wrap gap-3">
+              {permissionState !== 'granted' && (
+                <Button
+                  disabled={enablingPush || permissionState === 'denied'}
+                  onClick={async () => {
+                    setEnablingPush(true)
+                    try {
+                      const token = await registerWebPush()
+                      setPermissionState(getPermissionState())
+                      if (token) {
+                        if (!prefs.data?.pushEnabled) {
+                          updatePrefs.mutate({ pushEnabled: true })
+                        } else {
+                          toast.success('Browser notifications enabled')
+                        }
+                      } else if (getPermissionState() === 'denied') {
+                        toast.error('Notifications are blocked in your browser settings')
+                      }
+                    } catch (err) {
+                      toast.error(formatPushError(err))
+                    } finally {
+                      setEnablingPush(false)
+                    }
+                  }}
+                >
+                  {permissionState === 'denied' ? 'Blocked in browser' : 'Enable notifications'}
+                </Button>
+              )}
+            </div>
+          )}
+          {prefs.data ? (
+            <PrefRow
+              label="Push notifications"
+              hint="Send browser alerts for workspace activity"
+              checked={prefs.data.pushEnabled}
+              disabled={updatePrefs.isPending || permissionState !== 'granted'}
+              onChange={async (pushEnabled) => {
+                if (!pushEnabled) {
+                  await unregisterWebPush()
+                }
+                updatePrefs.mutate(
+                  { pushEnabled },
+                  {
+                    onSuccess: async () => {
+                      if (pushEnabled) {
+                        await registerWebPush()
+                        setPermissionState(getPermissionState())
+                      }
+                      toast.success(pushEnabled ? 'Push notifications enabled' : 'Push notifications disabled')
+                    },
+                  },
+                )
+              }}
+            />
+          ) : (
+            <p className="text-sm text-teal-900/50">Loading preferences…</p>
+          )}
+        </div>
+      </Card>
+
+      <Card>
         <CardTitle>Email me about</CardTitle>
         <p className="mt-1 text-sm text-teal-900/50">
           Invites and password setup still send email. Other product emails are paused for now — these toggles are saved for when they come back.
@@ -188,6 +278,36 @@ export function ProfilePage() {
       </Card>
     </div>
   )
+}
+
+function PushStatusBadge({
+  supported,
+  permission,
+  enabled,
+}: {
+  supported: boolean | null
+  permission: ReturnType<typeof getPermissionState>
+  enabled: boolean
+}) {
+  let label = 'Checking…'
+  let tone: 'slate' | 'green' | 'amber' | 'red' = 'slate'
+  if (supported === false) {
+    label = 'Not supported'
+    tone = 'amber'
+  } else if (permission === 'denied') {
+    label = 'Blocked'
+    tone = 'red'
+  } else if (permission === 'granted' && enabled) {
+    label = 'On'
+    tone = 'green'
+  } else if (permission === 'granted') {
+    label = 'Off'
+    tone = 'slate'
+  } else {
+    label = 'Not enabled'
+    tone = 'slate'
+  }
+  return <Badge tone={tone}>{label}</Badge>
 }
 
 function PrefRow({

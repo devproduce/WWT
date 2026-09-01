@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { api, apiError, clearTokens, restoreSession, setTokens } from '@/services/api'
+import { syncWebPushRegistration, unregisterWebPush } from '@/services/pushNotifications'
 import type { AuthResponse, Me } from '@/types'
 
 interface AuthState {
@@ -21,6 +22,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const { data } = await api.get<Me>('/auth/me')
       setUser(data)
+      await syncWebPushRegistration()
     } catch {
       clearTokens()
       setUser(null)
@@ -50,14 +52,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const { data } = await api.post<AuthResponse>('/auth/login', { email, password })
         setTokens(data)
         setUser(data.user)
+        await syncWebPushRegistration()
       },
       setupPassword: async (token, password) => {
         const { data } = await api.post<AuthResponse>('/auth/setup-password', { token, password })
         setTokens(data)
         setUser(data.user)
+        await syncWebPushRegistration()
       },
       logout: async () => {
         try {
+          await unregisterWebPush()
           await api.post('/auth/logout')
         } finally {
           clearTokens()

@@ -36,4 +36,5 @@ public class User {
     private Boolean emailAssignments;
     private Boolean emailReviews;
     private Boolean emailDeadlines;
+    private Boolean pushEnabled;
 }

@@ -28,17 +28,20 @@ public class NotificationService {
     private final TaskRepository taskRepository;
     private final UserRepository userRepository;
     private final MailService mailService;
+    private final FcmPushService fcmPushService;
 
     public NotificationService(
             NotificationRepository notificationRepository,
             TaskRepository taskRepository,
             UserRepository userRepository,
-            MailService mailService
+            MailService mailService,
+            FcmPushService fcmPushService
     ) {
         this.notificationRepository = notificationRepository;
         this.taskRepository = taskRepository;
         this.userRepository = userRepository;
         this.mailService = mailService;
+        this.fcmPushService = fcmPushService;
     }
 
     public void notifyUser(
@@ -77,6 +80,22 @@ public class NotificationService {
         notification.setRead(false);
         notification.setCreatedAt(Instant.now());
         notificationRepository.save(notification);
+
+        userRepository.findById(recipientId).ifPresent(user -> {
+            NotificationPrefs prefs = NotificationPrefs.from(user);
+            if (fcmPushService.isEnabled() && NotificationPushPolicy.shouldPush(type, prefs)) {
+                fcmPushService.sendToUser(
+                        recipientId,
+                        title,
+                        message,
+                        notification.getId(),
+                        taskId,
+                        projectId,
+                        type.name()
+                );
+            }
+        });
+
         if (!sendEmail) {
             return;
         }
@@ -126,6 +145,9 @@ public class NotificationService {
         }
         if (request.emailDeadlines() != null) {
             user.setEmailDeadlines(request.emailDeadlines());
+        }
+        if (request.pushEnabled() != null) {
+            user.setPushEnabled(request.pushEnabled());
         }
         user.setUpdatedAt(Instant.now());
         userRepository.save(user);

@@ -236,6 +236,7 @@ export interface NotificationPrefs {
   emailAssignments: boolean
   emailReviews: boolean
   emailDeadlines: boolean
+  pushEnabled: boolean
 }
 
 export const WHY_LABEL: Record<string, string> = {

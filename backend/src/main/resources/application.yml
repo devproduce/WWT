@@ -44,6 +44,11 @@ app:
     from-name: ${MAIL_FROM_NAME:WeWorkTogether}
   contact:
     to: ${CONTACT_EMAIL:}
+  firebase:
+    enabled: ${FIREBASE_ENABLED:false}
+    project-id: ${FIREBASE_PROJECT_ID:weworktogether-b1d16}
+    service-account-path: ${FIREBASE_SERVICE_ACCOUNT_PATH:weworktogether-b1d16-firebase-adminsdk-fbsvc-3de1793cd8.json}
+    service-account-json: ${FIREBASE_SERVICE_ACCOUNT_JSON:}
 
 management:
   endpoints:

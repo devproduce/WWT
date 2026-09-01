@@ -13,8 +13,10 @@ import {
   Users,
 } from 'lucide-react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 import { useAuth } from '@/features/auth/AuthContext'
 import { api } from '@/services/api'
+import { listenForForegroundMessages } from '@/services/pushNotifications'
 import type { NotificationItem } from '@/types'
 import { formatDate, greetingFor } from '@/lib/utils'
 import { WwtMark } from '@/components/WwtMark'
@@ -67,6 +69,29 @@ export function AppLayout() {
       if (closeTimer.current) clearTimeout(closeTimer.current)
     }
   }, [])
+
+  useEffect(() => {
+    if (!user) return
+    let unsubscribe: (() => void) | undefined
+    void listenForForegroundMessages((payload) => {
+      const title = payload.notification?.title ?? 'Notification'
+      const body = payload.notification?.body
+      const taskId = payload.data?.taskId
+      toast.info(title, {
+        description: body,
+        action: taskId
+          ? {
+              label: 'Open',
+              onClick: () => navigate(`/app/tasks/${taskId}`),
+            }
+          : undefined,
+      })
+      void queryClient.invalidateQueries({ queryKey: ['notifications'] })
+    }).then((unsub) => {
+      unsubscribe = unsub
+    })
+    return () => unsubscribe?.()
+  }, [user, navigate, queryClient])
 
   if (!user) return null
 

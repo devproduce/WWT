@@ -4,6 +4,7 @@ public record UpdateNotificationPrefsRequest(
         Boolean emailComments,
         Boolean emailAssignments,
         Boolean emailReviews,
-        Boolean emailDeadlines
+        Boolean emailDeadlines,
+        Boolean pushEnabled
 ) {
 }
