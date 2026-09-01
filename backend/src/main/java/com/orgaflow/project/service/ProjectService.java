@@ -79,7 +79,7 @@ public class ProjectService {
         activityService.record(actor, org.getId(), project.getId(), null, ActivityType.PROJECT_CREATED,
                 actor.displayName() + " created project \"" + project.getName() + "\"");
         notifyProjectMembers(project, "You were added to project \"" + project.getName() + "\"");
-        return toResponse(project);
+        return toResponse(actor, project);
     }
 
     public List<ProjectResponse> list(CurrentUser actor) {
@@ -97,11 +97,11 @@ public class ProjectService {
             }
             projects = new ArrayList<>(visible.values());
         }
-        return projects.stream().map(this::toResponse).toList();
+        return projects.stream().map(p -> toResponse(actor, p)).toList();
     }
 
     public ProjectResponse get(CurrentUser actor, String id) {
-        return toResponse(accessGuard.requireProject(actor, id));
+        return toResponse(actor, accessGuard.requireProject(actor, id));
     }
 
     public ProjectResponse updateMembers(CurrentUser actor, String id, UpdateProjectMembersRequest request) {
@@ -129,7 +129,7 @@ public class ProjectService {
                         ActivityType.PROJECT_MEMBER_REMOVED, "A member was removed from the project");
             }
         }
-        return toResponse(project);
+        return toResponse(actor, project);
     }
 
     public ProjectResponse updateStatus(CurrentUser actor, String id, ProjectStatus status) {
@@ -137,13 +137,21 @@ public class ProjectService {
         project.setStatus(status);
         project.setUpdatedAt(Instant.now());
         projectRepository.save(project);
-        return toResponse(project);
+        return toResponse(actor, project);
     }
 
-    public ProjectResponse toResponse(Project project) {
+    public ProjectResponse toResponse(CurrentUser actor, Project project) {
         User manager = userRepository.findById(project.getManagerId()).orElse(null);
-        long total = taskRepository.countByProjectId(project.getId());
-        long done = taskRepository.countByProjectIdAndStatus(project.getId(), TaskStatus.DONE);
+        boolean canViewFullProgress = actor.isAdmin() || actor.id().equals(project.getManagerId());
+        long total;
+        long done;
+        if (canViewFullProgress) {
+            total = taskRepository.countByProjectId(project.getId());
+            done = taskRepository.countByProjectIdAndStatus(project.getId(), TaskStatus.DONE);
+        } else {
+            total = taskRepository.countByProjectIdAndAssigneeId(project.getId(), actor.id());
+            done = taskRepository.countByProjectIdAndAssigneeIdAndStatus(project.getId(), actor.id(), TaskStatus.DONE);
+        }
         List<ProjectResponse.MemberRef> members = project.getMemberIds().stream()
                 .map(memberId -> userRepository.findById(memberId)
                         .map(u -> new ProjectResponse.MemberRef(u.getId(), (u.getFirstName() + " " + u.getLastName()).trim()))
@@ -164,7 +172,8 @@ public class ProjectService {
                 project.getCreatedBy(),
                 project.getCreatedAt(),
                 total,
-                done
+                done,
+                canViewFullProgress
         );
     }
 

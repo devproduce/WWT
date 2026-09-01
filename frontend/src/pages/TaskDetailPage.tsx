@@ -15,6 +15,7 @@ import { PageHeader } from '@/components/PageHeader'
 import { ReturnNoteModal } from '@/components/ReturnNoteModal'
 import { BlockedReasonModal } from '@/components/BlockedReasonModal'
 import { CommentBody, CommentComposer } from '@/components/CommentComposer'
+import { TaskForm, assignablePeople } from '@/components/TaskForm'
 
 export function TaskDetailPage() {
   const { id } = useParams()
@@ -43,6 +44,7 @@ export function TaskDetailPage() {
   })
   const [returnOpen, setReturnOpen] = useState(false)
   const [blockOpen, setBlockOpen] = useState(false)
+  const [editOpen, setEditOpen] = useState(false)
   const refresh = () => {
     queryClient.invalidateQueries({ queryKey: ['task', id] })
     queryClient.invalidateQueries({ queryKey: ['comments', id] })
@@ -86,6 +88,15 @@ export function TaskDetailPage() {
     onSuccess: refresh,
     onError: (err) => toast.error(apiError(err, 'Upload failed — check plan entitlements and storage quota')),
   })
+  const updateTask = useMutation({
+    mutationFn: async (payload: Record<string, unknown>) => api.patch(`/tasks/${id}`, payload),
+    onSuccess: () => {
+      setEditOpen(false)
+      refresh()
+      toast.success('Task updated')
+    },
+    onError: (err) => toast.error(apiError(err)),
+  })
 
   if (!task.data) return <p className="py-16 text-center text-sm text-teal-900/50">Loading task…</p>
   const item = task.data
@@ -99,9 +110,16 @@ export function TaskDetailPage() {
         title={item.title}
         subtitle={item.description || 'No description yet.'}
         actions={
-          <Link to={`/app/projects/${item.projectId}`}>
-            <Button variant="secondary">Back to board</Button>
-          </Link>
+          <>
+            {item.canEdit && (
+              <Button variant="secondary" onClick={() => setEditOpen(true)} disabled={!project.data}>
+                Edit task
+              </Button>
+            )}
+            <Link to={`/app/projects/${item.projectId}`}>
+              <Button variant="secondary">Back to board</Button>
+            </Link>
+          </>
         }
       />
       {item.status === 'IN_PROGRESS' && item.lastReturnNote && (
@@ -269,6 +287,22 @@ export function TaskDetailPage() {
           pending={move.isPending}
           onCancel={() => setBlockOpen(false)}
           onConfirm={(payload) => move.mutate({ status: 'BLOCKED', ...payload })}
+        />
+      )}
+      {editOpen && project.data && (
+        <TaskForm
+          mode="edit"
+          initialValues={{
+            title: item.title,
+            description: item.description ?? '',
+            assigneeId: item.assigneeId ?? '',
+            priority: item.priority,
+            deadline: item.deadline ?? '',
+          }}
+          people={assignablePeople(project.data)}
+          pending={updateTask.isPending}
+          onClose={() => setEditOpen(false)}
+          onSubmit={(payload) => updateTask.mutate(payload)}
         />
       )}
     </div>

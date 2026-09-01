@@ -25,6 +25,10 @@ public interface TaskRepository extends MongoRepository<Task, String> {
 
     long countByProjectId(String projectId);
 
+    long countByProjectIdAndAssigneeId(String projectId, String assigneeId);
+
+    long countByProjectIdAndAssigneeIdAndStatus(String projectId, String assigneeId, TaskStatus status);
+
     long countByProjectIdAndStatusIn(String projectId, Collection<TaskStatus> statuses);
 
     List<Task> findByOrganizationIdAndDeadlineBetween(String organizationId, LocalDate from, LocalDate to);

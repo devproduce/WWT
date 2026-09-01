@@ -21,7 +21,8 @@ public record ProjectResponse(
         String createdBy,
         Instant createdAt,
         long totalTasks,
-        long doneTasks
+        long doneTasks,
+        boolean canViewFullProgress
 ) {
     public record MemberRef(String id, String name) {
     }

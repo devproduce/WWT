@@ -328,7 +328,8 @@ public class TaskService {
                 waitingOn == null ? null : displayName(waitingOn),
                 task.getBlockedAt(),
                 TaskWorkflow.allowedTargets(task.getStatus(), isAssignee, isProjectManager, actor.isAdmin()),
-                isProjectManager
+                isProjectManager,
+                actor.isAdmin() || isProjectManager
         );
     }
 

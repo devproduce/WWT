@@ -15,6 +15,7 @@ public record ProjectReportResponse(
         double completionPercent,
         long overdue,
         Map<String, Long> tasksByPriority,
-        List<MemberTaskStats> tasksByMember
+        List<MemberTaskStats> tasksByMember,
+        boolean canViewFullProgress
 ) {
 }

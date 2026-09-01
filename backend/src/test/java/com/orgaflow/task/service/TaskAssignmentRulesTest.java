@@ -9,20 +9,18 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class TaskAssignmentRulesTest {
 
     @Test
-    void onlyAdminCanAssignTaskToProjectManager() {
+    void projectManagerCanAssignTaskToThemselves() {
         Project project = project("pm1", List.of("pm1", "m2"));
         CurrentUser admin = user("admin", Role.ADMIN);
         CurrentUser pm = user("pm1", Role.MEMBER);
 
         assertDoesNotThrow(() -> TaskAssignmentRules.validate(admin, project, "pm1"));
-        ApiException ex = assertThrows(ApiException.class, () -> TaskAssignmentRules.validate(pm, project, "pm1"));
-        assertEquals("FORBIDDEN", ex.getCode());
+        assertDoesNotThrow(() -> TaskAssignmentRules.validate(pm, project, "pm1"));
     }
 
     @Test

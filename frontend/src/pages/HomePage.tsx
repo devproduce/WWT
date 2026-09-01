@@ -23,7 +23,7 @@ import { RingChart, StatusDonut, Avatar } from '@/components/charts'
 import { STATUS_SEGMENTS } from '@/components/StatusStack'
 import { useAuth } from '@/features/auth/AuthContext'
 import { api } from '@/services/api'
-import { cn, formatDate, formatDay, num, str, utilization, deadlineClockRunning } from '@/lib/utils'
+import { cn, formatDate, formatDay, isTaskDueSoon, isTaskOverdue, num, str, utilization, deadlineClockRunning } from '@/lib/utils'
 import type { Dashboard } from '@/types'
 import { MyDayPanel } from '@/components/MyDayPanel'
 
@@ -390,7 +390,6 @@ function AdminHome({ data }: { data: Dashboard }) {
 
 function MemberHome({ data }: { data: Dashboard }) {
   const m = data.metrics
-  const [filter, setFilter] = useState<'ALL' | 'OVERDUE' | 'SOON' | 'REVIEW' | 'PRIORITY'>('ALL')
   const tasks = data.items as Record<string, unknown>[]
   const donutSegments = STATUS_SEGMENTS.map((segment) => ({
     color: segment.color,
@@ -434,8 +433,7 @@ function MemberHome({ data }: { data: Dashboard }) {
             value={num(m.overdue)}
             icon={<AlertTriangle className="h-5 w-5" />}
             tone="coral"
-            active={filter === 'OVERDUE'}
-            onClick={() => setFilter(filter === 'OVERDUE' ? 'ALL' : 'OVERDUE')}
+            to={kanbanBoardHref(tasks, 'OVERDUE')}
             ring={{ value: num(m.overdue), max: assigned }}
           />
           <MetricCard
@@ -443,8 +441,7 @@ function MemberHome({ data }: { data: Dashboard }) {
             value={num(m.dueSoon)}
             icon={<CalendarClock className="h-5 w-5" />}
             tone="amber"
-            active={filter === 'SOON'}
-            onClick={() => setFilter(filter === 'SOON' ? 'ALL' : 'SOON')}
+            to={kanbanBoardHref(tasks, 'SOON')}
             ring={{ value: num(m.dueSoon), max: assigned }}
           />
           <MetricCard
@@ -452,8 +449,7 @@ function MemberHome({ data }: { data: Dashboard }) {
             value={num(m.awaitingReview)}
             icon={<CheckCircle2 className="h-5 w-5" />}
             tone="violet"
-            active={filter === 'REVIEW'}
-            onClick={() => setFilter(filter === 'REVIEW' ? 'ALL' : 'REVIEW')}
+            to={kanbanBoardHref(tasks, 'REVIEW')}
             ring={{ value: num(m.awaitingReview), max: assigned }}
           />
           <MetricCard
@@ -461,8 +457,7 @@ function MemberHome({ data }: { data: Dashboard }) {
             value={num(m.highPriority)}
             icon={<Zap className="h-5 w-5" />}
             tone="sky"
-            active={filter === 'PRIORITY'}
-            onClick={() => setFilter(filter === 'PRIORITY' ? 'ALL' : 'PRIORITY')}
+            to={kanbanBoardHref(tasks, 'PRIORITY')}
             ring={{ value: num(m.highPriority), max: assigned }}
           />
         </div>
@@ -504,7 +499,7 @@ function MemberHome({ data }: { data: Dashboard }) {
         <CardTitle>Due timeline</CardTitle>
         <DueRail tasks={tasks} />
       </Card>
-      <MyDayPanel filter={filter} />
+      <MyDayPanel />
       {Array.isArray(m.recentActivity) && (m.recentActivity as Record<string, unknown>[]).length > 0 && (
         <Card>
           <CardTitle>Recent activity</CardTitle>
@@ -533,6 +528,37 @@ function MemberHome({ data }: { data: Dashboard }) {
       )}
     </div>
   )
+}
+
+function kanbanBoardHref(tasks: Record<string, unknown>[], focus: 'OVERDUE' | 'SOON' | 'REVIEW' | 'PRIORITY') {
+  const matching = tasks.filter((task) => matchesWorkFocus(task, focus))
+  if (matching.length === 0) return '/app/projects'
+
+  const counts = new Map<string, number>()
+  for (const task of matching) {
+    const projectId = str(task.projectId)
+    if (!projectId) continue
+    counts.set(projectId, (counts.get(projectId) ?? 0) + 1)
+  }
+  if (counts.size === 0) return '/app/projects'
+
+  let projectId = ''
+  let bestCount = 0
+  for (const [id, count] of counts) {
+    if (count > bestCount) {
+      projectId = id
+      bestCount = count
+    }
+  }
+  return `/app/projects/${projectId}?focus=${focus}`
+}
+
+function matchesWorkFocus(task: Record<string, unknown>, focus: 'OVERDUE' | 'SOON' | 'REVIEW' | 'PRIORITY') {
+  const snapshot = { deadline: str(task.deadline), status: str(task.status), priority: str(task.priority) }
+  if (focus === 'OVERDUE') return isTaskOverdue(snapshot)
+  if (focus === 'SOON') return isTaskDueSoon(snapshot)
+  if (focus === 'REVIEW') return snapshot.status === 'REVIEW'
+  return snapshot.priority === 'HIGH' || snapshot.priority === 'URGENT'
 }
 
 function activityHref(event: Record<string, unknown>) {

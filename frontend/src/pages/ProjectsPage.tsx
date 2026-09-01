@@ -80,7 +80,8 @@ export function ProjectsPage() {
                   <RingChart value={project.doneTasks} max={project.totalTasks || 1} size={68} stroke={8} />
                   <div className="min-w-0 flex-1">
                     <div className="text-sm font-medium text-teal-950">
-                      {project.doneTasks}/{project.totalTasks} complete
+                      {project.doneTasks}/{project.totalTasks}{' '}
+                      {project.canViewFullProgress ? 'complete' : 'your tasks done'}
                     </div>
                     <div className="mt-2 h-2 overflow-hidden rounded-full bg-teal-900/8">
                       <div

@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { EyeOff, Pin, PinOff } from 'lucide-react'
 import { toast } from 'sonner'
 import { Badge, statusTone } from '@/components/ui/badge'
@@ -153,8 +153,22 @@ function MyDayRowCard({
   onAction?: () => void
 }) {
   const task = item.task
+  const navigate = useNavigate()
+  const openTask = () => navigate(`/app/tasks/${task.id}`)
+
   return (
-    <div className="app-ease flex items-center gap-3 rounded-2xl border border-teal-900/8 bg-white/70 px-3 py-3">
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={openTask}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault()
+          openTask()
+        }
+      }}
+      className="app-ease flex cursor-pointer items-center gap-3 rounded-2xl border border-teal-900/8 bg-white/70 px-3 py-3 hover:border-teal-700/20"
+    >
       <span
         className={cn(
           'h-10 w-1.5 rounded-full',
@@ -162,9 +176,7 @@ function MyDayRowCard({
         )}
       />
       <div className="min-w-0 flex-1">
-        <Link to={`/app/tasks/${task.id}`} className="block truncate font-medium text-teal-950 hover:text-teal-700">
-          {task.title}
-        </Link>
+        <div className="truncate font-medium text-teal-950">{task.title}</div>
         <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-teal-900/50">
           <span>{item.projectName}</span>
           <span>·</span>
@@ -175,23 +187,23 @@ function MyDayRowCard({
           )}
         </div>
       </div>
-      <div className="flex flex-wrap items-center justify-end gap-1">
+      <div className="flex flex-wrap items-center justify-end gap-1" onClick={(event) => event.stopPropagation()}>
         {task.status === 'IN_PROGRESS' && <Badge tone="amber">Going on now</Badge>}
         <Badge tone={item.overdue && item.why !== 'IN_PROGRESS' ? 'red' : statusTone(String(item.why))}>
           {WHY_LABEL[item.why] ?? item.why}
         </Badge>
         {waiting ? (
-          <Link to={`/app/tasks/${task.id}`}>
-            <Button variant="secondary">Open</Button>
-          </Link>
+          <Button variant="secondary" onClick={openTask}>
+            Open
+          </Button>
         ) : (
           <>
             {onAction && item.primaryAction === 'START' && <Button onClick={onAction}>Start</Button>}
             {onAction && item.primaryAction === 'SUBMIT_REVIEW' && <Button onClick={onAction}>Submit</Button>}
-            <button type="button" className="rounded-full p-2 text-teal-800/60 hover:bg-teal-50" onClick={onPin} aria-label={item.pinned ? 'Unpin' : 'Pin'}>
+            <button type="button" className="rounded-full p-2 text-teal-800/60 hover:bg-teal-50" onClick={() => onPin?.()} aria-label={item.pinned ? 'Unpin' : 'Pin'}>
               {item.pinned ? <PinOff className="h-4 w-4" /> : <Pin className="h-4 w-4" />}
             </button>
-            <button type="button" className="rounded-full p-2 text-teal-800/60 hover:bg-teal-50" onClick={onHide} aria-label="Hide until tomorrow">
+            <button type="button" className="rounded-full p-2 text-teal-800/60 hover:bg-teal-50" onClick={() => onHide?.()} aria-label="Hide until tomorrow">
               <EyeOff className="h-4 w-4" />
             </button>
           </>

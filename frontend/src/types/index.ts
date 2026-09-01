@@ -96,6 +96,7 @@ export interface Project {
   createdAt: string
   totalTasks: number
   doneTasks: number
+  canViewFullProgress: boolean
 }
 
 export interface TaskItem {
@@ -121,6 +122,7 @@ export interface TaskItem {
   blockedAt: string | null
   allowedTransitions: TaskStatus[]
   canReview: boolean
+  canEdit: boolean
 }
 
 export interface CommentItem {
@@ -177,6 +179,7 @@ export interface ProjectReport {
   overdue: number
   tasksByPriority: Record<string, number>
   tasksByMember: { name: string; completed: number; assigned: number }[]
+  canViewFullProgress: boolean
 }
 
 export interface AttachmentItem {

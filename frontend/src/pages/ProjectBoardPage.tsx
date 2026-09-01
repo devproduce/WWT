@@ -1,13 +1,10 @@
 import { DndContext, PointerSensor, useDraggable, useDroppable, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useState, type FormEvent } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 import { Badge, statusTone } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardTitle } from '@/components/ui/card'
-import { Field } from '@/components/ui/field'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
 import { Modal } from '@/components/ui/modal'
 import { PageHeader } from '@/components/PageHeader'
 import { QuotaMeter } from '@/components/QuotaMeter'
@@ -16,11 +13,12 @@ import { StatusStack } from '@/components/StatusStack'
 import { useAuth } from '@/features/auth/AuthContext'
 import { api, apiError } from '@/services/api'
 import { cn, formatDay, isTaskOverdue } from '@/lib/utils'
-import type { Member, Project, ProjectReport, TaskItem, TaskPriority, TaskStatus } from '@/types'
+import type { Member, Project, ProjectReport, TaskItem, TaskStatus } from '@/types'
 import { TASK_COLUMNS } from '@/types'
 import { toast } from 'sonner'
 import { CSS } from '@dnd-kit/utilities'
 import { BlockedReasonModal } from '@/components/BlockedReasonModal'
+import { TaskForm, assignablePeople } from '@/components/TaskForm'
 
 const COLUMN_PREVIEW = 5
 
@@ -50,7 +48,7 @@ export function ProjectBoardPage() {
   })
   const report = useQuery({
     queryKey: ['report', id],
-    enabled: Boolean(id) && (user?.role === 'ADMIN' || user?.id === project.data?.managerId),
+    enabled: Boolean(id),
     queryFn: async () => (await api.get<ProjectReport>(`/projects/${id}/report`)).data,
   })
   const orgMembers = useQuery({
@@ -122,13 +120,17 @@ export function ProjectBoardPage() {
 
   if (!project.data) return <p className="py-16 text-center text-sm text-teal-900/50">Loading project…</p>
   const items = tasks.data ?? []
+  const canViewFullProgress = project.data.canViewFullProgress
+  const progressSubtitle = canViewFullProgress
+    ? `PM ${project.data.managerName} · ${project.data.doneTasks}/${project.data.totalTasks} done`
+    : `Your tasks · ${project.data.doneTasks}/${project.data.totalTasks} done`
 
   return (
     <div className="space-y-5">
       <PageHeader
         eyebrow="Board"
         title={project.data.name}
-        subtitle={`PM ${project.data.managerName} · ${project.data.doneTasks}/${project.data.totalTasks} done`}
+        subtitle={progressSubtitle}
         actions={
           <>
             {isAdmin && (
@@ -141,11 +143,11 @@ export function ProjectBoardPage() {
         }
       />
       {report.data && (
-        <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
+        <div className={cn('grid gap-4', canViewFullProgress && 'lg:grid-cols-[1.1fr_0.9fr]')}>
           <Card className="flex items-center gap-5">
             <RingChart value={report.data.completionPercent} max={100} size={108} stroke={11} />
             <div className="min-w-0 flex-1">
-              <CardTitle>Delivery</CardTitle>
+              <CardTitle>{canViewFullProgress ? 'Delivery' : 'My progress'}</CardTitle>
               <p className="mt-1 text-sm text-teal-900/50">
                 {report.data.overdue} overdue · {report.data.review} in review
               </p>
@@ -162,23 +164,25 @@ export function ProjectBoardPage() {
               </div>
             </div>
           </Card>
-          <Card>
-            <CardTitle>By member</CardTitle>
-            <p className="mt-1 text-sm text-teal-900/50">Completed (review or done) out of each member's assigned tasks.</p>
-            <div className="mt-4 space-y-3">
-              {report.data.tasksByMember.map((row) => (
-                <QuotaMeter
-                  key={row.name}
-                  label={row.name}
-                  used={row.completed}
-                  max={Math.max(row.assigned, 1)}
-                />
-              ))}
-              {report.data.tasksByMember.length === 0 && (
-                <p className="text-sm text-teal-900/50">No assigned work yet.</p>
-              )}
-            </div>
-          </Card>
+          {canViewFullProgress && (
+            <Card>
+              <CardTitle>By member</CardTitle>
+              <p className="mt-1 text-sm text-teal-900/50">Completed (review or done) out of each member's assigned tasks.</p>
+              <div className="mt-4 space-y-3">
+                {report.data.tasksByMember.map((row) => (
+                  <QuotaMeter
+                    key={row.name}
+                    label={row.name}
+                    used={row.completed}
+                    max={Math.max(row.assigned, 1)}
+                  />
+                ))}
+                {report.data.tasksByMember.length === 0 && (
+                  <p className="text-sm text-teal-900/50">No assigned work yet.</p>
+                )}
+              </div>
+            </Card>
+          )}
         </div>
       )}
       <DndContext sensors={sensors} onDragEnd={onDragEnd}>
@@ -189,8 +193,9 @@ export function ProjectBoardPage() {
         </div>
       </DndContext>
       {createOpen && project.data && (
-        <CreateTaskForm
-          people={assignablePeople(project.data, user?.role === 'ADMIN')}
+        <TaskForm
+          mode="create"
+          people={assignablePeople(project.data)}
           pending={createTask.isPending}
           onClose={() => setCreateOpen(false)}
           onSubmit={(payload) => createTask.mutate(payload)}
@@ -277,11 +282,26 @@ function Column({ id, label, tasks }: { id: TaskStatus; label: string; tasks: Ta
 }
 
 function TaskCard({ task, draggable = true }: { task: TaskItem; draggable?: boolean }) {
+  const navigate = useNavigate()
+  const skipClick = useRef(false)
   const canDrag = draggable && (task.allowedTransitions ?? []).length > 0
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: task.id,
     disabled: !canDrag,
   })
+
+  useEffect(() => {
+    if (isDragging) skipClick.current = true
+  }, [isDragging])
+
+  const openTask = () => {
+    if (skipClick.current) {
+      skipClick.current = false
+      return
+    }
+    navigate(`/app/tasks/${task.id}`)
+  }
+
   const style = { transform: CSS.Translate.toString(transform), opacity: isDragging ? 0.6 : 1 }
   const overdue = isTaskOverdue(task)
   const priorityEdge =
@@ -298,16 +318,23 @@ function TaskCard({ task, draggable = true }: { task: TaskItem; draggable?: bool
       style={canDrag ? style : undefined}
       {...(canDrag ? listeners : {})}
       {...(canDrag ? attributes : {})}
+      role="button"
+      tabIndex={0}
+      onClick={openTask}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault()
+          openTask()
+        }
+      }}
       className={cn(
         'app-card app-card-lift relative overflow-hidden rounded-2xl p-3.5 shadow-[0_10px_24px_rgb(15_61_56_/_0.06)]',
-        canDrag ? 'cursor-grab' : 'cursor-default',
+        canDrag ? 'cursor-grab' : 'cursor-pointer',
       )}
     >
-      <span className={cn('absolute inset-y-0 left-0 w-1', priorityEdge)} />
-      <Link to={`/app/tasks/${task.id}`} className="block pl-2 font-medium leading-snug text-teal-950 hover:text-teal-700">
-        {task.title}
-      </Link>
-      <div className="mt-3 flex items-center justify-between gap-2 pl-2">
+      <span className={cn('pointer-events-none absolute inset-y-0 left-0 w-1', priorityEdge)} />
+      <div className="pointer-events-none pl-2 font-medium leading-snug text-teal-950">{task.title}</div>
+      <div className="pointer-events-none mt-3 flex items-center justify-between gap-2 pl-2">
         <div className="flex min-w-0 items-center gap-2">
           {task.assigneeName ? (
             <>
@@ -327,7 +354,7 @@ function TaskCard({ task, draggable = true }: { task: TaskItem; draggable?: bool
           {formatDay(task.deadline)}
         </span>
       </div>
-      <div className="mt-2 flex flex-wrap gap-1 pl-2">
+      <div className="pointer-events-none mt-2 flex flex-wrap gap-1 pl-2">
         <Badge tone={statusTone(task.priority)}>{task.priority}</Badge>
         {task.status === 'BLOCKED' && task.blockedReason && (
           <span className="truncate rounded-full bg-rose-50 px-2 py-0.5 text-[10px] text-rose-800">
@@ -337,97 +364,6 @@ function TaskCard({ task, draggable = true }: { task: TaskItem; draggable?: bool
       </div>
     </div>
   )
-}
-
-function CreateTaskForm({
-  people,
-  pending,
-  onClose,
-  onSubmit,
-}: {
-  people: { id: string; name: string }[]
-  pending: boolean
-  onClose: () => void
-  onSubmit: (payload: Record<string, unknown>) => void
-}) {
-  const [form, setForm] = useState({
-    title: '',
-    description: '',
-    assigneeId: '',
-    priority: 'MEDIUM' as TaskPriority,
-    deadline: '',
-  })
-  const submit = (event: FormEvent) => {
-    event.preventDefault()
-    onSubmit({
-      title: form.title,
-      description: form.description,
-      assigneeId: form.assigneeId || null,
-      priority: form.priority,
-      deadline: form.deadline || null,
-    })
-  }
-  return (
-    <Modal>
-      <form className="space-y-3" onSubmit={submit}>
-        <h2 className="text-lg font-semibold text-teal-950">New task</h2>
-        <Field label="Title">
-          <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required />
-        </Field>
-        <Field label="Description">
-          <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
-        </Field>
-        <Field label="Assignee">
-          <select
-            className="app-select"
-            value={form.assigneeId}
-            onChange={(e) => setForm({ ...form, assigneeId: e.target.value })}
-          >
-            <option value="">Unassigned</option>
-            {people.map((m) => (
-              <option key={m.id} value={m.id}>
-                {m.name}
-              </option>
-            ))}
-          </select>
-          {people.length === 0 && (
-            <p className="mt-1 text-xs text-teal-900/50">
-              No assignable members yet. An Admin must add members to this project first. Only Admin can assign work to the Project Manager.
-            </p>
-          )}
-        </Field>
-        <Field label="Priority">
-          <select
-            className="app-select"
-            value={form.priority}
-            onChange={(e) => setForm({ ...form, priority: e.target.value as TaskPriority })}
-          >
-            <option>LOW</option>
-            <option>MEDIUM</option>
-            <option>HIGH</option>
-            <option>URGENT</option>
-          </select>
-        </Field>
-        <Field label="Deadline">
-          <Input type="date" value={form.deadline} onChange={(e) => setForm({ ...form, deadline: e.target.value })} />
-        </Field>
-        <div className="flex justify-end gap-2">
-          <Button type="button" variant="secondary" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button disabled={pending}>Create</Button>
-        </div>
-      </form>
-    </Modal>
-  )
-}
-
-function assignablePeople(project: Project, isAdmin: boolean) {
-  const members = project.members ?? []
-  if (isAdmin) {
-    return members
-  }
-  return members.filter((member) => member.id !== project.managerId)
 }
 
 function ManageMembersForm({

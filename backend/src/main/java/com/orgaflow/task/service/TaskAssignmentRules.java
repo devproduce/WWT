@@ -17,8 +17,5 @@ public final class TaskAssignmentRules {
         if (!onProject) {
             throw ApiException.badRequest("Assignee must be a member of this project");
         }
-        if (assigneeId.equals(project.getManagerId()) && !actor.isAdmin()) {
-            throw ApiException.forbidden("Only the organization Admin can assign a task to the Project Manager");
-        }
     }
 }

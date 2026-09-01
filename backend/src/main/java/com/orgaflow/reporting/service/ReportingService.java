@@ -34,8 +34,12 @@ public class ReportingService {
     }
 
     public ProjectReportResponse projectReport(CurrentUser actor, String projectId) {
-        Project project = accessGuard.requireProjectManagerOrAdmin(actor, projectId);
+        Project project = accessGuard.requireProject(actor, projectId);
         List<Task> tasks = taskRepository.findByProjectIdAndOrganizationId(project.getId(), project.getOrganizationId());
+        boolean canViewFullProgress = actor.isAdmin() || actor.id().equals(project.getManagerId());
+        if (!canViewFullProgress) {
+            tasks = tasks.stream().filter(t -> actor.id().equals(t.getAssigneeId())).toList();
+        }
         long total = tasks.size();
         long todo = count(tasks, TaskStatus.TODO);
         long inProgress = count(tasks, TaskStatus.IN_PROGRESS);
@@ -47,25 +51,27 @@ public class ReportingService {
         for (TaskPriority priority : TaskPriority.values()) {
             byPriority.put(priority.name(), tasks.stream().filter(t -> t.getPriority() == priority).count());
         }
-        Map<String, long[]> byMember = new LinkedHashMap<>();
-        for (Task task : tasks) {
-            if (task.getAssigneeId() == null || task.getAssigneeId().isBlank()) {
-                continue;
-            }
-            String key = userRepository.findById(task.getAssigneeId())
-                    .map(u -> u.getFirstName() + " " + u.getLastName())
-                    .orElse("Unknown");
-            long[] slot = byMember.computeIfAbsent(key, ignored -> new long[2]);
-            slot[1]++;
-            if (task.getStatus() == TaskStatus.REVIEW || task.getStatus() == TaskStatus.DONE) {
-                slot[0]++;
-            }
-        }
         List<MemberTaskStats> memberStats = new ArrayList<>();
-        for (Map.Entry<String, long[]> entry : byMember.entrySet()) {
-            memberStats.add(new MemberTaskStats(entry.getKey(), entry.getValue()[0], entry.getValue()[1]));
+        if (canViewFullProgress) {
+            Map<String, long[]> byMember = new LinkedHashMap<>();
+            for (Task task : tasks) {
+                if (task.getAssigneeId() == null || task.getAssigneeId().isBlank()) {
+                    continue;
+                }
+                String key = userRepository.findById(task.getAssigneeId())
+                        .map(u -> u.getFirstName() + " " + u.getLastName())
+                        .orElse("Unknown");
+                long[] slot = byMember.computeIfAbsent(key, ignored -> new long[2]);
+                slot[1]++;
+                if (task.getStatus() == TaskStatus.REVIEW || task.getStatus() == TaskStatus.DONE) {
+                    slot[0]++;
+                }
+            }
+            for (Map.Entry<String, long[]> entry : byMember.entrySet()) {
+                memberStats.add(new MemberTaskStats(entry.getKey(), entry.getValue()[0], entry.getValue()[1]));
+            }
+            memberStats.sort(Comparator.comparingLong(MemberTaskStats::completed).reversed());
         }
-        memberStats.sort(Comparator.comparingLong(MemberTaskStats::completed).reversed());
         double percent = total == 0 ? 0 : (done * 100.0 / total);
         return new ProjectReportResponse(
                 project.getId(),
@@ -79,7 +85,8 @@ public class ReportingService {
                 Math.round(percent * 10.0) / 10.0,
                 overdue,
                 byPriority,
-                memberStats
+                memberStats,
+                canViewFullProgress
         );
     }
 

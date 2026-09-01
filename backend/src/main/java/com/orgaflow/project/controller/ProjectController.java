@@ -10,6 +10,7 @@ import com.orgaflow.project.dto.ProjectResponse;
 import com.orgaflow.project.dto.UpdateProjectMembersRequest;
 import com.orgaflow.project.model.Project;
 import com.orgaflow.project.service.ProjectService;
+import com.orgaflow.task.repository.TaskRepository;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -29,11 +30,18 @@ public class ProjectController {
     private final ProjectService projectService;
     private final AccessGuard accessGuard;
     private final ActivityService activityService;
+    private final TaskRepository taskRepository;
 
-    public ProjectController(ProjectService projectService, AccessGuard accessGuard, ActivityService activityService) {
+    public ProjectController(
+            ProjectService projectService,
+            AccessGuard accessGuard,
+            ActivityService activityService,
+            TaskRepository taskRepository
+    ) {
         this.projectService = projectService;
         this.accessGuard = accessGuard;
         this.activityService = activityService;
+        this.taskRepository = taskRepository;
     }
 
     @PostMapping
@@ -64,6 +72,19 @@ public class ProjectController {
     @GetMapping("/{id}/activity")
     public List<Activity> activity(CurrentUser user, @PathVariable String id) {
         Project project = accessGuard.requireProject(user, id);
-        return activityService.forProject(project.getId(), project.getOrganizationId());
+        boolean canViewFullProgress = user.isAdmin() || user.id().equals(project.getManagerId());
+        return activityService.forProject(project.getId(), project.getOrganizationId()).stream()
+                .filter(activity -> {
+                    if (canViewFullProgress) {
+                        return true;
+                    }
+                    if (activity.getTaskId() == null || activity.getTaskId().isBlank()) {
+                        return false;
+                    }
+                    return taskRepository.findByIdAndOrganizationId(activity.getTaskId(), project.getOrganizationId())
+                            .map(task -> accessGuard.canSeeTask(user, project, task))
+                            .orElse(false);
+                })
+                .toList();
     }
 }

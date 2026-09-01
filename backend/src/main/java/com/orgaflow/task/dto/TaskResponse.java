@@ -29,6 +29,7 @@ public record TaskResponse(
         String blockedWaitingOnName,
         Instant blockedAt,
         Set<TaskStatus> allowedTransitions,
-        boolean canReview
+        boolean canReview,
+        boolean canEdit
 ) {
 }
