@@ -35,7 +35,7 @@ app:
     password: ${SUPERADMIN_PASSWORD:ChangeMe_Admin1!}
     name: ${SUPERADMIN_NAME:Platform Owner}
   cors:
-    origins: ${CORS_ORIGINS:http://localhost:5173,https://weworktogether.me,https://www.weworktogether.me}
+    origins: ${CORS_ORIGINS:http://localhost:5173,http://localhost:8081,https://weworktogether.me,https://www.weworktogether.me}
   storage:
     dir: ${STORAGE_DIR:./uploads}
     max-file-bytes: ${MAX_FILE_BYTES:10485760}

@@ -2,7 +2,7 @@ import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios'
 import * as SecureStore from 'expo-secure-store'
 import type { AuthResponse } from '@/types'
 
-export const API_BASE_URL = (process.env.EXPO_PUBLIC_API_BASE_URL ?? 'https://api.weworktogether.me').replace(/\/$/, '')
+export const API_BASE_URL = (process.env.EXPO_PUBLIC_API_BASE_URL ?? 'http://localhost:8080').replace(/\/$/, '')
 const REFRESH_KEY = 'wwt_refresh'
 const SKIP_REFRESH = [
   '/auth/login',

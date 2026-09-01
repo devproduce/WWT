@@ -11,6 +11,40 @@ npx expo start
 
 Then open Expo Go, an iOS simulator, or an Android emulator.
 
+### Install on Android phone (USB)
+
+Requires [Android Studio](https://developer.android.com/studio) with **Android SDK Platform-Tools** installed (default: `%LOCALAPPDATA%\Android\Sdk`).
+
+1. Enable **USB debugging** on the phone and connect over USB.
+2. Point Gradle at the SDK — create `app/android/local.properties` (gitignored with `android/`):
+
+   ```
+   sdk.dir=C\:\\Users\\YOUR_NAME\\AppData\\Local\\Android\\Sdk
+   ```
+
+   Or set `ANDROID_HOME` to that folder in Windows environment variables.
+
+3. Build and install (keep the phone unlocked and connected — first build can take 10–15 minutes):
+
+   ```bash
+   cd app
+   npx expo run:android --device
+   ```
+
+If the build succeeds but install fails because the device disconnected, reconnect USB and install the APK manually:
+
+```bash
+adb install -r android/app/build/outputs/apk/debug/app-debug.apk
+```
+
+Then start Metro for live reload:
+
+```bash
+npx expo start
+```
+
+**Expo Go:** This project uses Expo SDK 57. If Play Store Expo Go is too old, use a dev build (`run:android`) instead of scanning the QR code.
+
 ## API URL
 
 Public env var: `EXPO_PUBLIC_API_BASE_URL`. Do not put secrets in `.env`.
