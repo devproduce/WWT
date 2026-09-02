@@ -24,6 +24,7 @@ export function ReviewInboxPage() {
     queryKey: ['review-queue'],
     queryFn: async () => (await api.get<ReviewQueueItem[]>('/reviews')).data,
   })
+
   const refresh = () => {
     queryClient.invalidateQueries({ queryKey: ['review-queue'] })
     queryClient.invalidateQueries({ queryKey: ['dashboard'] })

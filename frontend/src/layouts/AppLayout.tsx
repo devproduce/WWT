@@ -1,6 +1,5 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
-  Bell,
   Building2,
   ClipboardList,
   FolderKanban,
@@ -11,33 +10,40 @@ import {
   PanelLeftClose,
   UserRound,
   Users,
+  Bell,
 } from 'lucide-react'
-import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { useAuth } from '@/features/auth/AuthContext'
-import { api } from '@/services/api'
 import { PushToastCard } from '@/components/PushToastCard'
+import { NotificationPanel } from '@/components/NotificationPanel'
 import { listenForForegroundMessages } from '@/services/pushNotifications'
-import type { NotificationItem } from '@/types'
-import { formatDate, greetingFor } from '@/lib/utils'
+import {
+  fetchNotifications,
+  NOTIFICATIONS_QUERY_KEY,
+} from '@/features/notifications/api'
+import { greetingFor } from '@/lib/utils'
 import { WwtMark } from '@/components/WwtMark'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
+
+type NavItem = {
+  to: string
+  label: string
+  icon: ReactNode
+}
 
 export function AppLayout() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [notificationsOpen, setNotificationsOpen] = useState(false)
+  const bellRef = useRef<HTMLButtonElement>(null)
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const queryClient = useQueryClient()
   const notifications = useQuery({
-    queryKey: ['notifications'],
-    queryFn: async () => (await api.get<{ unreadCount: number; items: NotificationItem[] }>('/notifications')).data,
+    queryKey: NOTIFICATIONS_QUERY_KEY,
+    queryFn: fetchNotifications,
     refetchInterval: 30000,
-  })
-  const markAll = useMutation({
-    mutationFn: () => api.post('/notifications/read-all'),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notifications'] }),
   })
 
   const cancelSidebarClose = () => {
@@ -93,7 +99,7 @@ export function AppLayout() {
           className: 'push-toast-host',
         },
       )
-      void queryClient.invalidateQueries({ queryKey: ['notifications'] })
+      void queryClient.invalidateQueries({ queryKey: NOTIFICATIONS_QUERY_KEY })
     }).then((unsub) => {
       unsubscribe = unsub
     })
@@ -104,6 +110,7 @@ export function AppLayout() {
 
   const isPm = user.managedProjectIds.length > 0
   const links = navFor(user.role, isPm)
+  const unreadCount = notifications.data?.unreadCount ?? 0
 
   return (
     <div className="app-canvas relative h-screen overflow-hidden p-3">
@@ -214,73 +221,24 @@ export function AppLayout() {
             </div>
             <div className="relative">
               <button
+                ref={bellRef}
                 type="button"
                 className="relative rounded-full border border-teal-900/10 bg-white/70 p-2.5 hover:bg-white"
+                aria-label="Open notifications"
+                aria-expanded={notificationsOpen}
                 onClick={() => setNotificationsOpen((v) => !v)}
               >
                 <Bell className="h-5 w-5 text-teal-800" />
-                {(notifications.data?.unreadCount ?? 0) > 0 && (
+                {unreadCount > 0 && (
                   <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-rose-500 landing-pulse" />
                 )}
               </button>
-              {notificationsOpen && (
-                <div className="app-card absolute right-0 z-20 mt-2 w-80 rounded-[24px] p-3 shadow-[0_24px_60px_rgb(15_61_56_/_0.18)]">
-                  <div className="mb-2 flex items-center justify-between px-2">
-                    <span className="text-sm font-medium text-teal-950">Notifications</span>
-                    <button className="text-xs text-teal-700" onClick={() => markAll.mutate()} type="button">
-                      Mark all read
-                    </button>
-                  </div>
-                  <div className="max-h-80 overflow-auto">
-                    {(notifications.data?.items ?? []).length === 0 && (
-                      <div className="px-2 py-6 text-center text-sm text-teal-900/50">No notifications yet</div>
-                    )}
-                    {(notifications.data?.items ?? []).map((item) => {
-                      const href = item.taskId
-                        ? `/app/tasks/${item.taskId}`
-                        : item.projectId
-                          ? `/app/projects/${item.projectId}`
-                          : null
-                      const mentioned = item.type === 'COMMENT_MENTIONED'
-                      const body = (
-                        <>
-                          {mentioned && (
-                            <div className="mb-0.5 font-mono text-[10px] tracking-[0.18em] text-violet-700 uppercase">
-                              Mentioned you
-                            </div>
-                          )}
-                          <div className="font-medium">{item.title}</div>
-                          <div>{item.message}</div>
-                          <div className="text-xs text-teal-900/40">{formatDate(item.createdAt)}</div>
-                        </>
-                      )
-                      const className = `block rounded-2xl px-3 py-2 text-sm ${
-                        mentioned
-                          ? item.read
-                            ? 'text-violet-900/60'
-                            : 'bg-violet-50 text-violet-950'
-                          : item.read
-                            ? 'text-teal-900/55'
-                            : 'bg-teal-50 text-teal-950'
-                      }`
-                      return href ? (
-                        <Link
-                          key={item.id}
-                          to={href}
-                          className={`${className} ${mentioned ? 'hover:bg-violet-100' : 'hover:bg-teal-50'}`}
-                          onClick={() => setNotificationsOpen(false)}
-                        >
-                          {body}
-                        </Link>
-                      ) : (
-                        <div key={item.id} className={className}>
-                          {body}
-                        </div>
-                      )
-                    })}
-                  </div>
-                </div>
-              )}
+              <NotificationPanel
+                open={notificationsOpen}
+                onClose={() => setNotificationsOpen(false)}
+                data={notifications.data}
+                anchorRef={bellRef}
+              />
             </div>
           </header>
           <main className="px-6 pb-6" onMouseEnter={scheduleSidebarClose} onPointerDown={closeSidebar}>
@@ -294,7 +252,7 @@ export function AppLayout() {
   )
 }
 
-function navFor(role: string, isPm: boolean) {
+function navFor(role: string, isPm: boolean): NavItem[] {
   if (role === 'SUPER_ADMIN') {
     return [
       { to: '/app', label: 'Dashboard', icon: <LayoutDashboard className="h-4 w-4" /> },
@@ -312,6 +270,10 @@ function navFor(role: string, isPm: boolean) {
   return [
     { to: '/app', label: 'My work', icon: <ClipboardList className="h-4 w-4" /> },
     ...(isPm ? [{ to: '/app/review', label: 'Review inbox', icon: <Inbox className="h-4 w-4" /> }] : []),
-    { to: '/app/projects', label: isPm ? 'Projects' : 'My projects', icon: <FolderKanban className="h-4 w-4" /> },
+    {
+      to: '/app/projects',
+      label: isPm ? 'Projects' : 'My projects',
+      icon: <FolderKanban className="h-4 w-4" />,
+    },
   ]
 }

@@ -148,9 +148,22 @@ export interface ActivityItem {
   createdAt: string
 }
 
+export type NotificationType =
+  | 'TASK_ASSIGNED'
+  | 'DEADLINE_APPROACHING'
+  | 'TASK_OVERDUE'
+  | 'COMMENT_ADDED'
+  | 'COMMENT_MENTIONED'
+  | 'TASK_RETURNED'
+  | 'TASK_APPROVED'
+  | 'TASK_READY_FOR_REVIEW'
+  | 'TASK_BLOCKED'
+  | 'PROJECT_ASSIGNMENT'
+  | 'ACCOUNT_EVENT'
+
 export interface NotificationItem {
   id: string
-  type: string
+  type: NotificationType | string
   title: string
   message: string
   taskId: string | null
