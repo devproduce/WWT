@@ -8,7 +8,7 @@ import com.google.firebase.messaging.MessagingErrorCode;
 import com.google.firebase.messaging.Notification;
 import com.google.firebase.messaging.WebpushConfig;
 import com.google.firebase.messaging.WebpushFcmOptions;
-import com.google.firebase.messaging.WebpushNotification;
+import com.orgaflow.common.enums.PushPlatform;
 import com.orgaflow.notification.model.DeviceToken;
 import com.orgaflow.notification.repository.DeviceTokenRepository;
 import org.slf4j.Logger;
@@ -75,6 +75,7 @@ public class FcmPushService {
             return;
         }
 
+        String link = buildLink(taskId, projectId);
         Map<String, String> data = new HashMap<>();
         data.put("notificationId", nullToEmpty(notificationId));
         data.put("taskId", nullToEmpty(taskId));
@@ -82,8 +83,8 @@ public class FcmPushService {
         data.put("type", nullToEmpty(type));
         data.put("title", title);
         data.put("body", body);
+        data.put("url", link);
 
-        String link = buildLink(taskId, projectId);
         log.info("Sending FCM push to {} device(s) for user {}", tokens.size(), userId);
         log.info("[PUSH-DEBUG] FcmPushService.sendToUser link={} dataKeys={}", link, data.keySet());
 
@@ -91,25 +92,7 @@ public class FcmPushService {
             log.info("[PUSH-DEBUG] FcmPushService.sendToUser attempting tokenPrefix={} platform={} docId={}",
                     abbreviate(deviceToken.getToken()), deviceToken.getPlatform(), deviceToken.getId());
             try {
-                WebpushConfig.Builder webpush = WebpushConfig.builder()
-                        .setNotification(WebpushNotification.builder()
-                                .setTitle(title)
-                                .setBody(body)
-                                .setIcon("/favicon.svg")
-                                .build());
-                if (StringUtils.hasText(link)) {
-                    webpush.setFcmOptions(WebpushFcmOptions.builder().setLink(link).build());
-                }
-
-                Message message = Message.builder()
-                        .setToken(deviceToken.getToken())
-                        .setNotification(Notification.builder()
-                                .setTitle(title)
-                                .setBody(body)
-                                .build())
-                        .setWebpushConfig(webpush.build())
-                        .putAllData(data)
-                        .build();
+                Message message = buildMessage(deviceToken, title, body, link, data);
                 String response = FirebaseMessaging.getInstance().send(message);
                 log.info("FCM push sent for user {} token {}: {}", userId, abbreviate(deviceToken.getToken()), response);
                 log.info("[PUSH-DEBUG] FcmPushService.sendToUser SUCCESS userId={} tokenPrefix={} fcmResponse={}",
@@ -136,6 +119,39 @@ public class FcmPushService {
             }
         }
         log.info("[PUSH-DEBUG] FcmPushService.sendToUser EXIT userId={}", userId);
+    }
+
+    /**
+     * Web: data-only so the browser does not auto-display a notification while the
+     * service worker also calls showNotification (that combo creates duplicates).
+     * Native platforms can still use a notification payload later.
+     */
+    private Message buildMessage(
+            DeviceToken deviceToken,
+            String title,
+            String body,
+            String link,
+            Map<String, String> data
+    ) {
+        Message.Builder builder = Message.builder()
+                .setToken(deviceToken.getToken())
+                .putAllData(data);
+
+        if (deviceToken.getPlatform() == PushPlatform.WEB || deviceToken.getPlatform() == null) {
+            WebpushConfig.Builder webpush = WebpushConfig.builder()
+                    .putHeader("Urgency", "high");
+            if (StringUtils.hasText(link)) {
+                webpush.setFcmOptions(WebpushFcmOptions.builder().setLink(link).build());
+            }
+            builder.setWebpushConfig(webpush.build());
+        } else {
+            builder.setNotification(Notification.builder()
+                    .setTitle(title)
+                    .setBody(body)
+                    .build());
+        }
+
+        return builder.build();
     }
 
     private String buildLink(String taskId, String projectId) {

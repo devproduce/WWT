@@ -22,21 +22,47 @@ self.addEventListener('activate', (event) => {
 messaging.onBackgroundMessage((payload) => {
   const title = payload.notification?.title ?? payload.data?.title ?? 'WeWorkTogether'
   const body = payload.notification?.body ?? payload.data?.body ?? ''
+  const data = payload.data ?? {}
+  // Only the service worker should display the OS notification (data-only FCM payloads).
+  // Showing here again when payload.notification exists would create duplicates.
+  if (payload.notification) {
+    return
+  }
   self.registration.showNotification(title, {
     body,
-    data: payload.data ?? {},
+    data,
     icon: '/favicon.svg',
     badge: '/favicon.svg',
     requireInteraction: true,
-    tag: payload.data?.notificationId || payload.data?.taskId || 'wwt-push',
+    tag: data.notificationId || data.taskId || 'wwt-push',
     renotify: true,
   })
 })
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close()
-  const taskId = event.notification.data?.taskId
-  const projectId = event.notification.data?.projectId
-  const url = taskId ? `/app/tasks/${taskId}` : projectId ? `/app/projects/${projectId}` : '/app'
-  event.waitUntil(clients.openWindow(url))
+  const data = event.notification.data || {}
+  const taskId = data.taskId
+  const projectId = data.projectId
+  const targetUrl = data.url
+    || (taskId ? `/app/tasks/${taskId}` : projectId ? `/app/projects/${projectId}` : '/app')
+
+  event.waitUntil((async () => {
+    const allClients = await clients.matchAll({ type: 'window', includeUncontrolled: true })
+    for (const client of allClients) {
+      if ('focus' in client) {
+        await client.focus()
+        if ('navigate' in client && typeof client.navigate === 'function') {
+          try {
+            await client.navigate(targetUrl)
+            return
+          } catch (_) {
+            // fall through to openWindow
+          }
+        }
+        return
+      }
+    }
+    await clients.openWindow(targetUrl)
+  })())
 })
