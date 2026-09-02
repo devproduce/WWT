@@ -226,9 +226,10 @@ export function ProjectBoardPage() {
 
 function Column({ id, label, tasks }: { id: TaskStatus; label: string; tasks: TaskItem[] }) {
   const { setNodeRef, isOver } = useDroppable({ id })
-  const [viewAll, setViewAll] = useState(false)
-  const preview = tasks.slice(0, COLUMN_PREVIEW)
+  const [expanded, setExpanded] = useState(false)
   const hasMore = tasks.length > COLUMN_PREVIEW
+  const visible = expanded || !hasMore ? tasks : tasks.slice(0, COLUMN_PREVIEW)
+
   return (
     <div
       ref={setNodeRef}
@@ -246,37 +247,19 @@ function Column({ id, label, tasks }: { id: TaskStatus; label: string; tasks: Ta
         <span className="rounded-full bg-white/70 px-2 py-0.5 font-mono text-[10px]">{tasks.length}</span>
       </div>
       <div className="space-y-2">
-        {preview.map((task) => (
+        {visible.map((task) => (
           <TaskCard key={task.id} task={task} />
         ))}
         {hasMore && (
           <button
             type="button"
             className="w-full rounded-2xl border border-teal-900/10 bg-white/70 px-3 py-2 text-sm font-medium text-teal-800 hover:bg-white"
-            onClick={() => setViewAll(true)}
+            onClick={() => setExpanded((open) => !open)}
           >
-            View all · {tasks.length}
+            {expanded ? 'Show less' : `View all · ${tasks.length}`}
           </button>
         )}
       </div>
-      {viewAll && (
-        <Modal>
-          <div className="mb-4 flex items-start justify-between gap-3">
-            <div>
-              <h2 className="text-lg font-semibold text-teal-950">{label}</h2>
-              <p className="text-sm text-teal-900/50">{tasks.length} tasks</p>
-            </div>
-            <Button type="button" variant="secondary" onClick={() => setViewAll(false)}>
-              Close
-            </Button>
-          </div>
-          <div className="space-y-2">
-            {tasks.map((task) => (
-              <TaskCard key={task.id} task={task} draggable={false} />
-            ))}
-          </div>
-        </Modal>
-      )}
     </div>
   )
 }

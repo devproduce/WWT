@@ -7,15 +7,21 @@ import { Button } from '@/components/ui/button'
 import { Field } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Badge, statusTone } from '@/components/ui/badge'
+import { Modal } from '@/components/ui/modal'
 import { Avatar } from '@/components/charts'
 import { useAuth } from '@/features/auth/AuthContext'
 import { api, apiError } from '@/services/api'
 import {
+  detectBrowserPushFamily,
+  ensurePushTokenRegistered,
+  fetchPushRegistrationStatus,
+  formatPushError,
   getPermissionState,
+  isPushServiceBlockedError,
   isPushSupported,
   registerWebPush,
   unregisterWebPush,
-  formatPushError,
+  type BrowserPushFamily,
 } from '@/services/pushNotifications'
 import type { NotificationPrefs } from '@/types'
 
@@ -28,10 +34,13 @@ export function ProfilePage() {
   const [newPassword, setNewPassword] = useState('')
   const [pushSupported, setPushSupported] = useState<boolean | null>(null)
   const [permissionState, setPermissionState] = useState(getPermissionState())
-  const [enablingPush, setEnablingPush] = useState(false)
+  const [pushBusy, setPushBusy] = useState(false)
+  const [browserFamily, setBrowserFamily] = useState<BrowserPushFamily>('other')
+  const [showPushGuide, setShowPushGuide] = useState(false)
 
   useEffect(() => {
     void isPushSupported().then(setPushSupported)
+    void detectBrowserPushFamily().then(setBrowserFamily)
   }, [])
 
   useEffect(() => {
@@ -43,6 +52,21 @@ export function ProfilePage() {
     queryKey: ['notification-prefs'],
     queryFn: async () => (await api.get<NotificationPrefs>('/me/notification-preferences')).data,
   })
+  const pushStatus = useQuery({
+    queryKey: ['push-status'],
+    queryFn: fetchPushRegistrationStatus,
+    enabled: permissionState === 'granted',
+  })
+
+  useEffect(() => {
+    if (!prefs.data?.pushEnabled || permissionState !== 'granted') return
+    void ensurePushTokenRegistered().then((registered) => {
+      if (registered) {
+        void queryClient.invalidateQueries({ queryKey: ['push-status'] })
+      }
+    })
+  }, [prefs.data?.pushEnabled, permissionState, queryClient])
+
   const updatePrefs = useMutation({
     mutationFn: (patch: Partial<NotificationPrefs>) => api.patch('/me/notification-preferences', patch),
     onSuccess: () => {
@@ -69,6 +93,58 @@ export function ProfilePage() {
     onError: (err) => toast.error(apiError(err, 'Could not update password')),
   })
 
+  const enableBrowserPush = async () => {
+    setPushBusy(true)
+    try {
+      const token = await registerWebPush()
+      setPermissionState(getPermissionState())
+      if (!token) {
+        if (getPermissionState() === 'denied') {
+          toast.error('Notifications are blocked in your browser settings')
+        }
+        return false
+      }
+      await api.patch('/me/notification-preferences', { pushEnabled: true })
+      await queryClient.invalidateQueries({ queryKey: ['notification-prefs'] })
+      await queryClient.invalidateQueries({ queryKey: ['push-status'] })
+      setShowPushGuide(false)
+      toast.success('Browser notifications enabled')
+      return true
+    } catch (err) {
+      if (isPushServiceBlockedError(err) && (browserFamily === 'brave' || browserFamily === 'chromium')) {
+        setShowPushGuide(true)
+        return false
+      }
+      toast.error(formatPushError(err))
+      return false
+    } finally {
+      setPushBusy(false)
+    }
+  }
+
+  const disableBrowserPush = async () => {
+    setPushBusy(true)
+    try {
+      await unregisterWebPush()
+      await api.patch('/me/notification-preferences', { pushEnabled: false })
+      await queryClient.invalidateQueries({ queryKey: ['notification-prefs'] })
+      await queryClient.invalidateQueries({ queryKey: ['push-status'] })
+      toast.success('Browser notifications disabled')
+    } catch (err) {
+      toast.error(apiError(err, 'Could not disable notifications'))
+    } finally {
+      setPushBusy(false)
+    }
+  }
+
+  const onPushToggle = async (enabled: boolean) => {
+    if (enabled) {
+      await enableBrowserPush()
+    } else {
+      await disableBrowserPush()
+    }
+  }
+
   if (!user) return null
 
   const roleLabel =
@@ -79,6 +155,15 @@ export function ProfilePage() {
         : user.managedProjectIds.length > 0
           ? 'Project manager'
           : 'Member'
+
+  const pushChecked = Boolean(
+    prefs.data?.pushEnabled && permissionState === 'granted' && (pushStatus.data?.registered ?? false),
+  )
+  const pushDisabled =
+    pushBusy ||
+    pushSupported === false ||
+    permissionState === 'denied' ||
+    prefs.data == null
 
   const onSaveProfile = (event: FormEvent) => {
     event.preventDefault()
@@ -163,69 +248,21 @@ export function ProfilePage() {
         <p className="mt-1 text-sm text-teal-900/50">
           Get notified when tasks are assigned, comments are added, or reviews need attention — even when this tab is in the background.
         </p>
-        <div className="mt-5 space-y-4">
-          <div className="flex flex-wrap items-center gap-2">
-            <PushStatusBadge
-              supported={pushSupported}
-              permission={permissionState}
-              enabled={prefs.data?.pushEnabled ?? true}
-            />
-          </div>
+        <div className="mt-5">
           {pushSupported === false ? (
             <p className="text-sm text-teal-900/50">This browser does not support push notifications.</p>
-          ) : (
-            <div className="flex flex-wrap gap-3">
-              {permissionState !== 'granted' && (
-                <Button
-                  disabled={enablingPush || permissionState === 'denied'}
-                  onClick={async () => {
-                    setEnablingPush(true)
-                    try {
-                      const token = await registerWebPush()
-                      setPermissionState(getPermissionState())
-                      if (token) {
-                        if (!prefs.data?.pushEnabled) {
-                          updatePrefs.mutate({ pushEnabled: true })
-                        } else {
-                          toast.success('Browser notifications enabled')
-                        }
-                      } else if (getPermissionState() === 'denied') {
-                        toast.error('Notifications are blocked in your browser settings')
-                      }
-                    } catch (err) {
-                      toast.error(formatPushError(err))
-                    } finally {
-                      setEnablingPush(false)
-                    }
-                  }}
-                >
-                  {permissionState === 'denied' ? 'Blocked in browser' : 'Enable notifications'}
-                </Button>
-              )}
-            </div>
-          )}
-          {prefs.data ? (
+          ) : permissionState === 'denied' ? (
+            <p className="text-sm text-amber-800">
+              Notifications are blocked for this site. Allow them in your browser settings, then reload this page.
+            </p>
+          ) : prefs.data ? (
             <PrefRow
               label="Push notifications"
               hint="Send browser alerts for workspace activity"
-              checked={prefs.data.pushEnabled}
-              disabled={updatePrefs.isPending || permissionState !== 'granted'}
-              onChange={async (pushEnabled) => {
-                if (!pushEnabled) {
-                  await unregisterWebPush()
-                }
-                updatePrefs.mutate(
-                  { pushEnabled },
-                  {
-                    onSuccess: async () => {
-                      if (pushEnabled) {
-                        await registerWebPush()
-                        setPermissionState(getPermissionState())
-                      }
-                      toast.success(pushEnabled ? 'Push notifications enabled' : 'Push notifications disabled')
-                    },
-                  },
-                )
+              checked={pushChecked}
+              disabled={pushDisabled}
+              onChange={(enabled) => {
+                void onPushToggle(enabled)
               }}
             />
           ) : (
@@ -276,38 +313,77 @@ export function ProfilePage() {
           )}
         </div>
       </Card>
+
+      {showPushGuide && (
+        <PushMessagingGuideModal
+          family={browserFamily}
+          busy={pushBusy}
+          onClose={() => setShowPushGuide(false)}
+          onRetry={() => {
+            void enableBrowserPush()
+          }}
+        />
+      )}
     </div>
   )
 }
 
-function PushStatusBadge({
-  supported,
-  permission,
-  enabled,
+function PushMessagingGuideModal({
+  family,
+  busy,
+  onClose,
+  onRetry,
 }: {
-  supported: boolean | null
-  permission: ReturnType<typeof getPermissionState>
-  enabled: boolean
+  family: BrowserPushFamily
+  busy: boolean
+  onClose: () => void
+  onRetry: () => void
 }) {
-  let label = 'Checking…'
-  let tone: 'slate' | 'green' | 'amber' | 'red' = 'slate'
-  if (supported === false) {
-    label = 'Not supported'
-    tone = 'amber'
-  } else if (permission === 'denied') {
-    label = 'Blocked'
-    tone = 'red'
-  } else if (permission === 'granted' && enabled) {
-    label = 'On'
-    tone = 'green'
-  } else if (permission === 'granted') {
-    label = 'Off'
-    tone = 'slate'
-  } else {
-    label = 'Not enabled'
-    tone = 'slate'
-  }
-  return <Badge tone={tone}>{label}</Badge>
+  const isBrave = family === 'brave'
+
+  return (
+    <Modal>
+      <div className="space-y-4">
+        <div>
+          <h2 className="text-lg font-semibold text-teal-950">Enable Google push messaging</h2>
+          <p className="mt-2 text-sm text-teal-900/60">
+            {isBrave
+              ? 'Brave turns off Google’s push service by default. Turn it on, restart Brave, then try again.'
+              : 'This browser needs Google’s push service for notifications. Enable it in privacy settings, restart the browser, then try again.'}
+          </p>
+        </div>
+        <ol className="list-decimal space-y-2 pl-5 text-sm text-teal-950">
+          {isBrave ? (
+            <>
+              <li>
+                Open <span className="font-medium">brave://settings/privacy</span>
+              </li>
+              <li>
+                Enable <span className="font-medium">Use Google services for push messaging</span>
+              </li>
+              <li>Restart Brave completely</li>
+              <li>Return here and click Try again</li>
+            </>
+          ) : (
+            <>
+              <li>Open your browser’s Privacy / Security settings</li>
+              <li>Enable Google services for push messaging (wording varies by browser)</li>
+              <li>Restart the browser</li>
+              <li>Return here and click Try again</li>
+            </>
+          )}
+        </ol>
+        <div className="flex flex-wrap justify-end gap-2 pt-2">
+          <Button type="button" variant="secondary" disabled={busy} onClick={onClose}>
+            Cancel
+          </Button>
+          <Button type="button" disabled={busy} onClick={onRetry}>
+            {busy ? 'Checking…' : 'Try again'}
+          </Button>
+        </div>
+      </div>
+    </Modal>
+  )
 }
 
 function PrefRow({

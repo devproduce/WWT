@@ -3,6 +3,7 @@
 .env.local
 !.env.example
 *.pem
+*firebase-adminsdk*.json
 
 # Backend
 backend/target/

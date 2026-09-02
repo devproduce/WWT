@@ -38,11 +38,16 @@ public class FirebaseConfig {
 
     @PostConstruct
     public void init() throws IOException {
+        log.info("[PUSH-DEBUG] FirebaseConfig.init start enabled={} projectId={} path={} hasInlineJson={}",
+                enabled, projectId, serviceAccountPath, StringUtils.hasText(serviceAccountJson));
         if (!enabled) {
             log.info("Firebase push notifications are disabled");
+            log.warn("[PUSH-DEBUG] FirebaseConfig.init SKIP - FIREBASE_ENABLED/app.firebase.enabled is false");
             return;
         }
         if (!FirebaseApp.getApps().isEmpty()) {
+            log.info("[PUSH-DEBUG] FirebaseConfig.init SKIP - FirebaseApp already initialized apps={}",
+                    FirebaseApp.getApps().size());
             return;
         }
         try (InputStream credentials = openCredentials()) {
@@ -53,6 +58,12 @@ public class FirebaseConfig {
             }
             FirebaseApp.initializeApp(builder.build());
             log.info("Firebase initialized for project {}", projectId);
+            log.info("[PUSH-DEBUG] FirebaseConfig.init SUCCESS projectId={} apps={}",
+                    projectId, FirebaseApp.getApps().size());
+        } catch (Exception ex) {
+            log.error("[PUSH-DEBUG] FirebaseConfig.init FAILED projectId={} error={}",
+                    projectId, ex.getMessage(), ex);
+            throw ex;
         }
     }
 

@@ -4,6 +4,7 @@ import com.orgaflow.common.enums.PushPlatform;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -12,6 +13,7 @@ import java.time.Instant;
 @Getter
 @Setter
 @Document("device_tokens")
+@CompoundIndex(name = "user_token", def = "{'userId': 1, 'token': 1}", unique = true)
 public class DeviceToken {
 
     @Id
@@ -20,7 +22,6 @@ public class DeviceToken {
     @Indexed
     private String userId;
 
-    @Indexed(unique = true)
     private String token;
 
     private PushPlatform platform;

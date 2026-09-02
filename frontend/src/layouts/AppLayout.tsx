@@ -74,8 +74,8 @@ export function AppLayout() {
     if (!user) return
     let unsubscribe: (() => void) | undefined
     void listenForForegroundMessages((payload) => {
-      const title = payload.notification?.title ?? 'Notification'
-      const body = payload.notification?.body
+      const title = payload.notification?.title ?? payload.data?.title ?? 'Notification'
+      const body = payload.notification?.body ?? payload.data?.body
       const taskId = payload.data?.taskId
       toast.info(title, {
         description: body,

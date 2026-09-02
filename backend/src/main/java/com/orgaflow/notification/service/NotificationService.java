@@ -14,6 +14,8 @@ import com.orgaflow.task.repository.TaskRepository;
 import com.orgaflow.task.service.TaskDeadlines;
 import com.orgaflow.user.model.User;
 import com.orgaflow.user.repository.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -23,6 +25,8 @@ import java.util.List;
 
 @Service
 public class NotificationService {
+
+    private static final Logger log = LoggerFactory.getLogger(NotificationService.class);
 
     private final NotificationRepository notificationRepository;
     private final TaskRepository taskRepository;
@@ -81,9 +85,13 @@ public class NotificationService {
         notification.setCreatedAt(Instant.now());
         notificationRepository.save(notification);
 
-        userRepository.findById(recipientId).ifPresent(user -> {
+        userRepository.findById(recipientId).ifPresentOrElse(user -> {
             NotificationPrefs prefs = NotificationPrefs.from(user);
-            if (fcmPushService.isEnabled() && NotificationPushPolicy.shouldPush(type, prefs)) {
+            boolean fcmEnabled = fcmPushService.isEnabled();
+            boolean shouldPush = NotificationPushPolicy.shouldPush(type, prefs);
+            log.info("[PUSH-DEBUG] notifyUser decision recipientId={} type={} fcmEnabled={} pushEnabled={} shouldPush={}",
+                    recipientId, type, fcmEnabled, prefs.pushEnabled(), shouldPush);
+            if (fcmEnabled && shouldPush) {
                 fcmPushService.sendToUser(
                         recipientId,
                         title,
@@ -93,8 +101,12 @@ public class NotificationService {
                         projectId,
                         type.name()
                 );
+            } else {
+                log.info("[PUSH-DEBUG] notifyUser SKIP push recipientId={} reason={}",
+                        recipientId,
+                        !fcmEnabled ? "fcm-disabled" : "policy-or-prefs");
             }
-        });
+        }, () -> log.warn("[PUSH-DEBUG] notifyUser SKIP push - recipient user not found id={}", recipientId));
 
         if (!sendEmail) {
             return;
