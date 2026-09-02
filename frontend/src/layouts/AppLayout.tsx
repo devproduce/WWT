@@ -16,6 +16,7 @@ import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { useAuth } from '@/features/auth/AuthContext'
 import { api } from '@/services/api'
+import { PushToastCard } from '@/components/PushToastCard'
 import { listenForForegroundMessages } from '@/services/pushNotifications'
 import type { NotificationItem } from '@/types'
 import { formatDate, greetingFor } from '@/lib/utils'
@@ -77,15 +78,21 @@ export function AppLayout() {
       const title = payload.notification?.title ?? payload.data?.title ?? 'Notification'
       const body = payload.notification?.body ?? payload.data?.body
       const taskId = payload.data?.taskId
-      toast.info(title, {
-        description: body,
-        action: taskId
-          ? {
-              label: 'Open',
-              onClick: () => navigate(`/app/tasks/${taskId}`),
-            }
-          : undefined,
-      })
+      toast.custom(
+        (id) => (
+          <PushToastCard
+            title={title}
+            body={body}
+            onOpen={taskId ? () => navigate(`/app/tasks/${taskId}`) : undefined}
+            onDismiss={() => toast.dismiss(id)}
+          />
+        ),
+        {
+          duration: 12000,
+          unstyled: true,
+          className: 'push-toast-host',
+        },
+      )
       void queryClient.invalidateQueries({ queryKey: ['notifications'] })
     }).then((unsub) => {
       unsubscribe = unsub

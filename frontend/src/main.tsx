@@ -17,7 +17,17 @@ createRoot(document.getElementById('root')!).render(
       <BrowserRouter>
         <AuthProvider>
           <App />
-          <Toaster richColors position="top-right" />
+          <Toaster
+            richColors
+            position="top-right"
+            expand
+            visibleToasts={5}
+            toastOptions={{
+              classNames: {
+                toast: 'rounded-2xl',
+              },
+            }}
+          />
         </AuthProvider>
       </BrowserRouter>
     </QueryClientProvider>

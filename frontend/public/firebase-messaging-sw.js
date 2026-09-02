@@ -26,6 +26,10 @@ messaging.onBackgroundMessage((payload) => {
     body,
     data: payload.data ?? {},
     icon: '/favicon.svg',
+    badge: '/favicon.svg',
+    requireInteraction: true,
+    tag: payload.data?.notificationId || payload.data?.taskId || 'wwt-push',
+    renotify: true,
   })
 })
 
