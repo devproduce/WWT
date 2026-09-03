@@ -455,7 +455,7 @@ export function ProductTour() {
                 'app-nav-pill inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm',
                 active
                   ? 'bg-teal-300 text-teal-950 shadow-[0_12px_28px_rgb(45_212_191_/_0.32)]'
-                  : 'landing-inset text-teal-800 hover:bg-white dark:hover:bg-white/10',
+                  : 'landing-inset text-teal-800 hover:bg-white dark:hover:bg-teal-600/45',
               )}
             >
               <Icon className="h-4 w-4" />

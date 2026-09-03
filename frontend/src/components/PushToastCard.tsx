@@ -9,7 +9,7 @@ type PushToastCardProps = {
 
 export function PushToastCard({ title, body, onOpen, onDismiss }: PushToastCardProps) {
   return (
-    <div className="push-toast-card w-[min(100vw-2rem,22rem)] overflow-hidden rounded-3xl border border-teal-900/15 bg-gradient-to-br from-white via-teal-50/90 to-amber-50/70 p-4 shadow-[0_28px_60px_rgb(15_61_56_/_0.28),0_8px_18px_rgb(15_61_56_/_0.12),inset_0_1px_0_rgb(255_255_255_/_0.9)] dark:border-white/10 dark:from-[#171c1b] dark:via-[#1a2220] dark:to-[#1e2420] dark:shadow-[0_28px_60px_rgb(0_0_0_/_0.5),inset_0_1px_0_rgb(255_255_255_/_0.06)]">
+    <div className="push-toast-card w-[min(100vw-2rem,22rem)] overflow-hidden rounded-3xl border border-teal-900/15 bg-gradient-to-br from-white via-teal-50/90 to-amber-50/70 p-4 shadow-[0_28px_60px_rgb(15_61_56_/_0.28),0_8px_18px_rgb(15_61_56_/_0.12),inset_0_1px_0_rgb(255_255_255_/_0.9)] dark:border-teal-200/15 dark:from-[#0f3d38] dark:via-[#134842] dark:to-[#164e48] dark:shadow-[0_28px_60px_rgb(0_0_0_/_0.45),inset_0_1px_0_rgb(94_234_212_/_0.08)]">
       <div className="flex items-start gap-3">
         <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-teal-800/15 bg-gradient-to-br from-teal-700 to-teal-900 text-white shadow-[0_10px_20px_rgb(15_118_110_/_0.35),inset_0_1px_0_rgb(255_255_255_/_0.25)]">
           <Bell className="h-5 w-5" strokeWidth={2.25} />
@@ -39,7 +39,7 @@ export function PushToastCard({ title, body, onOpen, onDismiss }: PushToastCardP
             ) : null}
             <button
               type="button"
-              className="rounded-full border border-teal-900/10 bg-white/80 px-3.5 py-1.5 text-xs font-medium text-teal-900/70 transition hover:bg-white dark:border-teal-200/15 dark:bg-white/5 dark:text-teal-100 dark:hover:bg-white/10"
+              className="rounded-full border border-teal-900/10 bg-white/80 px-3.5 py-1.5 text-xs font-medium text-teal-900/70 transition hover:bg-white dark:border-teal-200/15 dark:bg-teal-700/40 dark:text-teal-100 dark:hover:bg-teal-600/45"
               onClick={onDismiss}
             >
               Dismiss
@@ -49,7 +49,7 @@ export function PushToastCard({ title, body, onOpen, onDismiss }: PushToastCardP
         <button
           type="button"
           aria-label="Dismiss notification"
-          className="rounded-full p-1 text-teal-900/35 transition hover:bg-teal-900/5 hover:text-teal-900/70 dark:text-teal-200/40 dark:hover:bg-white/10 dark:hover:text-teal-100"
+          className="rounded-full p-1 text-teal-900/35 transition hover:bg-teal-900/5 hover:text-teal-900/70 dark:text-teal-200/40 dark:hover:bg-teal-600/45 dark:hover:text-teal-100"
           onClick={onDismiss}
         >
           <X className="h-4 w-4" />

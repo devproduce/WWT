@@ -121,7 +121,7 @@ export function MyDayPanel({ filter = 'ALL' }: { filter?: FocusFilter }) {
               <Link
                 key={task.id}
                 to={`/app/tasks/${task.id}`}
-                className="app-ease block rounded-2xl border border-teal-900/8 bg-white/70 px-3 py-3 hover:border-teal-700/20 dark:border-teal-200/10 dark:bg-white/5 dark:hover:border-teal-300/25"
+                className="app-ease block rounded-2xl border border-teal-900/8 bg-white/70 px-3 py-3 hover:border-teal-700/20 dark:border-teal-200/10 dark:bg-teal-700/40 dark:hover:border-teal-300/25"
               >
                 <div className="font-medium text-ink">{task.title}</div>
                 <div className="text-xs text-muted">Due {formatDay(task.deadline)}</div>
@@ -167,7 +167,7 @@ function MyDayRowCard({
           openTask()
         }
       }}
-      className="app-ease flex cursor-pointer items-center gap-3 rounded-2xl border border-teal-900/8 bg-white/70 px-3 py-3 hover:border-teal-700/20 dark:border-teal-200/10 dark:bg-white/5 dark:hover:border-teal-300/25"
+      className="app-ease flex cursor-pointer items-center gap-3 rounded-2xl border border-teal-900/8 bg-white/70 px-3 py-3 hover:border-teal-700/20 dark:border-teal-200/10 dark:bg-teal-700/40 dark:hover:border-teal-300/25"
     >
       <span
         className={cn(

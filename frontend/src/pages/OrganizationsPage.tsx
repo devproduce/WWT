@@ -46,7 +46,7 @@ function FeatureToggles({
       {FEATURE_OPTIONS.map((feature) => (
         <label
           key={feature.key}
-          className="flex items-center gap-2 rounded-2xl border border-teal-900/8 bg-white/70 px-3 py-2 text-sm dark:border-teal-200/10 dark:bg-white/5"
+          className="flex items-center gap-2 rounded-2xl border border-teal-900/8 bg-white/70 px-3 py-2 text-sm dark:border-teal-200/10 dark:bg-teal-700/40"
         >
           <input
             type="checkbox"

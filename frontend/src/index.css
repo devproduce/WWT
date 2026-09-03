@@ -30,14 +30,14 @@ html.dark {
   --color-brand-on: #5eead4;
   --color-ink: #f2f4f3;
   --color-muted: #9aa6a3;
-  --color-line: rgb(255 255 255 / 0.1);
-  --color-panel: #121615;
+  --color-line: rgb(255 255 255 / 0.12);
+  --color-panel: #123f3a;
   --color-canvas: #0e1110;
   --color-sidebar: #0f3d38;
-  --color-surface: rgb(23 28 27 / 0.92);
-  --color-surface-high: rgb(30 38 36 / 0.96);
-  --color-card-border: rgb(255 255 255 / 0.08);
-  --color-card-shadow: rgb(0 0 0 / 0.4);
+  --color-surface: rgb(15 61 56 / 0.92);
+  --color-surface-high: rgb(22 78 72 / 0.96);
+  --color-card-border: rgb(94 234 212 / 0.12);
+  --color-card-shadow: rgb(0 0 0 / 0.35);
   color-scheme: dark;
 }
 
@@ -447,8 +447,8 @@ html.dark .app-canvas {
 }
 
 html.dark .app-card-lift:hover {
-  border-color: rgb(255 255 255 / 0.14);
-  box-shadow: 0 28px 70px rgb(0 0 0 / 0.5);
+  border-color: rgb(94 234 212 / 0.28);
+  box-shadow: 0 28px 70px rgb(0 0 0 / 0.45);
 }
 
 .app-shine {
@@ -498,8 +498,8 @@ html.dark .app-shine::after {
 }
 
 html.dark .app-select {
-  border-color: rgb(255 255 255 / 0.1);
-  background: rgb(23 28 27 / 0.85);
+  border-color: rgb(94 234 212 / 0.14);
+  background: rgb(18 70 64 / 0.9);
 }
 
 html.dark .app-select:focus {
@@ -534,27 +534,27 @@ html.dark .app-select:focus {
 }
 
 html.dark .landing-page .app-card {
-  background: rgb(23 28 27 / 0.94);
-  border: 1px solid rgb(255 255 255 / 0.08);
+  background: rgb(15 61 56 / 0.94);
+  border: 1px solid rgb(94 234 212 / 0.12);
   box-shadow:
-    0 1px 0 rgb(255 255 255 / 0.05) inset,
+    0 1px 0 rgb(94 234 212 / 0.06) inset,
     0 12px 28px rgb(0 0 0 / 0.32),
     0 32px 72px rgb(0 0 0 / 0.36);
 }
 
 html.dark .landing-page .app-card .app-card {
-  background: rgb(30 38 36 / 0.96);
-  border: 1px solid rgb(255 255 255 / 0.08);
+  background: rgb(22 78 72 / 0.96);
+  border: 1px solid rgb(94 234 212 / 0.12);
   box-shadow:
-    0 1px 0 rgb(255 255 255 / 0.04) inset,
+    0 1px 0 rgb(94 234 212 / 0.05) inset,
     0 8px 20px rgb(0 0 0 / 0.3);
 }
 
 html.dark .landing-page .app-card-lift:hover {
-  background: rgb(30 38 36 / 0.98);
-  border-color: rgb(255 255 255 / 0.14);
+  background: rgb(26 90 82 / 0.98);
+  border-color: rgb(94 234 212 / 0.22);
   box-shadow:
-    0 1px 0 rgb(255 255 255 / 0.06) inset,
+    0 1px 0 rgb(94 234 212 / 0.08) inset,
     0 18px 40px rgb(0 0 0 / 0.38),
     0 44px 90px rgb(0 0 0 / 0.42);
 }
@@ -578,19 +578,19 @@ html.dark .landing-page .app-card-lift:hover {
 }
 
 html.dark .landing-stage {
-  background: rgb(23 28 27 / 0.96);
-  border: 1px solid rgb(255 255 255 / 0.1);
+  background: rgb(15 61 56 / 0.96);
+  border: 1px solid rgb(94 234 212 / 0.14);
   box-shadow:
-    0 1px 0 rgb(255 255 255 / 0.05) inset,
+    0 1px 0 rgb(94 234 212 / 0.06) inset,
     0 20px 50px rgb(0 0 0 / 0.36),
     0 52px 110px rgb(0 0 0 / 0.42);
 }
 
 html.dark .landing-stage .app-card {
-  background: rgb(30 38 36 / 0.96);
-  border: 1px solid rgb(255 255 255 / 0.08);
+  background: rgb(22 78 72 / 0.96);
+  border: 1px solid rgb(94 234 212 / 0.12);
   box-shadow:
-    0 1px 0 rgb(255 255 255 / 0.04) inset,
+    0 1px 0 rgb(94 234 212 / 0.05) inset,
     0 10px 24px rgb(0 0 0 / 0.3),
     0 22px 48px rgb(0 0 0 / 0.34);
 }
@@ -646,8 +646,8 @@ html.dark .landing-footer-letter:hover {
 }
 
 html.dark .landing-inset {
-  background: rgb(255 255 255 / 0.04);
-  border: 1px solid rgb(255 255 255 / 0.08);
+  background: rgb(255 255 255 / 0.06);
+  border: 1px solid rgb(94 234 212 / 0.12);
 }
 
 /* Foreground push notification toast */

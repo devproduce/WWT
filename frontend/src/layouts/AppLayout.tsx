@@ -194,12 +194,12 @@ export function AppLayout() {
           </div>
         </aside>
         </div>
-        <div className="min-h-0 min-w-0 flex-1 overflow-y-auto rounded-[28px] border border-white/50 bg-white/45 shadow-[0_24px_60px_rgb(15_61_56_/_0.08)] backdrop-blur-xl dark:border-white/10 dark:bg-white/[0.04] dark:shadow-[0_24px_60px_rgb(0_0_0_/_0.4)]">
+        <div className="min-h-0 min-w-0 flex-1 overflow-y-auto rounded-[28px] border border-white/50 bg-white/45 shadow-[0_24px_60px_rgb(15_61_56_/_0.08)] backdrop-blur-xl dark:border-teal-200/12 dark:bg-[#0f3d38]/55 dark:shadow-[0_24px_60px_rgb(0_0_0_/_0.4)]">
           <header className="flex items-center justify-between gap-4 px-6 py-4">
             <div className="flex items-center gap-3">
               <button
                 type="button"
-                className="shrink-0 rounded-full border border-teal-900/10 bg-white/70 p-2.5 hover:bg-white dark:border-teal-200/15 dark:bg-white/5 dark:hover:bg-white/10"
+                className="shrink-0 rounded-full border border-teal-900/10 bg-white/70 p-2.5 hover:bg-white dark:border-teal-200/15 dark:bg-teal-700/40 dark:hover:bg-teal-600/45"
                 onMouseEnter={cancelSidebarClose}
                 onClick={() => (sidebarOpen ? closeSidebar() : openSidebar())}
                 aria-label={sidebarOpen ? 'Close navigation' : 'Open navigation'}
@@ -226,7 +226,7 @@ export function AppLayout() {
               <button
                 ref={bellRef}
                 type="button"
-                className="relative rounded-full border border-teal-900/10 bg-white/70 p-2.5 hover:bg-white dark:border-teal-200/15 dark:bg-white/5 dark:hover:bg-white/10"
+                className="relative rounded-full border border-teal-900/10 bg-white/70 p-2.5 hover:bg-white dark:border-teal-200/15 dark:bg-teal-700/40 dark:hover:bg-teal-600/45"
                 aria-label="Open notifications"
                 aria-expanded={notificationsOpen}
                 onClick={() => setNotificationsOpen((v) => !v)}

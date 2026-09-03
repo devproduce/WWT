@@ -14,7 +14,7 @@ export function ThemeToggle({ compact = false }: { compact?: boolean }) {
   return (
     <div
       className={cn(
-        'inline-flex items-center rounded-full border border-teal-900/10 bg-white/70 p-0.5 dark:border-teal-200/15 dark:bg-white/5',
+        'inline-flex items-center rounded-full border border-teal-900/10 bg-white/70 p-0.5 dark:border-teal-200/15 dark:bg-teal-700/40',
         compact && 'shrink-0',
       )}
       role="group"

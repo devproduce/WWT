@@ -253,7 +253,7 @@ function Column({ id, label, tasks }: { id: TaskStatus; label: string; tasks: Ta
         {hasMore && (
           <button
             type="button"
-            className="w-full rounded-2xl border border-teal-900/10 bg-white/70 px-3 py-2 text-sm font-medium text-teal-800 hover:bg-white dark:border-teal-200/15 dark:bg-white/5 dark:text-teal-200 dark:hover:bg-white/10"
+            className="w-full rounded-2xl border border-teal-900/10 bg-white/70 px-3 py-2 text-sm font-medium text-teal-800 hover:bg-white dark:border-teal-200/15 dark:bg-teal-700/40 dark:text-teal-200 dark:hover:bg-teal-600/45"
             onClick={() => setExpanded((open) => !open)}
           >
             {expanded ? 'Show less' : `View all · ${tasks.length}`}
@@ -372,7 +372,7 @@ function ManageMembersForm({
       <form className="space-y-3" onSubmit={submit}>
         <h2 className="text-lg font-semibold text-ink">Project members</h2>
         <p className="text-sm text-muted">Only people on this list can be assigned tasks. The Project Manager stays on the project.</p>
-        <div className="max-h-56 space-y-1 overflow-auto rounded-2xl border border-teal-900/10 bg-white/70 p-2 dark:border-teal-200/15 dark:bg-white/5">
+        <div className="max-h-56 space-y-1 overflow-auto rounded-2xl border border-teal-900/10 bg-white/70 p-2 dark:border-teal-200/15 dark:bg-teal-700/40">
           {orgMembers.map((member) => (
             <label key={member.id} className="flex items-center gap-2 rounded-xl px-2 py-1.5 text-sm hover:bg-teal-50">
               <input

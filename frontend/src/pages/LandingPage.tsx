@@ -38,7 +38,7 @@ export function LandingPage() {
       <div className="app-orb pointer-events-none absolute bottom-1/4 left-1/3 h-64 w-64 rounded-full bg-sky-300/20 blur-3xl dark:bg-sky-300/10" style={{ animationDelay: '8s' }} />
 
       <header className="sticky top-0 z-50 px-3 pt-4 sm:px-5">
-        <div className="mx-auto flex max-w-6xl items-center justify-between rounded-full border border-teal-900/15 bg-white/90 px-3 py-2 shadow-[0_12px_40px_rgb(15_61_56_/_0.14),0_1px_0_rgb(255_255_255_/_0.9)_inset] backdrop-blur-xl dark:border-white/10 dark:bg-[#121615]/90 dark:shadow-[0_12px_40px_rgb(0_0_0_/_0.4),0_1px_0_rgb(255_255_255_/_0.06)_inset] sm:px-4">
+        <div className="mx-auto flex max-w-6xl items-center justify-between rounded-full border border-teal-900/15 bg-white/90 px-3 py-2 shadow-[0_12px_40px_rgb(15_61_56_/_0.14),0_1px_0_rgb(255_255_255_/_0.9)_inset] backdrop-blur-xl dark:border-teal-200/15 dark:bg-[#0f3d38]/92 dark:shadow-[0_12px_40px_rgb(0_0_0_/_0.4),0_1px_0_rgb(94_234_212_/_0.08)_inset] sm:px-4">
           <a href="#top" className="landing-ease group flex items-center gap-2.5 rounded-full py-1 pr-2 pl-1 hover:opacity-90">
             <WwtMark />
             <span className="pr-1 text-[13px] font-semibold tracking-[0.24em] text-ink">WWT</span>
@@ -229,7 +229,7 @@ function Hero({ workspace, workspaceLabel }: { workspace: string; workspaceLabel
     <section className="relative overflow-hidden">
       <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-5 pt-16 pb-20 lg:grid-cols-[1.05fr_0.95fr] lg:pt-20 lg:pb-24">
         <div className="landing-rise">
-          <span className="inline-flex items-center gap-2 rounded-full border border-teal-900/12 bg-white/90 px-3 py-1 font-mono text-[11px] tracking-widest text-teal-800 uppercase shadow-[0_8px_20px_rgb(15_61_56_/_0.08)] dark:border-teal-200/15 dark:bg-white/5 dark:text-teal-200">
+          <span className="inline-flex items-center gap-2 rounded-full border border-teal-900/12 bg-white/90 px-3 py-1 font-mono text-[11px] tracking-widest text-teal-800 uppercase shadow-[0_8px_20px_rgb(15_61_56_/_0.08)] dark:border-teal-200/15 dark:bg-teal-700/40 dark:text-teal-200">
             <span className="landing-pulse h-1.5 w-1.5 rounded-full bg-teal-500" />
             WWT live
           </span>
@@ -564,7 +564,7 @@ function HowItWorks() {
                         'inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm transition',
                         active
                           ? 'bg-teal-300 text-teal-950 shadow-[0_10px_24px_rgb(45_212_191_/_0.28)]'
-                          : 'landing-inset text-muted hover:bg-white hover:text-ink dark:hover:bg-white/10',
+                          : 'landing-inset text-muted hover:bg-white hover:text-ink dark:hover:bg-teal-600/45',
                       )}
                     >
                       <span className="font-mono text-[10px] opacity-50">0{i + 1}</span>
@@ -606,7 +606,7 @@ function HowItWorks() {
                         'flex items-center gap-3 rounded-2xl p-3 text-left transition',
                         active
                           ? 'bg-teal-300/70 text-teal-950 shadow-[0_10px_24px_rgb(45_212_191_/_0.18)]'
-                          : 'landing-inset text-muted hover:bg-white hover:text-ink dark:hover:bg-white/10',
+                          : 'landing-inset text-muted hover:bg-white hover:text-ink dark:hover:bg-teal-600/45',
                       )}
                     >
                       <Avatar name={person.name} />

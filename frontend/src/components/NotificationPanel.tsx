@@ -231,14 +231,14 @@ function NotificationRow({
       }}
       className={cn(
         'group relative flex cursor-pointer gap-3 overflow-hidden rounded-2xl border p-3 text-left transition',
-        unread ? meta.rowClass : 'border-teal-900/8 bg-white/70 text-teal-900/60 hover:bg-white dark:border-teal-200/10 dark:bg-white/5 dark:text-teal-200/60 dark:hover:bg-white/10',
+        unread ? meta.rowClass : 'border-teal-900/8 bg-white/70 text-teal-900/60 hover:bg-white dark:border-teal-200/10 dark:bg-teal-700/40 dark:text-teal-200/60 dark:hover:bg-teal-600/45',
       )}
     >
       {unread && <span className={cn('absolute inset-y-0 left-0 w-1', meta.barClass)} />}
       <div
         className={cn(
           'mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border',
-          unread ? meta.chipClass : 'border-teal-900/10 bg-teal-50/80 text-teal-700/70 dark:border-teal-200/15 dark:bg-white/5 dark:text-teal-200/70',
+          unread ? meta.chipClass : 'border-teal-900/10 bg-teal-50/80 text-teal-700/70 dark:border-teal-200/15 dark:bg-teal-700/40 dark:text-teal-200/70',
         )}
       >
         <Icon className="h-4 w-4" />
@@ -248,7 +248,7 @@ function NotificationRow({
           <span
             className={cn(
               'rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em]',
-              unread ? meta.chipClass : 'border-teal-900/10 bg-teal-50/50 text-teal-900/45 dark:border-teal-200/15 dark:bg-white/5 dark:text-teal-200/50',
+              unread ? meta.chipClass : 'border-teal-900/10 bg-teal-50/50 text-teal-900/45 dark:border-teal-200/15 dark:bg-teal-700/40 dark:text-teal-200/50',
             )}
           >
             {meta.label}
@@ -266,7 +266,7 @@ function NotificationRow({
         <button
           type="button"
           aria-label="Dismiss notification"
-          className="absolute right-2 top-2 rounded-full p-1 text-teal-900/30 opacity-0 transition hover:bg-white/80 hover:text-teal-900/70 group-hover:opacity-100 dark:text-teal-200/40 dark:hover:bg-white/10 dark:hover:text-teal-100"
+          className="absolute right-2 top-2 rounded-full p-1 text-teal-900/30 opacity-0 transition hover:bg-white/80 hover:text-teal-900/70 group-hover:opacity-100 dark:text-teal-200/40 dark:hover:bg-teal-600/45 dark:hover:text-teal-100"
           onClick={onDismiss}
         >
           <X className="h-3.5 w-3.5" />

@@ -267,7 +267,7 @@ function AdminHome({ data }: { data: Dashboard }) {
                 <Link
                   key={str(item.id)}
                   to={`/app/tasks/${str(item.id)}`}
-                  className="flex items-center justify-between rounded-2xl bg-white/70 px-3 py-2 hover:bg-white dark:bg-white/5 dark:hover:bg-white/10"
+                  className="flex items-center justify-between rounded-2xl bg-white/70 px-3 py-2 hover:bg-white dark:bg-teal-700/40 dark:hover:bg-teal-600/45"
                 >
                   <div className="min-w-0">
                     <div className="truncate text-sm font-medium text-ink">{str(item.title)}</div>
@@ -302,7 +302,7 @@ function AdminHome({ data }: { data: Dashboard }) {
           {reviewsByManager.map((row) => (
             <div
               key={str(row.managerId, str(row.managerName))}
-              className="flex items-center justify-between rounded-2xl bg-white/70 px-3 py-2 dark:bg-white/5"
+              className="flex items-center justify-between rounded-2xl bg-white/70 px-3 py-2 dark:bg-teal-700/40"
             >
               <span className="text-sm font-medium text-ink">{str(row.managerName, 'Project Manager')}</span>
               <Badge tone="purple">{`${num(row.reviewCount)} in review`}</Badge>
@@ -583,7 +583,7 @@ function DueRail({ tasks }: { tasks: Record<string, unknown>[] }) {
         <Link
           key={str(task.id)}
           to={`/app/tasks/${str(task.id)}`}
-          className="app-card-lift min-w-44 rounded-2xl border border-teal-900/8 bg-white/80 p-3 dark:border-teal-200/10 dark:bg-white/5"
+          className="app-card-lift min-w-44 rounded-2xl border border-teal-900/8 bg-white/80 p-3 dark:border-teal-200/10 dark:bg-teal-700/40"
         >
           <div className="font-mono text-[10px] tracking-[0.16em] text-teal-700/60 uppercase">
             {formatDay(str(task.deadline))}
@@ -644,7 +644,7 @@ function FilterChips({
           onClick={() => onChange(option.id)}
           className={cn(
             'rounded-full px-3 py-1.5 font-mono text-[10px] tracking-[0.16em] uppercase app-ease',
-            value === option.id ? 'bg-teal-800 text-white' : 'bg-white/70 text-teal-800 hover:bg-white dark:bg-white/5 dark:text-teal-200 dark:hover:bg-white/10',
+            value === option.id ? 'bg-teal-800 text-white' : 'bg-white/70 text-teal-800 hover:bg-white dark:bg-teal-700/40 dark:text-teal-200 dark:hover:bg-teal-600/45',
           )}
         >
           {option.label}

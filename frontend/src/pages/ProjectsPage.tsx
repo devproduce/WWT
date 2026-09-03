@@ -168,7 +168,7 @@ function CreateProjectForm({
           <p className="mb-1 text-xs text-muted">
             The Project Manager is always included. Check everyone who should be on this project.
           </p>
-          <div className="max-h-40 space-y-1 overflow-auto rounded-2xl border border-teal-900/10 bg-white/70 p-2 dark:border-teal-200/15 dark:bg-white/5">
+          <div className="max-h-40 space-y-1 overflow-auto rounded-2xl border border-teal-900/10 bg-white/70 p-2 dark:border-teal-200/15 dark:bg-teal-700/40">
             {people.map((m) => (
               <label key={m.id} className="flex items-center gap-2 rounded-xl px-2 py-1.5 text-sm hover:bg-teal-50">
                 <input

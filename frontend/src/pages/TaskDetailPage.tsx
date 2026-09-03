@@ -242,7 +242,7 @@ export function TaskDetailPage() {
                 <button
                   key={file.id}
                   type="button"
-                  className="block w-full rounded-2xl bg-white/70 px-3 py-2 text-left text-teal-800 hover:bg-white dark:bg-white/5 dark:text-teal-200 dark:hover:bg-white/10"
+                  className="block w-full rounded-2xl bg-white/70 px-3 py-2 text-left text-teal-800 hover:bg-white dark:bg-teal-700/40 dark:text-teal-200 dark:hover:bg-teal-600/45"
                   onClick={async () => {
                     const res = await api.get(`/attachments/${file.id}/download`, { responseType: 'blob' })
                     const url = URL.createObjectURL(res.data)
