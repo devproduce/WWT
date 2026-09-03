@@ -34,7 +34,7 @@ export function MemberWork({ tasks }: { tasks?: WorkItem[] }) {
           <Link
             key={task.id ?? task.title}
             to={task.id ? `/app/tasks/${task.id}` : '/app'}
-            className="app-ease flex items-center gap-3 rounded-2xl border border-teal-900/8 bg-white/70 px-3 py-3 hover:border-teal-700/20 hover:bg-white"
+            className="app-ease flex items-center gap-3 rounded-2xl border border-teal-900/8 bg-white/70 px-3 py-3 hover:border-teal-700/20 hover:bg-white dark:border-teal-200/10 dark:bg-white/5 dark:hover:border-teal-300/25 dark:hover:bg-white/10"
           >
             <span
               className={cn(
@@ -46,8 +46,8 @@ export function MemberWork({ tasks }: { tasks?: WorkItem[] }) {
               )}
             />
             <div className="min-w-0 flex-1">
-              <div className="truncate font-medium text-teal-950">{task.title}</div>
-              <div className="text-xs text-teal-900/50">Due {formatDay(task.deadline)}</div>
+              <div className="truncate font-medium text-ink">{task.title}</div>
+              <div className="text-xs text-muted">Due {formatDay(task.deadline)}</div>
             </div>
             <div className="flex flex-wrap justify-end gap-1">
               {task.priority && <Badge tone={statusTone(String(task.priority))}>{String(task.priority)}</Badge>}

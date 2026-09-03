@@ -70,16 +70,16 @@ export function ProjectsPage() {
                 />
                 <div className="flex items-start justify-between gap-3 pl-2">
                   <div>
-                    <div className="font-semibold text-teal-950">{project.name}</div>
-                    <div className="text-sm text-teal-900/50">PM {project.managerName}</div>
+                    <div className="font-semibold text-ink">{project.name}</div>
+                    <div className="text-sm text-muted">PM {project.managerName}</div>
                   </div>
                   <Badge tone={statusTone(project.status)}>{project.status}</Badge>
                 </div>
-                <p className="mt-3 line-clamp-2 pl-2 text-sm text-teal-900/65">{project.description}</p>
+                <p className="mt-3 line-clamp-2 pl-2 text-sm text-muted">{project.description}</p>
                 <div className="mt-4 flex items-center gap-4 pl-2">
                   <RingChart value={project.doneTasks} max={project.totalTasks || 1} size={68} stroke={8} />
                   <div className="min-w-0 flex-1">
-                    <div className="text-sm font-medium text-teal-950">
+                    <div className="text-sm font-medium text-ink">
                       {project.doneTasks}/{project.totalTasks}{' '}
                       {project.canViewFullProgress ? 'complete' : 'your tasks done'}
                     </div>
@@ -144,7 +144,7 @@ function CreateProjectForm({
   return (
     <Modal>
       <form className="space-y-3" onSubmit={submit}>
-        <h2 className="text-lg font-semibold text-teal-950">Create project</h2>
+        <h2 className="text-lg font-semibold text-ink">Create project</h2>
         <Field label="Name">
           <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
         </Field>
@@ -165,10 +165,10 @@ function CreateProjectForm({
           </select>
         </Field>
         <Field label="Project members (who can receive tasks)">
-          <p className="mb-1 text-xs text-teal-900/50">
+          <p className="mb-1 text-xs text-muted">
             The Project Manager is always included. Check everyone who should be on this project.
           </p>
-          <div className="max-h-40 space-y-1 overflow-auto rounded-2xl border border-teal-900/10 bg-white/70 p-2">
+          <div className="max-h-40 space-y-1 overflow-auto rounded-2xl border border-teal-900/10 bg-white/70 p-2 dark:border-teal-200/15 dark:bg-white/5">
             {people.map((m) => (
               <label key={m.id} className="flex items-center gap-2 rounded-xl px-2 py-1.5 text-sm hover:bg-teal-50">
                 <input

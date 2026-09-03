@@ -184,10 +184,10 @@ export function ProfilePage() {
       <Card className="flex flex-wrap items-center gap-4">
         <Avatar name={`${user.firstName} ${user.lastName}`} size="lg" />
         <div className="min-w-0 flex-1">
-          <div className="text-xl font-semibold tracking-tight text-teal-950">
+          <div className="text-xl font-semibold tracking-tight text-ink">
             {user.firstName} {user.lastName}
           </div>
-          <div className="truncate text-sm text-teal-900/55">{user.email}</div>
+          <div className="truncate text-sm text-muted">{user.email}</div>
           <div className="mt-2 flex flex-wrap gap-2">
             <Badge tone={statusTone(user.role)}>{roleLabel}</Badge>
             {user.organizationName && <Badge>{user.organizationName}</Badge>}
@@ -198,7 +198,7 @@ export function ProfilePage() {
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
           <CardTitle>Your details</CardTitle>
-          <p className="mt-1 text-sm text-teal-900/50">Name is what teammates see on comments and assignments. Email cannot be changed here.</p>
+          <p className="mt-1 text-sm text-muted">Name is what teammates see on comments and assignments. Email cannot be changed here.</p>
           <form className="mt-5 space-y-4" onSubmit={onSaveProfile}>
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label="First name">
@@ -217,7 +217,7 @@ export function ProfilePage() {
 
         <Card>
           <CardTitle>Password</CardTitle>
-          <p className="mt-1 text-sm text-teal-900/50">Use at least 8 characters.</p>
+          <p className="mt-1 text-sm text-muted">Use at least 8 characters.</p>
           <form className="mt-5 space-y-4" onSubmit={onSavePassword}>
             <Field label="Current password">
               <Input
@@ -245,12 +245,12 @@ export function ProfilePage() {
 
       <Card>
         <CardTitle>Browser notifications</CardTitle>
-        <p className="mt-1 text-sm text-teal-900/50">
+        <p className="mt-1 text-sm text-muted">
           Get notified when tasks are assigned, comments are added, or reviews need attention — even when this tab is in the background.
         </p>
         <div className="mt-5">
           {pushSupported === false ? (
-            <p className="text-sm text-teal-900/50">This browser does not support push notifications.</p>
+            <p className="text-sm text-muted">This browser does not support push notifications.</p>
           ) : permissionState === 'denied' ? (
             <p className="text-sm text-amber-800">
               Notifications are blocked for this site. Allow them in your browser settings, then reload this page.
@@ -266,14 +266,14 @@ export function ProfilePage() {
               }}
             />
           ) : (
-            <p className="text-sm text-teal-900/50">Loading preferences…</p>
+            <p className="text-sm text-muted">Loading preferences…</p>
           )}
         </div>
       </Card>
 
       <Card>
         <CardTitle>Email me about</CardTitle>
-        <p className="mt-1 text-sm text-teal-900/50">
+        <p className="mt-1 text-sm text-muted">
           Invites and password setup still send email. Other product emails are paused for now — these toggles are saved for when they come back.
         </p>
         <div className="mt-5 space-y-1">
@@ -309,7 +309,7 @@ export function ProfilePage() {
               />
             </>
           ) : (
-            <p className="text-sm text-teal-900/50">Loading preferences…</p>
+            <p className="text-sm text-muted">Loading preferences…</p>
           )}
         </div>
       </Card>
@@ -345,14 +345,14 @@ function PushMessagingGuideModal({
     <Modal>
       <div className="space-y-4">
         <div>
-          <h2 className="text-lg font-semibold text-teal-950">Enable Google push messaging</h2>
+          <h2 className="text-lg font-semibold text-ink">Enable Google push messaging</h2>
           <p className="mt-2 text-sm text-teal-900/60">
             {isBrave
               ? 'Brave turns off Google’s push service by default. Turn it on, restart Brave, then try again.'
               : 'This browser needs Google’s push service for notifications. Enable it in privacy settings, restart the browser, then try again.'}
           </p>
         </div>
-        <ol className="list-decimal space-y-2 pl-5 text-sm text-teal-950">
+        <ol className="list-decimal space-y-2 pl-5 text-sm text-ink">
           {isBrave ? (
             <>
               <li>
@@ -402,8 +402,8 @@ function PrefRow({
   return (
     <label className="flex cursor-pointer items-center justify-between gap-4 rounded-2xl px-3 py-3 hover:bg-teal-50/70">
       <span>
-        <span className="block text-sm font-medium text-teal-950">{label}</span>
-        <span className="block text-xs text-teal-900/50">{hint}</span>
+        <span className="block text-sm font-medium text-ink">{label}</span>
+        <span className="block text-xs text-muted">{hint}</span>
       </span>
       <input
         type="checkbox"

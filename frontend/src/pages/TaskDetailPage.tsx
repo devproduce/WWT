@@ -98,7 +98,7 @@ export function TaskDetailPage() {
     onError: (err) => toast.error(apiError(err)),
   })
 
-  if (!task.data) return <p className="py-16 text-center text-sm text-teal-900/50">Loading task…</p>
+  if (!task.data) return <p className="py-16 text-center text-sm text-muted">Loading task…</p>
   const item = task.data
   const currentIndex = TASK_COLUMNS.findIndex((col) => col.id === item.status)
   const waitingOnPeople = (project.data?.members ?? []).filter((member) => member.id !== item.assigneeId)
@@ -206,7 +206,7 @@ export function TaskDetailPage() {
             <div className="mt-4 space-y-3">
               {(comments.data ?? []).map((c) => (
                 <div key={c.id} className="rounded-2xl bg-teal-50/60 p-3 text-sm">
-                  <div className="flex items-center gap-2 font-medium text-teal-950">
+                  <div className="flex items-center gap-2 font-medium text-ink">
                     <Avatar name={c.authorName} size="sm" />
                     {c.authorName} <span className="font-normal text-teal-900/40">{formatDate(c.createdAt)}</span>
                   </div>
@@ -242,7 +242,7 @@ export function TaskDetailPage() {
                 <button
                   key={file.id}
                   type="button"
-                  className="block w-full rounded-2xl bg-white/70 px-3 py-2 text-left text-teal-800 hover:bg-white"
+                  className="block w-full rounded-2xl bg-white/70 px-3 py-2 text-left text-teal-800 hover:bg-white dark:bg-white/5 dark:text-teal-200 dark:hover:bg-white/10"
                   onClick={async () => {
                     const res = await api.get(`/attachments/${file.id}/download`, { responseType: 'blob' })
                     const url = URL.createObjectURL(res.data)
@@ -265,7 +265,7 @@ export function TaskDetailPage() {
                 <div key={event.id} className="flex gap-2">
                   <Avatar name={event.actorName} size="sm" />
                   <div>
-                    <div className="text-teal-950">{event.message}</div>
+                    <div className="text-ink">{event.message}</div>
                     <div className="text-xs text-teal-900/40">{formatDate(event.createdAt)}</div>
                   </div>
                 </div>

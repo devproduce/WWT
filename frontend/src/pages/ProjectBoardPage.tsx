@@ -118,7 +118,7 @@ export function ProjectBoardPage() {
     transition.mutate({ taskId, status: over })
   }
 
-  if (!project.data) return <p className="py-16 text-center text-sm text-teal-900/50">Loading project…</p>
+  if (!project.data) return <p className="py-16 text-center text-sm text-muted">Loading project…</p>
   const items = tasks.data ?? []
   const canViewFullProgress = project.data.canViewFullProgress
   const progressSubtitle = canViewFullProgress
@@ -148,7 +148,7 @@ export function ProjectBoardPage() {
             <RingChart value={report.data.completionPercent} max={100} size={108} stroke={11} />
             <div className="min-w-0 flex-1">
               <CardTitle>{canViewFullProgress ? 'Delivery' : 'My progress'}</CardTitle>
-              <p className="mt-1 text-sm text-teal-900/50">
+              <p className="mt-1 text-sm text-muted">
                 {report.data.overdue} overdue · {report.data.review} in review
               </p>
               <div className="mt-4">
@@ -167,7 +167,7 @@ export function ProjectBoardPage() {
           {canViewFullProgress && (
             <Card>
               <CardTitle>By member</CardTitle>
-              <p className="mt-1 text-sm text-teal-900/50">Completed (review or done) out of each member's assigned tasks.</p>
+              <p className="mt-1 text-sm text-muted">Completed (review or done) out of each member's assigned tasks.</p>
               <div className="mt-4 space-y-3">
                 {report.data.tasksByMember.map((row) => (
                   <QuotaMeter
@@ -178,7 +178,7 @@ export function ProjectBoardPage() {
                   />
                 ))}
                 {report.data.tasksByMember.length === 0 && (
-                  <p className="text-sm text-teal-900/50">No assigned work yet.</p>
+                  <p className="text-sm text-muted">No assigned work yet.</p>
                 )}
               </div>
             </Card>
@@ -239,12 +239,12 @@ function Column({ id, label, tasks }: { id: TaskStatus; label: string; tasks: Ta
         isOver && 'ring-2 ring-teal-500/40',
       )}
     >
-      <div className="mb-3 flex items-center justify-between px-1 text-sm font-medium text-teal-950">
+      <div className="mb-3 flex items-center justify-between px-1 text-sm font-medium text-ink">
         <span className="flex items-center gap-2">
           <span className={cn('h-2 w-2 rounded-full', COLUMN_DOT[id])} />
           {label}
         </span>
-        <span className="rounded-full bg-white/70 px-2 py-0.5 font-mono text-[10px]">{tasks.length}</span>
+        <span className="rounded-full bg-white/70 px-2 py-0.5 font-mono text-[10px] dark:bg-white/10">{tasks.length}</span>
       </div>
       <div className="space-y-2">
         {visible.map((task) => (
@@ -253,7 +253,7 @@ function Column({ id, label, tasks }: { id: TaskStatus; label: string; tasks: Ta
         {hasMore && (
           <button
             type="button"
-            className="w-full rounded-2xl border border-teal-900/10 bg-white/70 px-3 py-2 text-sm font-medium text-teal-800 hover:bg-white"
+            className="w-full rounded-2xl border border-teal-900/10 bg-white/70 px-3 py-2 text-sm font-medium text-teal-800 hover:bg-white dark:border-teal-200/15 dark:bg-white/5 dark:text-teal-200 dark:hover:bg-white/10"
             onClick={() => setExpanded((open) => !open)}
           >
             {expanded ? 'Show less' : `View all · ${tasks.length}`}
@@ -316,7 +316,7 @@ function TaskCard({ task, draggable = true }: { task: TaskItem; draggable?: bool
       )}
     >
       <span className={cn('pointer-events-none absolute inset-y-0 left-0 w-1', priorityEdge)} />
-      <div className="pointer-events-none pl-2 font-medium leading-snug text-teal-950">{task.title}</div>
+      <div className="pointer-events-none pl-2 font-medium leading-snug text-ink">{task.title}</div>
       <div className="pointer-events-none mt-3 flex items-center justify-between gap-2 pl-2">
         <div className="flex min-w-0 items-center gap-2">
           {task.assigneeName ? (
@@ -370,9 +370,9 @@ function ManageMembersForm({
   return (
     <Modal>
       <form className="space-y-3" onSubmit={submit}>
-        <h2 className="text-lg font-semibold text-teal-950">Project members</h2>
-        <p className="text-sm text-teal-900/50">Only people on this list can be assigned tasks. The Project Manager stays on the project.</p>
-        <div className="max-h-56 space-y-1 overflow-auto rounded-2xl border border-teal-900/10 bg-white/70 p-2">
+        <h2 className="text-lg font-semibold text-ink">Project members</h2>
+        <p className="text-sm text-muted">Only people on this list can be assigned tasks. The Project Manager stays on the project.</p>
+        <div className="max-h-56 space-y-1 overflow-auto rounded-2xl border border-teal-900/10 bg-white/70 p-2 dark:border-teal-200/15 dark:bg-white/5">
           {orgMembers.map((member) => (
             <label key={member.id} className="flex items-center gap-2 rounded-xl px-2 py-1.5 text-sm hover:bg-teal-50">
               <input

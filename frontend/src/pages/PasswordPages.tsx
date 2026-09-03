@@ -81,7 +81,7 @@ export function ForgotPasswordPage() {
   return (
     <AuthShell title="Forgot password" subtitle="If the account exists, we will send a reset link.">
       {sent ? (
-        <p className="text-sm text-teal-900/65">If that email is registered, a reset link is on its way (or logged in development).</p>
+        <p className="text-sm text-muted">If that email is registered, a reset link is on its way (or logged in development).</p>
       ) : (
         <form className="space-y-4" onSubmit={onSubmit}>
           <Field label="Email">

@@ -35,7 +35,7 @@ export function HomePage() {
   })
 
   if (dash.isLoading) {
-    return <p className="py-16 text-center text-sm text-teal-900/50">Loading dashboard…</p>
+    return <p className="py-16 text-center text-sm text-muted">Loading dashboard…</p>
   }
   if (!dash.data) return null
   if (dash.data.organizationDisabled) {
@@ -91,7 +91,7 @@ function SuperAdminHome({ data }: { data: Dashboard }) {
           />
           <div className="min-w-0 flex-1">
             <div className="font-mono text-[11px] tracking-[0.28em] text-teal-700/70 uppercase">Tenant health</div>
-            <p className="mt-1 font-serif text-xl italic text-teal-950">Customers live on the platform</p>
+            <p className="mt-1 font-serif text-xl italic text-ink">Customers live on the platform</p>
             <div className="mt-4 space-y-2">
               <QuotaMeter label="Active" used={active} max={total} />
               <QuotaMeter label="Disabled" used={disabled} max={total} />
@@ -154,8 +154,8 @@ function SuperAdminHome({ data }: { data: Dashboard }) {
               <Card interactive className="h-full">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <div className="font-semibold text-teal-950">{str(org.name)}</div>
-                    <div className="text-xs text-teal-900/50">{str(org.planName)}</div>
+                    <div className="font-semibold text-ink">{str(org.name)}</div>
+                    <div className="text-xs text-muted">{str(org.planName)}</div>
                   </div>
                   <Badge tone={statusTone(str(org.status))}>{str(org.status)}</Badge>
                 </div>
@@ -251,7 +251,7 @@ function AdminHome({ data }: { data: Dashboard }) {
       <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
         <Card>
           <CardTitle>Delivery mix</CardTitle>
-          <p className="mt-1 text-sm text-teal-900/50">How work is flowing across the organization.</p>
+          <p className="mt-1 text-sm text-muted">How work is flowing across the organization.</p>
           <div className="mt-5">
             <StatusStack counts={mix} />
           </div>
@@ -261,17 +261,17 @@ function AdminHome({ data }: { data: Dashboard }) {
             <CardTitle>Deadline strip</CardTitle>
             <div className="mt-4 space-y-2">
               {visibleDeadlines.length === 0 && (
-                <p className="text-sm text-teal-900/50">No matching deadlines. The calendar is clear.</p>
+                <p className="text-sm text-muted">No matching deadlines. The calendar is clear.</p>
               )}
               {visibleDeadlines.slice(0, 6).map((item) => (
                 <Link
                   key={str(item.id)}
                   to={`/app/tasks/${str(item.id)}`}
-                  className="flex items-center justify-between rounded-2xl bg-white/70 px-3 py-2 hover:bg-white"
+                  className="flex items-center justify-between rounded-2xl bg-white/70 px-3 py-2 hover:bg-white dark:bg-white/5 dark:hover:bg-white/10"
                 >
                   <div className="min-w-0">
-                    <div className="truncate text-sm font-medium text-teal-950">{str(item.title)}</div>
-                    <div className="text-xs text-teal-900/50">{formatDay(str(item.deadline))}</div>
+                    <div className="truncate text-sm font-medium text-ink">{str(item.title)}</div>
+                    <div className="text-xs text-muted">{formatDay(str(item.deadline))}</div>
                   </div>
                   <Badge tone={str(item.kind) === 'overdue' ? 'red' : 'amber'}>{str(item.kind)}</Badge>
                 </Link>
@@ -284,7 +284,7 @@ function AdminHome({ data }: { data: Dashboard }) {
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <CardTitle>Awaiting review</CardTitle>
-            <p className="mt-1 text-sm text-teal-900/50">
+            <p className="mt-1 text-sm text-muted">
               How much work is waiting on each Project Manager. You can see it — they sign it off.
             </p>
           </div>
@@ -297,14 +297,14 @@ function AdminHome({ data }: { data: Dashboard }) {
         </div>
         <div className="mt-4 space-y-2">
           {reviewsByManager.length === 0 && (
-            <p className="text-sm text-teal-900/50">Nothing is waiting in review.</p>
+            <p className="text-sm text-muted">Nothing is waiting in review.</p>
           )}
           {reviewsByManager.map((row) => (
             <div
               key={str(row.managerId, str(row.managerName))}
-              className="flex items-center justify-between rounded-2xl bg-white/70 px-3 py-2"
+              className="flex items-center justify-between rounded-2xl bg-white/70 px-3 py-2 dark:bg-white/5"
             >
-              <span className="text-sm font-medium text-teal-950">{str(row.managerName, 'Project Manager')}</span>
+              <span className="text-sm font-medium text-ink">{str(row.managerName, 'Project Manager')}</span>
               <Badge tone="purple">{`${num(row.reviewCount)} in review`}</Badge>
             </div>
           ))}
@@ -335,8 +335,8 @@ function AdminHome({ data }: { data: Dashboard }) {
                 <Card interactive className="h-full">
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <div className="font-semibold text-teal-950">{str(project.name)}</div>
-                      <div className="text-xs text-teal-900/50">
+                      <div className="font-semibold text-ink">{str(project.name)}</div>
+                      <div className="text-xs text-muted">
                         {str(project.managerName) ? `PM ${str(project.managerName)} · ` : ''}
                         {done}/{total} complete
                         {num(project.review) > 0 ? ` · ${num(project.review)} in review` : ''}
@@ -362,14 +362,14 @@ function AdminHome({ data }: { data: Dashboard }) {
       <Card>
         <CardTitle>Recent activity</CardTitle>
         <div className="mt-4 space-y-3">
-          {activity.length === 0 && <p className="text-sm text-teal-900/50">No activity yet.</p>}
+          {activity.length === 0 && <p className="text-sm text-muted">No activity yet.</p>}
           {activity.slice(0, 8).map((event) => {
             const href = activityHref(event)
             const row = (
               <div className="flex gap-3">
                 <Avatar name={str(event.actorName, 'WWT')} size="sm" />
                 <div>
-                  <div className="text-sm text-teal-950">{str(event.message)}</div>
+                  <div className="text-sm text-ink">{str(event.message)}</div>
                   <div className="text-xs text-teal-900/45">{formatDate(str(event.createdAt))}</div>
                 </div>
               </div>
@@ -410,7 +410,7 @@ function MemberHome({ data }: { data: Dashboard }) {
             <StatusDonut segments={donutSegments} />
             <div className="absolute inset-0 grid place-items-center text-center">
               <div>
-                <div className="text-2xl font-semibold text-teal-950">{num(m.assignedTasks)}</div>
+                <div className="text-2xl font-semibold text-ink">{num(m.assignedTasks)}</div>
                 <div className="font-mono text-[10px] tracking-[0.2em] text-teal-800/55 uppercase">Assigned</div>
               </div>
             </div>
@@ -468,7 +468,7 @@ function MemberHome({ data }: { data: Dashboard }) {
             <div>
               <div className="font-mono text-[11px] tracking-[0.28em] text-teal-700/70 uppercase">Project manager</div>
               <CardTitle className="mt-1">{str(m.pmProjectName)}</CardTitle>
-              <p className="mt-1 text-sm text-teal-900/50">Pipeline across the board you own.</p>
+              <p className="mt-1 text-sm text-muted">Pipeline across the board you own.</p>
               {num(m.pmReview) > 0 && (
                 <Link
                   to="/app/review"
@@ -510,7 +510,7 @@ function MemberHome({ data }: { data: Dashboard }) {
                 <div className="flex gap-3">
                   <Avatar name={str(event.actorName, 'WWT')} size="sm" />
                   <div>
-                    <div className="text-sm text-teal-950">{str(event.message)}</div>
+                    <div className="text-sm text-ink">{str(event.message)}</div>
                     <div className="text-xs text-teal-900/45">{formatDate(str(event.createdAt))}</div>
                   </div>
                 </div>
@@ -575,7 +575,7 @@ function DueRail({ tasks }: { tasks: Record<string, unknown>[] }) {
     .sort((a, b) => str(a.deadline).localeCompare(str(b.deadline)))
     .slice(0, 8)
   if (dated.length === 0) {
-    return <p className="mt-3 text-sm text-teal-900/50">Nothing dated yet — enjoy the quiet rail.</p>
+    return <p className="mt-3 text-sm text-muted">Nothing dated yet — enjoy the quiet rail.</p>
   }
   return (
     <div className="mt-4 flex gap-3 overflow-x-auto pb-2">
@@ -583,12 +583,12 @@ function DueRail({ tasks }: { tasks: Record<string, unknown>[] }) {
         <Link
           key={str(task.id)}
           to={`/app/tasks/${str(task.id)}`}
-          className="app-card-lift min-w-44 rounded-2xl border border-teal-900/8 bg-white/80 p-3"
+          className="app-card-lift min-w-44 rounded-2xl border border-teal-900/8 bg-white/80 p-3 dark:border-teal-200/10 dark:bg-white/5"
         >
           <div className="font-mono text-[10px] tracking-[0.16em] text-teal-700/60 uppercase">
             {formatDay(str(task.deadline))}
           </div>
-          <div className="mt-2 line-clamp-2 text-sm font-medium text-teal-950">{str(task.title)}</div>
+          <div className="mt-2 line-clamp-2 text-sm font-medium text-ink">{str(task.title)}</div>
           <div className="mt-2">
             <Badge tone={statusTone(str(task.status))}>{str(task.status)}</Badge>
           </div>
@@ -644,7 +644,7 @@ function FilterChips({
           onClick={() => onChange(option.id)}
           className={cn(
             'rounded-full px-3 py-1.5 font-mono text-[10px] tracking-[0.16em] uppercase app-ease',
-            value === option.id ? 'bg-teal-800 text-white' : 'bg-white/70 text-teal-800 hover:bg-white',
+            value === option.id ? 'bg-teal-800 text-white' : 'bg-white/70 text-teal-800 hover:bg-white dark:bg-white/5 dark:text-teal-200 dark:hover:bg-white/10',
           )}
         >
           {option.label}

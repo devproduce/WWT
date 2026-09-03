@@ -111,10 +111,10 @@ export function MembersPage() {
               <div className="flex items-start gap-3">
                 <Avatar name={`${member.firstName} ${member.lastName}`} />
                 <div className="min-w-0 flex-1">
-                  <div className="font-semibold text-teal-950">
+                  <div className="font-semibold text-ink">
                     {member.firstName} {member.lastName}
                   </div>
-                  <div className="truncate text-sm text-teal-900/50">{member.email}</div>
+                  <div className="truncate text-sm text-muted">{member.email}</div>
                   <div className="mt-2 flex flex-wrap gap-1">
                     <Badge tone={member.role === 'ADMIN' ? 'teal' : 'slate'}>{member.role}</Badge>
                     <Badge tone={statusTone(member.status)}>{member.status}</Badge>
@@ -224,7 +224,7 @@ function MemberFormModal({
   return (
     <Modal>
       <form className="space-y-3" onSubmit={submit}>
-        <h2 className="text-lg font-semibold text-teal-950">{title}</h2>
+        <h2 className="text-lg font-semibold text-ink">{title}</h2>
         <Field label="First name">
           <Input value={form.firstName} onChange={(e) => setForm({ ...form, firstName: e.target.value })} required />
         </Field>

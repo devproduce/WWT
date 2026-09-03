@@ -93,7 +93,7 @@ export function ReviewInboxPage() {
           <EmptyState title="Could not load the inbox" description={apiError(queue.error, 'The review queue is unavailable.')} />
         </Card>
       ) : queue.isPending ? (
-        <p className="py-16 text-center text-sm text-teal-900/50">Loading reviews…</p>
+        <p className="py-16 text-center text-sm text-muted">Loading reviews…</p>
       ) : items.length === 0 ? (
         <Card>
           <EmptyState
@@ -212,7 +212,7 @@ function ReviewHero({
             <Badge tone={statusTone(item.task.priority)}>{item.task.priority}</Badge>
             <WaitChip since={item.waitingSince} />
           </div>
-          <Link to={`/app/tasks/${item.task.id}`} className="mt-3 block text-2xl font-semibold tracking-tight text-teal-950 hover:text-teal-700">
+          <Link to={`/app/tasks/${item.task.id}`} className="mt-3 block text-2xl font-semibold tracking-tight text-ink hover:text-teal-700">
             {item.task.title}
           </Link>
           {description && <p className="mt-2 line-clamp-2 max-w-2xl text-sm leading-relaxed text-teal-900/60">{description}</p>}
@@ -245,7 +245,7 @@ function ReviewHero({
               Waiting on {item.managerName ?? 'the Project Manager'}
             </p>
           )}
-          <Link to={`/app/tasks/${item.task.id}`} className="text-center text-xs text-teal-800/70 hover:text-teal-950">
+          <Link to={`/app/tasks/${item.task.id}`} className="text-center text-xs text-teal-800/70 hover:text-ink">
             Open task
           </Link>
         </div>
@@ -272,10 +272,10 @@ function ReviewRow({
     <Card className="flex flex-wrap items-center gap-3 py-4">
       <Avatar name={item.task.assigneeName ?? item.projectName} size="sm" />
       <div className="min-w-0 flex-1">
-        <Link to={`/app/tasks/${item.task.id}`} className="font-medium text-teal-950 hover:text-teal-700">
+        <Link to={`/app/tasks/${item.task.id}`} className="font-medium text-ink hover:text-teal-700">
           {item.task.title}
         </Link>
-        <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-teal-900/50">
+        <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted">
           <span>{item.projectName}</span>
           {item.managerName && <span>PM {item.managerName}</span>}
           {item.task.assigneeName && <span>{item.task.assigneeName}</span>}

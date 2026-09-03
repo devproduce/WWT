@@ -46,7 +46,7 @@ function FeatureToggles({
       {FEATURE_OPTIONS.map((feature) => (
         <label
           key={feature.key}
-          className="flex items-center gap-2 rounded-2xl border border-teal-900/8 bg-white/70 px-3 py-2 text-sm"
+          className="flex items-center gap-2 rounded-2xl border border-teal-900/8 bg-white/70 px-3 py-2 text-sm dark:border-teal-200/10 dark:bg-white/5"
         >
           <input
             type="checkbox"
@@ -120,8 +120,8 @@ export function SuperAdminOrganizations({ embedded = false }: { embedded?: boole
               <Card interactive className="h-full">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <div className="font-semibold text-teal-950">{org.name}</div>
-                    <div className="text-xs text-teal-900/50">
+                    <div className="font-semibold text-ink">{org.name}</div>
+                    <div className="text-xs text-muted">
                       {org.planName} · {org.adminEmail}
                     </div>
                   </div>
@@ -177,7 +177,7 @@ function CreateOrgForm({
   return (
     <Modal>
       <form className="space-y-3" onSubmit={submit}>
-        <h2 className="text-lg font-semibold text-teal-950">Create organization</h2>
+        <h2 className="text-lg font-semibold text-ink">Create organization</h2>
         <Field label="Organization name">
           <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
         </Field>
@@ -210,7 +210,7 @@ function CreateOrgForm({
           </select>
         </Field>
         <Field label="Enabled features">
-          <p className="mb-2 text-xs text-teal-900/50">Prefills from the selected plan. Override any feature for this organization.</p>
+          <p className="mb-2 text-xs text-muted">Prefills from the selected plan. Override any feature for this organization.</p>
           <FeatureToggles value={form.entitlements} onChange={(entitlements) => setForm({ ...form, entitlements })} />
         </Field>
         <div className="flex justify-end gap-2 pt-2">
@@ -267,7 +267,7 @@ export function OrganizationDetailPage() {
     }
   }, [org.data])
 
-  if (!org.data) return <p className="py-16 text-center text-sm text-teal-900/50">Loading…</p>
+  if (!org.data) return <p className="py-16 text-center text-sm text-muted">Loading…</p>
   const item = org.data
   return (
     <div className="space-y-5">
@@ -292,7 +292,7 @@ export function OrganizationDetailPage() {
       />
       <div className="flex items-center gap-2">
         <Badge tone={statusTone(item.status)}>{item.status}</Badge>
-        <span className="text-sm text-teal-900/50">{item.adminEmail}</span>
+        <span className="text-sm text-muted">{item.adminEmail}</span>
       </div>
       <div className="grid gap-4 md:grid-cols-3">
         <MetricCard
@@ -326,7 +326,7 @@ export function OrganizationDetailPage() {
       {entitlements && (
         <Card className="space-y-3">
           <CardTitle>Enabled features</CardTitle>
-          <p className="text-sm text-teal-900/50">
+          <p className="text-sm text-muted">
             These flags override the plan defaults for this organization. File Attachments must be on for task uploads.
           </p>
           <FeatureToggles value={entitlements} onChange={setEntitlements} />
