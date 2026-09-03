@@ -24,6 +24,7 @@ import {
 } from '@/features/notifications/api'
 import { greetingFor } from '@/lib/utils'
 import { WwtMark } from '@/components/WwtMark'
+import { ThemeToggle } from '@/components/ThemeToggle'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 
 type NavItem = {
@@ -114,8 +115,8 @@ export function AppLayout() {
 
   return (
     <div className="app-canvas relative h-screen overflow-hidden p-3">
-      <div className="app-orb pointer-events-none absolute -top-24 left-10 h-72 w-72 rounded-full bg-teal-300/30 blur-3xl" />
-      <div className="app-orb pointer-events-none absolute top-1/3 -right-16 h-80 w-80 rounded-full bg-amber-200/25 blur-3xl" style={{ animationDelay: '4s' }} />
+      <div className="app-orb pointer-events-none absolute -top-24 left-10 h-72 w-72 rounded-full bg-teal-300/30 blur-3xl dark:bg-teal-300/12" />
+      <div className="app-orb pointer-events-none absolute top-1/3 -right-16 h-80 w-80 rounded-full bg-amber-200/25 blur-3xl dark:bg-amber-200/10" style={{ animationDelay: '4s' }} />
       <div
         className={`relative z-10 flex h-full transition-[gap] duration-300 [transition-timing-function:var(--ease-app)] ${
           sidebarOpen ? 'gap-3' : 'gap-0'
@@ -130,7 +131,7 @@ export function AppLayout() {
           }`}
         >
           <aside
-            className="flex h-full w-64 flex-col rounded-[28px] bg-[#0f3d38] text-teal-50 shadow-[0_24px_60px_rgb(15_61_56_/_0.28)]"
+            className="flex h-full w-64 flex-col rounded-[28px] bg-sidebar text-teal-50 shadow-[0_24px_60px_rgb(15_61_56_/_0.28)] dark:shadow-[0_24px_60px_rgb(0_0_0_/_0.45)]"
             onMouseEnter={cancelSidebarClose}
             onMouseLeave={scheduleSidebarClose}
             aria-hidden={!sidebarOpen}
@@ -193,42 +194,44 @@ export function AppLayout() {
           </div>
         </aside>
         </div>
-        <div className="min-h-0 min-w-0 flex-1 overflow-y-auto rounded-[28px] border border-white/50 bg-white/45 shadow-[0_24px_60px_rgb(15_61_56_/_0.08)] backdrop-blur-xl">
+        <div className="min-h-0 min-w-0 flex-1 overflow-y-auto rounded-[28px] border border-white/50 bg-white/45 shadow-[0_24px_60px_rgb(15_61_56_/_0.08)] backdrop-blur-xl dark:border-white/10 dark:bg-white/[0.04] dark:shadow-[0_24px_60px_rgb(0_0_0_/_0.4)]">
           <header className="flex items-center justify-between gap-4 px-6 py-4">
             <div className="flex items-center gap-3">
               <button
                 type="button"
-                className="shrink-0 rounded-full border border-teal-900/10 bg-white/70 p-2.5 hover:bg-white"
+                className="shrink-0 rounded-full border border-teal-900/10 bg-white/70 p-2.5 hover:bg-white dark:border-teal-200/15 dark:bg-white/5 dark:hover:bg-white/10"
                 onMouseEnter={cancelSidebarClose}
                 onClick={() => (sidebarOpen ? closeSidebar() : openSidebar())}
                 aria-label={sidebarOpen ? 'Close navigation' : 'Open navigation'}
                 aria-expanded={sidebarOpen}
               >
                 {sidebarOpen ? (
-                  <PanelLeftClose className="h-5 w-5 text-teal-800" />
+                  <PanelLeftClose className="h-5 w-5 text-teal-800 dark:text-teal-200" />
                 ) : (
-                  <Menu className="h-5 w-5 text-teal-800" />
+                  <Menu className="h-5 w-5 text-teal-800 dark:text-teal-200" />
                 )}
               </button>
               <div>
-                <div className="text-lg font-semibold tracking-tight text-teal-950">
+                <div className="text-lg font-semibold tracking-tight text-ink">
                   {greetingFor(user.firstName)}
                 </div>
-                <div className="font-serif text-sm italic text-teal-900/55">
+                <div className="font-serif text-sm italic text-muted">
                   {user.organizationName ?? 'Platform console'}
                 </div>
               </div>
             </div>
-            <div className="relative">
+            <div className="flex items-center gap-2">
+              <ThemeToggle compact />
+              <div className="relative">
               <button
                 ref={bellRef}
                 type="button"
-                className="relative rounded-full border border-teal-900/10 bg-white/70 p-2.5 hover:bg-white"
+                className="relative rounded-full border border-teal-900/10 bg-white/70 p-2.5 hover:bg-white dark:border-teal-200/15 dark:bg-white/5 dark:hover:bg-white/10"
                 aria-label="Open notifications"
                 aria-expanded={notificationsOpen}
                 onClick={() => setNotificationsOpen((v) => !v)}
               >
-                <Bell className="h-5 w-5 text-teal-800" />
+                <Bell className="h-5 w-5 text-teal-800 dark:text-teal-200" />
                 {unreadCount > 0 && (
                   <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-rose-500 landing-pulse" />
                 )}
@@ -239,6 +242,7 @@ export function AppLayout() {
                 data={notifications.data}
                 anchorRef={bellRef}
               />
+              </div>
             </div>
           </header>
           <main className="px-6 pb-6" onMouseEnter={scheduleSidebarClose} onPointerDown={closeSidebar}>

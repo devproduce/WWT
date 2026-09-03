@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import { useAuth } from '@/features/auth/AuthContext'
 import { apiError } from '@/services/api'
 import { WwtMark } from '@/components/WwtMark'
+import { ThemeToggle } from '@/components/ThemeToggle'
 
 export function LoginPage() {
   const { login } = useAuth()
@@ -43,7 +44,7 @@ export function LoginPage() {
           {pending ? 'Signing in…' : 'Sign in'}
         </Button>
         <div className="text-center text-sm">
-          <Link className="text-teal-800 hover:underline" to="/forgot-password">
+          <Link className="text-teal-800 hover:underline dark:text-teal-300" to="/forgot-password">
             Forgot password?
           </Link>
         </div>
@@ -55,10 +56,13 @@ export function LoginPage() {
 export function AuthShell({ title, subtitle, children }: { title: string; subtitle: string; children: ReactNode }) {
   return (
     <div className="app-canvas relative min-h-screen overflow-hidden">
-      <div className="app-orb pointer-events-none absolute -top-20 right-10 h-72 w-72 rounded-full bg-teal-300/35 blur-3xl" />
-      <div className="app-orb pointer-events-none absolute bottom-0 left-1/3 h-80 w-80 rounded-full bg-amber-200/25 blur-3xl" style={{ animationDelay: '5s' }} />
+      <div className="app-orb pointer-events-none absolute -top-20 right-10 h-72 w-72 rounded-full bg-teal-300/35 blur-3xl dark:bg-teal-300/12" />
+      <div className="app-orb pointer-events-none absolute bottom-0 left-1/3 h-80 w-80 rounded-full bg-amber-200/25 blur-3xl dark:bg-amber-200/10" style={{ animationDelay: '5s' }} />
+      <div className="absolute right-4 top-4 z-20">
+        <ThemeToggle compact />
+      </div>
       <div className="relative grid min-h-screen lg:grid-cols-2">
-        <div className="relative hidden overflow-hidden bg-[#0f3d38] p-10 text-white lg:flex lg:flex-col lg:justify-between">
+        <div className="relative hidden overflow-hidden bg-sidebar p-10 text-white lg:flex lg:flex-col lg:justify-between">
           <div className="app-orb absolute -left-10 top-20 h-56 w-56 rounded-full bg-teal-400/25 blur-3xl" />
           <div className="app-orb absolute right-0 bottom-10 h-64 w-64 rounded-full bg-cyan-300/15 blur-3xl" style={{ animationDelay: '3s' }} />
           <Link to="/" className="relative z-10 flex items-center gap-3 text-white hover:text-teal-200">
@@ -78,11 +82,11 @@ export function AuthShell({ title, subtitle, children }: { title: string; subtit
         </div>
         <div className="flex items-center justify-center p-6">
           <div className="app-card app-shine w-full max-w-md rounded-[28px] p-8">
-            <Link to="/" className="mb-6 inline-block text-sm text-teal-800 hover:underline">
+            <Link to="/" className="mb-6 inline-block text-sm text-teal-800 hover:underline dark:text-teal-300">
               ← Back to WWT
             </Link>
-            <h2 className="text-2xl font-semibold tracking-tight text-teal-950">{title}</h2>
-            <p className="mb-6 mt-1 font-serif italic text-teal-900/55">{subtitle}</p>
+            <h2 className="text-2xl font-semibold tracking-tight text-ink">{title}</h2>
+            <p className="mb-6 mt-1 font-serif italic text-muted">{subtitle}</p>
             {children}
           </div>
         </div>

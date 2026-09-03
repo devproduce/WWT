@@ -47,14 +47,14 @@ export default function App() {
 
 function RequireAuth({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth()
-  if (loading) return <div className="grid min-h-screen place-items-center text-sm text-teal-900/50">Loading WeWorkTogether…</div>
+  if (loading) return <div className="grid min-h-screen place-items-center bg-canvas text-sm text-muted">Loading WeWorkTogether…</div>
   if (!user) return <Navigate to="/login" replace />
   return children
 }
 
 function GuestOnly({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth()
-  if (loading) return <div className="grid min-h-screen place-items-center text-sm text-teal-900/50">Loading…</div>
+  if (loading) return <div className="grid min-h-screen place-items-center bg-canvas text-sm text-muted">Loading…</div>
   if (user) return <Navigate to="/app" replace />
   return children
 }
