@@ -9,6 +9,18 @@
       content="WWT is a privacy-first workspace for organizations. Manage members, projects, Kanban boards, reviews, and quotas — with a role for every person."
     />
     <title>WWT — Never chase work again</title>
+    <script>
+      (function () {
+        try {
+          var stored = localStorage.getItem('wwt-theme')
+          var dark =
+            stored === 'dark' ||
+            ((stored === 'system' || stored == null) &&
+              window.matchMedia('(prefers-color-scheme: dark)').matches)
+          if (dark) document.documentElement.classList.add('dark')
+        } catch (e) {}
+      })()
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link

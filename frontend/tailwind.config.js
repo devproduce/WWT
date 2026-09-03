@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: 'class',
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
@@ -11,15 +12,18 @@ export default {
       },
       colors: {
         brand: {
-          DEFAULT: '#0f766e',
-          dark: '#115e59',
+          DEFAULT: 'var(--color-brand)',
+          dark: 'var(--color-brand-dark)',
+          on: 'var(--color-brand-on)',
         },
-        ink: '#12312e',
-        muted: '#5b746f',
-        line: '#cfe0db',
-        panel: '#f4faf7',
-        canvas: '#e7f1ee',
-        sidebar: '#0f3d38',
+        ink: 'var(--color-ink)',
+        muted: 'var(--color-muted)',
+        line: 'var(--color-line)',
+        panel: 'var(--color-panel)',
+        canvas: 'var(--color-canvas)',
+        sidebar: 'var(--color-sidebar)',
+        surface: 'var(--color-surface)',
+        'surface-high': 'var(--color-surface-high)',
       },
     },
   },
