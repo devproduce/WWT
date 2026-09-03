@@ -18,5 +18,5 @@ export function Card({
 }
 
 export function CardTitle({ children, className = '' }: HTMLAttributes<HTMLHeadingElement>) {
-  return <h2 className={cn('text-base font-semibold tracking-tight text-teal-950', className)}>{children}</h2>
+  return <h2 className={cn('text-base font-semibold tracking-tight text-ink', className)}>{children}</h2>
 }

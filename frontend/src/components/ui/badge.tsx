@@ -2,13 +2,13 @@ import type { ReactNode } from 'react'
 import { cn } from '@/lib/utils'
 
 const styles: Record<string, string> = {
-  teal: 'bg-teal-100/90 text-teal-900',
-  slate: 'bg-stone-100 text-stone-700',
-  amber: 'bg-amber-100 text-amber-900',
-  red: 'bg-rose-100 text-rose-800',
-  green: 'bg-emerald-100 text-emerald-900',
-  blue: 'bg-sky-100 text-sky-900',
-  purple: 'bg-violet-100 text-violet-900',
+  teal: 'bg-teal-100/90 text-teal-900 dark:bg-teal-500/15 dark:text-teal-200',
+  slate: 'bg-stone-100 text-stone-700 dark:bg-stone-500/15 dark:text-stone-200',
+  amber: 'bg-amber-100 text-amber-900 dark:bg-amber-500/15 dark:text-amber-200',
+  red: 'bg-rose-100 text-rose-800 dark:bg-rose-500/15 dark:text-rose-200',
+  green: 'bg-emerald-100 text-emerald-900 dark:bg-emerald-500/15 dark:text-emerald-200',
+  blue: 'bg-sky-100 text-sky-900 dark:bg-sky-500/15 dark:text-sky-200',
+  purple: 'bg-violet-100 text-violet-900 dark:bg-violet-500/15 dark:text-violet-200',
 }
 
 export function Badge({ children, tone = 'slate' }: { children: ReactNode; tone?: keyof typeof styles }) {

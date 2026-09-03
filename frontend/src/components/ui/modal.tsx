@@ -11,11 +11,11 @@ export function Modal({ children }: { children: ReactNode }) {
   }, [])
 
   return createPortal(
-    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-teal-950/35 p-4 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-teal-950/35 p-4 backdrop-blur-sm dark:bg-black/55">
       <div
         role="dialog"
         aria-modal="true"
-        className="app-card max-h-[min(90vh,720px)] w-full max-w-lg overflow-y-auto rounded-[28px] p-6 shadow-[0_30px_80px_rgb(15_61_56_/_0.28)]"
+        className="app-card max-h-[min(90vh,720px)] w-full max-w-lg overflow-y-auto rounded-[28px] p-6 shadow-[0_30px_80px_rgb(15_61_56_/_0.28)] dark:shadow-[0_30px_80px_rgb(0_0_0_/_0.5)]"
       >
         {children}
       </div>
