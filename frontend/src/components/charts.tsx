@@ -1,13 +1,14 @@
 import { cn } from '@/lib/utils'
+import { useTheme } from '@/features/theme/ThemeProvider'
 import type { ReactNode } from 'react'
 
 export const TONE = {
-  teal: { fill: '#0f766e', track: '#d5ebe6', bg: 'bg-teal-50/90', text: 'text-teal-900', icon: 'bg-teal-700 text-white' },
-  coral: { fill: '#e11d48', track: '#fde4ea', bg: 'bg-rose-50/90', text: 'text-rose-900', icon: 'bg-rose-500 text-white' },
-  amber: { fill: '#d97706', track: '#fdecc8', bg: 'bg-amber-50/90', text: 'text-amber-950', icon: 'bg-amber-500 text-white' },
-  violet: { fill: '#7c3aed', track: '#ece4ff', bg: 'bg-violet-50/90', text: 'text-violet-950', icon: 'bg-violet-600 text-white' },
-  sky: { fill: '#0284c7', track: '#d7eefb', bg: 'bg-sky-50/90', text: 'text-sky-950', icon: 'bg-sky-600 text-white' },
-  stone: { fill: '#57534e', track: '#e7e5e4', bg: 'bg-stone-50/90', text: 'text-stone-800', icon: 'bg-stone-600 text-white' },
+  teal: { fill: '#0f766e', track: '#d5ebe6', darkTrack: '#2a3230', bg: 'bg-teal-50/90 dark:bg-teal-500/10', text: 'text-teal-900 dark:text-teal-100', icon: 'bg-teal-700 text-white' },
+  coral: { fill: '#e11d48', track: '#fde4ea', darkTrack: '#322428', bg: 'bg-rose-50/90 dark:bg-rose-500/10', text: 'text-rose-900 dark:text-rose-100', icon: 'bg-rose-500 text-white' },
+  amber: { fill: '#d97706', track: '#fdecc8', darkTrack: '#322c20', bg: 'bg-amber-50/90 dark:bg-amber-500/10', text: 'text-amber-950 dark:text-amber-100', icon: 'bg-amber-500 text-white' },
+  violet: { fill: '#7c3aed', track: '#ece4ff', darkTrack: '#2a2834', bg: 'bg-violet-50/90 dark:bg-violet-500/10', text: 'text-violet-950 dark:text-violet-100', icon: 'bg-violet-600 text-white' },
+  sky: { fill: '#0284c7', track: '#d7eefb', darkTrack: '#223038', bg: 'bg-sky-50/90 dark:bg-sky-500/10', text: 'text-sky-950 dark:text-sky-100', icon: 'bg-sky-600 text-white' },
+  stone: { fill: '#57534e', track: '#e7e5e4', darkTrack: '#2a2a28', bg: 'bg-stone-50/90 dark:bg-stone-500/10', text: 'text-stone-800 dark:text-stone-100', icon: 'bg-stone-600 text-white' },
 } as const
 
 export type Tone = keyof typeof TONE
@@ -32,10 +33,12 @@ export function RingChart({
   const c = 2 * Math.PI * r
   const dash = (pct / 100) * c
   const colors = TONE[tone]
+  const { resolved } = useTheme()
+  const track = resolved === 'dark' ? colors.darkTrack : colors.track
   return (
     <div className="relative grid place-items-center" style={{ width: size, height: size }}>
       <svg width={size} height={size} className="-rotate-90">
-        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={colors.track} strokeWidth={stroke} />
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={track} strokeWidth={stroke} />
         <circle
           cx={size / 2}
           cy={size / 2}
@@ -63,13 +66,14 @@ export function StatusDonut({
   size?: number
   stroke?: number
 }) {
+  const { resolved } = useTheme()
   const total = segments.reduce((sum, item) => sum + item.value, 0) || 1
   const r = (size - stroke) / 2
   const c = 2 * Math.PI * r
   let offset = 0
   return (
     <svg width={size} height={size} className="-rotate-90">
-      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#e4eeea" strokeWidth={stroke} />
+      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={resolved === 'dark' ? '#2a3230' : '#e4eeea'} strokeWidth={stroke} />
       {segments.map((segment, index) => {
         const len = (segment.value / total) * c
         const circle = (

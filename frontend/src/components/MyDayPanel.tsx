@@ -64,7 +64,7 @@ export function MyDayPanel({ filter = 'ALL' }: { filter?: FocusFilter }) {
     return (
       <Card>
         <CardTitle>My Day</CardTitle>
-        <p className="mt-3 text-sm text-teal-900/50">Choosing what matters today…</p>
+        <p className="mt-3 text-sm text-muted">Choosing what matters today…</p>
       </Card>
     )
   }
@@ -85,7 +85,7 @@ export function MyDayPanel({ filter = 'ALL' }: { filter?: FocusFilter }) {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <CardTitle>My Day</CardTitle>
-          <p className="mt-1 text-sm text-teal-900/50">A private plan for today. The board still shows the same work.</p>
+          <p className="mt-1 text-sm text-muted">A private plan for today. The board still shows the same work.</p>
         </div>
         <Input className="max-w-xs" placeholder="Search my work" value={query} onChange={(event) => setQuery(event.target.value)} />
       </div>
@@ -121,10 +121,10 @@ export function MyDayPanel({ filter = 'ALL' }: { filter?: FocusFilter }) {
               <Link
                 key={task.id}
                 to={`/app/tasks/${task.id}`}
-                className="app-ease block rounded-2xl border border-teal-900/8 bg-white/70 px-3 py-3 hover:border-teal-700/20"
+                className="app-ease block rounded-2xl border border-teal-900/8 bg-white/70 px-3 py-3 hover:border-teal-700/20 dark:border-teal-200/10 dark:bg-white/5 dark:hover:border-teal-300/25"
               >
-                <div className="font-medium text-teal-950">{task.title}</div>
-                <div className="text-xs text-teal-900/50">Due {formatDay(task.deadline)}</div>
+                <div className="font-medium text-ink">{task.title}</div>
+                <div className="text-xs text-muted">Due {formatDay(task.deadline)}</div>
               </Link>
             ))}
           </div>
@@ -167,7 +167,7 @@ function MyDayRowCard({
           openTask()
         }
       }}
-      className="app-ease flex cursor-pointer items-center gap-3 rounded-2xl border border-teal-900/8 bg-white/70 px-3 py-3 hover:border-teal-700/20"
+      className="app-ease flex cursor-pointer items-center gap-3 rounded-2xl border border-teal-900/8 bg-white/70 px-3 py-3 hover:border-teal-700/20 dark:border-teal-200/10 dark:bg-white/5 dark:hover:border-teal-300/25"
     >
       <span
         className={cn(
@@ -176,8 +176,8 @@ function MyDayRowCard({
         )}
       />
       <div className="min-w-0 flex-1">
-        <div className="truncate font-medium text-teal-950">{task.title}</div>
-        <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-teal-900/50">
+        <div className="truncate font-medium text-ink">{task.title}</div>
+        <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-muted">
           <span>{item.projectName}</span>
           <span>·</span>
           <span>Due {formatDay(task.deadline)}</span>

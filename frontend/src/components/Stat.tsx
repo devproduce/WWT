@@ -3,9 +3,9 @@ import { QuotaMeter } from '@/components/QuotaMeter'
 export function Stat({ label, value, hint }: { label: string; value: unknown; hint?: string }) {
   return (
     <div className="app-card rounded-[28px] p-5">
-      <div className="font-mono text-[10px] tracking-[0.22em] text-teal-800/60 uppercase">{label}</div>
-      <div className="mt-1 text-2xl font-semibold tracking-tight text-teal-950">{String(value ?? 0)}</div>
-      {hint && <div className="mt-0.5 text-xs text-teal-900/50">{hint}</div>}
+      <div className="font-mono text-[10px] tracking-[0.22em] text-teal-800/60 uppercase dark:text-teal-200/55">{label}</div>
+      <div className="mt-1 text-2xl font-semibold tracking-tight text-ink">{String(value ?? 0)}</div>
+      {hint && <div className="mt-0.5 text-xs text-muted">{hint}</div>}
     </div>
   )
 }

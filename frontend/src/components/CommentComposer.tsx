@@ -192,14 +192,14 @@ export function CommentComposer({
         {open && (
           <div className="absolute bottom-full z-20 mb-2 w-full overflow-hidden rounded-2xl border border-teal-900/10 bg-white shadow-[0_16px_40px_rgb(15_61_56_/_0.14)]">
             {matches.length === 0 ? (
-              <div className="px-3 py-3 text-sm text-teal-900/50">No one matches that name</div>
+              <div className="px-3 py-3 text-sm text-muted">No one matches that name</div>
             ) : (
               matches.map((member, index) => (
                 <button
                   key={member.id}
                   type="button"
                   className={cn(
-                    'flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-teal-950',
+                    'flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-ink',
                     index === highlight ? 'bg-violet-50' : 'hover:bg-teal-50',
                   )}
                   onMouseEnter={() => setHighlight(index)}

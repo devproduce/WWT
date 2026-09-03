@@ -98,19 +98,19 @@ export function NotificationPanel({ open, onClose, data, anchorRef }: Notificati
       ref={panelRef}
       role="dialog"
       aria-label="Notifications"
-      className="app-card absolute right-0 z-30 mt-2 w-[min(100vw-2rem,24rem)] overflow-hidden rounded-[28px] border border-teal-900/10 p-0 shadow-[0_28px_70px_rgb(15_61_56_/_0.22)]"
+      className="app-card absolute right-0 z-30 mt-2 w-[min(100vw-2rem,24rem)] overflow-hidden rounded-[28px] border border-teal-900/10 p-0 shadow-[0_28px_70px_rgb(15_61_56_/_0.22)] dark:border-teal-200/15 dark:shadow-[0_28px_70px_rgb(0_0_0_/_0.5)]"
     >
-      <div className="flex items-start justify-between gap-3 border-b border-teal-900/8 px-4 py-3.5">
+      <div className="flex items-start justify-between gap-3 border-b border-teal-900/8 px-4 py-3.5 dark:border-teal-200/10">
         <div>
           <div className="flex items-center gap-2">
-            <h2 className="text-sm font-semibold text-teal-950">Notifications</h2>
+            <h2 className="text-sm font-semibold text-ink">Notifications</h2>
             {unreadCount > 0 && (
               <span className="rounded-full bg-rose-500 px-2 py-0.5 text-[10px] font-semibold text-white">
                 {unreadCount}
               </span>
             )}
           </div>
-          <p className="mt-0.5 text-xs text-teal-900/50">
+          <p className="mt-0.5 text-xs text-muted">
             {unreadCount > 0 ? 'New updates waiting for you' : 'You’re all caught up'}
           </p>
         </div>
@@ -118,7 +118,7 @@ export function NotificationPanel({ open, onClose, data, anchorRef }: Notificati
           <Button
             type="button"
             variant="ghost"
-            className="h-auto px-2 py-1 text-xs text-teal-800"
+            className="h-auto px-2 py-1 text-xs text-teal-800 dark:text-teal-300"
             disabled={clearAll.isPending}
             onClick={() => clearAll.mutate()}
           >
@@ -131,15 +131,15 @@ export function NotificationPanel({ open, onClose, data, anchorRef }: Notificati
       <div className="max-h-[min(70vh,28rem)] overflow-y-auto p-2">
         {unread.length === 0 && !showEarlier && (
           <div className="px-3 py-10 text-center">
-            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl border border-teal-900/10 bg-teal-50 text-teal-700">
+            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl border border-teal-900/10 bg-teal-50 text-teal-700 dark:border-teal-200/15 dark:bg-teal-500/10 dark:text-teal-200">
               <Bell className="h-5 w-5" />
             </div>
-            <p className="text-sm font-medium text-teal-950">No new notifications</p>
-            <p className="mt-1 text-xs text-teal-900/50">Mentions, assignments, and reviews will show up here.</p>
+            <p className="text-sm font-medium text-ink">No new notifications</p>
+            <p className="mt-1 text-xs text-muted">Mentions, assignments, and reviews will show up here.</p>
             {earlier.length > 0 && (
               <button
                 type="button"
-                className="mt-4 text-xs font-medium text-teal-800 hover:underline"
+                className="mt-4 text-xs font-medium text-teal-800 hover:underline dark:text-teal-300"
                 onClick={() => setShowEarlier(true)}
               >
                 Show earlier
@@ -163,15 +163,15 @@ export function NotificationPanel({ open, onClose, data, anchorRef }: Notificati
         )}
 
         {(showEarlier || (unread.length > 0 && earlier.length > 0)) && earlier.length > 0 && (
-          <div className={cn('space-y-2', unread.length > 0 && 'mt-3 border-t border-teal-900/8 pt-3')}>
+          <div className={cn('space-y-2', unread.length > 0 && 'mt-3 border-t border-teal-900/8 pt-3 dark:border-teal-200/10')}>
             <div className="flex items-center justify-between px-2">
-              <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-teal-900/40">
+              <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted">
                 Earlier
               </span>
               {unread.length === 0 && (
                 <button
                   type="button"
-                  className="text-[11px] font-medium text-teal-800 hover:underline"
+                  className="text-[11px] font-medium text-teal-800 hover:underline dark:text-teal-300"
                   onClick={() => setShowEarlier(false)}
                 >
                   Hide
@@ -193,7 +193,7 @@ export function NotificationPanel({ open, onClose, data, anchorRef }: Notificati
         {unread.length > 0 && earlier.length > 0 && !showEarlier && (
           <button
             type="button"
-            className="mt-2 w-full rounded-2xl px-3 py-2 text-center text-xs font-medium text-teal-800 hover:bg-teal-50"
+            className="mt-2 w-full rounded-2xl px-3 py-2 text-center text-xs font-medium text-teal-800 hover:bg-teal-50 dark:text-teal-300 dark:hover:bg-white/5"
             onClick={() => setShowEarlier(true)}
           >
             Show earlier
@@ -231,14 +231,14 @@ function NotificationRow({
       }}
       className={cn(
         'group relative flex cursor-pointer gap-3 overflow-hidden rounded-2xl border p-3 text-left transition',
-        unread ? meta.rowClass : 'border-teal-900/8 bg-white/70 text-teal-900/60 hover:bg-white',
+        unread ? meta.rowClass : 'border-teal-900/8 bg-white/70 text-teal-900/60 hover:bg-white dark:border-teal-200/10 dark:bg-white/5 dark:text-teal-200/60 dark:hover:bg-white/10',
       )}
     >
       {unread && <span className={cn('absolute inset-y-0 left-0 w-1', meta.barClass)} />}
       <div
         className={cn(
           'mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border',
-          unread ? meta.chipClass : 'border-teal-900/10 bg-teal-50/80 text-teal-700/70',
+          unread ? meta.chipClass : 'border-teal-900/10 bg-teal-50/80 text-teal-700/70 dark:border-teal-200/15 dark:bg-white/5 dark:text-teal-200/70',
         )}
       >
         <Icon className="h-4 w-4" />
@@ -248,17 +248,17 @@ function NotificationRow({
           <span
             className={cn(
               'rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em]',
-              unread ? meta.chipClass : 'border-teal-900/10 bg-teal-50/50 text-teal-900/45',
+              unread ? meta.chipClass : 'border-teal-900/10 bg-teal-50/50 text-teal-900/45 dark:border-teal-200/15 dark:bg-white/5 dark:text-teal-200/50',
             )}
           >
             {meta.label}
           </span>
-          <span className="shrink-0 text-[11px] text-teal-900/40">{formatNotificationTime(item.createdAt)}</span>
+          <span className="shrink-0 text-[11px] text-muted">{formatNotificationTime(item.createdAt)}</span>
         </div>
-        <div className={cn('mt-1.5 text-sm font-semibold leading-snug', unread ? 'text-teal-950' : 'text-teal-900/70')}>
+        <div className={cn('mt-1.5 text-sm font-semibold leading-snug', unread ? 'text-ink' : 'text-muted')}>
           {item.title}
         </div>
-        <div className={cn('mt-0.5 line-clamp-2 text-sm leading-relaxed', unread ? 'text-teal-900/65' : 'text-teal-900/45')}>
+        <div className={cn('mt-0.5 line-clamp-2 text-sm leading-relaxed', unread ? 'text-muted' : 'text-muted/80')}>
           {item.message}
         </div>
       </div>
@@ -266,7 +266,7 @@ function NotificationRow({
         <button
           type="button"
           aria-label="Dismiss notification"
-          className="absolute right-2 top-2 rounded-full p-1 text-teal-900/30 opacity-0 transition hover:bg-white/80 hover:text-teal-900/70 group-hover:opacity-100"
+          className="absolute right-2 top-2 rounded-full p-1 text-teal-900/30 opacity-0 transition hover:bg-white/80 hover:text-teal-900/70 group-hover:opacity-100 dark:text-teal-200/40 dark:hover:bg-white/10 dark:hover:text-teal-100"
           onClick={onDismiss}
         >
           <X className="h-3.5 w-3.5" />

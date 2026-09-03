@@ -36,9 +36,9 @@ export function MetricCard({
     <>
       {icon && <span className={cn('grid h-11 w-11 shrink-0 place-items-center rounded-2xl', colors.icon)}>{icon}</span>}
       <div className="min-w-0 flex-1">
-        <div className="font-mono text-[10px] tracking-[0.22em] text-teal-800/60 uppercase">{label}</div>
+        <div className="font-mono text-[10px] tracking-[0.22em] text-teal-800/60 uppercase dark:text-teal-200/55">{label}</div>
         <div className={cn('mt-1 text-2xl font-semibold tracking-tight', colors.text)}>{value}</div>
-        {hint && <div className="mt-0.5 text-xs text-teal-900/50">{hint}</div>}
+        {hint && <div className="mt-0.5 text-xs text-muted">{hint}</div>}
       </div>
       {ring && <RingChart value={ring.value} max={ring.max} size={64} stroke={7} tone={tone} />}
     </>

@@ -63,8 +63,8 @@ function DashboardView() {
       <div className="flex items-end justify-between gap-3">
         <div>
           <div className="font-mono text-[11px] tracking-[0.32em] text-teal-700/80 uppercase">Organization</div>
-          <h3 className="mt-1 text-2xl font-semibold tracking-tight text-teal-950">Northwind Labs</h3>
-          <p className="font-serif italic text-teal-900/55">Delivery health, quotas, and the work that needs a decision.</p>
+          <h3 className="mt-1 text-2xl font-semibold tracking-tight text-ink">Northwind Labs</h3>
+          <p className="font-serif italic text-muted">Delivery health, quotas, and the work that needs a decision.</p>
         </div>
         <div className="hidden items-center gap-2 sm:flex">
           {['All', 'Active', 'On hold'].map((chip, i) => (
@@ -111,7 +111,7 @@ function DashboardView() {
       <div className="grid gap-3 lg:grid-cols-[1.15fr_0.85fr]">
         <Card className="p-5">
           <CardTitle>Delivery mix</CardTitle>
-          <p className="mt-1 text-sm text-teal-900/50">How work is flowing across the organization.</p>
+          <p className="mt-1 text-sm text-muted">How work is flowing across the organization.</p>
           <div className="mt-4">
             <StatusStack counts={{ todo: 6, inProgress: 4, review: 5, blocked: 2, done: 18 }} />
           </div>
@@ -127,8 +127,8 @@ function DashboardView() {
             ].map(([title, due, kind]) => (
               <div key={title} className="landing-inset flex items-center justify-between rounded-2xl px-3 py-2">
                 <div className="min-w-0">
-                  <div className="truncate text-sm font-medium text-teal-950">{title}</div>
-                  <div className="text-xs text-teal-900/50">{due}</div>
+                  <div className="truncate text-sm font-medium text-ink">{title}</div>
+                  <div className="text-xs text-muted">{due}</div>
                 </div>
                 <Badge tone={kind === 'overdue' ? 'red' : 'amber'}>{kind}</Badge>
               </div>
@@ -145,8 +145,8 @@ function DashboardView() {
           <Card key={project.name} className="p-4">
             <div className="flex items-start justify-between gap-2">
               <div>
-                <div className="font-semibold text-teal-950">{project.name}</div>
-                <div className="text-xs text-teal-900/50">
+                <div className="font-semibold text-ink">{project.name}</div>
+                <div className="text-xs text-muted">
                   {project.done}/{project.total} complete
                 </div>
               </div>
@@ -174,8 +174,8 @@ function BoardView() {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <div className="font-mono text-[11px] tracking-[0.32em] text-teal-700/80 uppercase">Project</div>
-          <h3 className="mt-1 text-2xl font-semibold tracking-tight text-teal-950">Atlas release</h3>
-          <p className="font-serif italic text-teal-900/55">To do → Doing → Review → Blocked → Done.</p>
+          <h3 className="mt-1 text-2xl font-semibold tracking-tight text-ink">Atlas release</h3>
+          <p className="font-serif italic text-muted">To do → Doing → Review → Blocked → Done.</p>
         </div>
         <Button type="button" className="pointer-events-none">
           New task
@@ -197,7 +197,7 @@ function BoardView() {
           />
           <div>
             <div className="font-mono text-[10px] tracking-[0.22em] text-teal-700/70 uppercase">Completion</div>
-            <p className="mt-1 font-serif italic text-teal-950">18 of 24 tasks closed</p>
+            <p className="mt-1 font-serif italic text-ink">18 of 24 tasks closed</p>
           </div>
         </Card>
         <Card className="p-4">
@@ -224,22 +224,22 @@ function BoardView() {
                 col.tone,
               )}
             >
-              <div className="mb-2 flex items-center justify-between px-1 text-[12px] font-medium text-teal-950">
+              <div className="mb-2 flex items-center justify-between px-1 text-[12px] font-medium text-ink">
                 <span className="flex items-center gap-1.5">
                   <span className={cn('h-2 w-2 rounded-full', col.dot)} />
                   {col.label}
                 </span>
-                <span className="rounded-full bg-white/70 px-2 py-0.5 font-mono text-[10px]">{items.length}</span>
+                <span className="rounded-full bg-white/70 px-2 py-0.5 font-mono text-[10px] dark:bg-white/10">{items.length}</span>
               </div>
               <div className="space-y-2">
                 {items.map((task) => (
                   <div key={task.title} className="app-card relative overflow-hidden rounded-2xl p-3">
                     <span className={cn('absolute inset-y-0 left-0 w-1', priorityEdge(task.priority))} />
-                    <div className="pl-2 text-[12px] font-medium leading-snug text-teal-950">{task.title}</div>
+                    <div className="pl-2 text-[12px] font-medium leading-snug text-ink">{task.title}</div>
                     <div className="mt-2 flex items-center justify-between gap-1 pl-2">
                       <div className="flex min-w-0 items-center gap-1.5">
                         <Avatar name={task.assignee} size="sm" />
-                        <span className="truncate text-[10px] text-teal-900/55">{task.assignee.split(' ')[0]}</span>
+                        <span className="truncate text-[10px] text-muted">{task.assignee.split(' ')[0]}</span>
                       </div>
                       <span className="rounded-full bg-teal-50 px-1.5 py-0.5 font-mono text-[9px] text-teal-800/70">{task.due}</span>
                     </div>
@@ -263,8 +263,8 @@ function TaskView() {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <div className="font-mono text-[11px] tracking-[0.32em] text-teal-700/80 uppercase">Task</div>
-          <h3 className="mt-1 text-2xl font-semibold tracking-tight text-teal-950">QA checkout</h3>
-          <p className="font-serif italic text-teal-900/55">Verify tax, shipping, and guest checkout before launch.</p>
+          <h3 className="mt-1 text-2xl font-semibold tracking-tight text-ink">QA checkout</h3>
+          <p className="font-serif italic text-muted">Verify tax, shipping, and guest checkout before launch.</p>
         </div>
         <Button type="button" variant="secondary" className="pointer-events-none">
           Back to board
@@ -313,7 +313,7 @@ function TaskView() {
                 ['Arun Mehta', 'Just now', 'Looks good — approving after the tax path check.'],
               ].map(([name, when, text]) => (
                 <div key={name} className="landing-inset rounded-2xl p-3 text-sm">
-                  <div className="flex items-center gap-2 font-medium text-teal-950">
+                  <div className="flex items-center gap-2 font-medium text-ink">
                     <Avatar name={name} size="sm" />
                     {name} <span className="font-normal text-teal-900/40">{when}</span>
                   </div>
@@ -353,7 +353,7 @@ function TaskView() {
                 <div key={message} className="flex gap-2">
                   <Avatar name={name} size="sm" />
                   <div>
-                    <div className="text-sm text-teal-950">{message}</div>
+                    <div className="text-sm text-ink">{message}</div>
                     <div className="text-[11px] text-teal-900/45">{when}</div>
                   </div>
                 </div>
@@ -372,8 +372,8 @@ function TeamView() {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <div className="font-mono text-[11px] tracking-[0.32em] text-teal-700/80 uppercase">People</div>
-          <h3 className="mt-1 text-2xl font-semibold tracking-tight text-teal-950">Members</h3>
-          <p className="font-serif italic text-teal-900/55">Who can log in, take work, and run delivery.</p>
+          <h3 className="mt-1 text-2xl font-semibold tracking-tight text-ink">Members</h3>
+          <p className="font-serif italic text-muted">Who can log in, take work, and run delivery.</p>
         </div>
         <Button type="button" className="pointer-events-none">
           Add member
@@ -403,8 +403,8 @@ function TeamView() {
             <div className="flex items-start gap-3">
               <Avatar name={member.name} />
               <div className="min-w-0 flex-1">
-                <div className="font-semibold text-teal-950">{member.name}</div>
-                <div className="truncate text-xs text-teal-900/50">{member.email}</div>
+                <div className="font-semibold text-ink">{member.name}</div>
+                <div className="truncate text-xs text-muted">{member.email}</div>
                 <div className="mt-2 flex flex-wrap gap-1">
                   <Badge tone={member.role === 'ADMIN' ? 'teal' : 'slate'}>{member.role}</Badge>
                   <Badge tone={statusTone(member.status)}>{member.status}</Badge>
@@ -455,7 +455,7 @@ export function ProductTour() {
                 'app-nav-pill inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm',
                 active
                   ? 'bg-teal-300 text-teal-950 shadow-[0_12px_28px_rgb(45_212_191_/_0.32)]'
-                  : 'landing-inset text-teal-800 hover:bg-white',
+                  : 'landing-inset text-teal-800 hover:bg-white dark:hover:bg-white/10',
               )}
             >
               <Icon className="h-4 w-4" />

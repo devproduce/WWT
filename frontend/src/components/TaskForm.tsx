@@ -51,7 +51,7 @@ export function TaskForm({ mode, initialValues, people, pending, onClose, onSubm
   return (
     <Modal>
       <form className="space-y-3" onSubmit={submit}>
-        <h2 className="text-lg font-semibold text-teal-950">{mode === 'create' ? 'New task' : 'Edit task'}</h2>
+        <h2 className="text-lg font-semibold text-ink">{mode === 'create' ? 'New task' : 'Edit task'}</h2>
         <Field label="Title">
           <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required />
         </Field>
@@ -72,7 +72,7 @@ export function TaskForm({ mode, initialValues, people, pending, onClose, onSubm
             ))}
           </select>
           {people.length === 0 && (
-            <p className="mt-1 text-xs text-teal-900/50">
+            <p className="mt-1 text-xs text-muted">
               No assignable members yet. An Admin must add members to this project first.
             </p>
           )}
